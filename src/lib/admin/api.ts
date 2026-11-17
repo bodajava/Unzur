@@ -6,7 +6,10 @@ import { setSession } from "@/lib/api/session";
 import { qk } from "@/lib/api/hooks";
 import type { AuthResult, Paginated } from "@/lib/api/types";
 import type {
+  AdminProduct,
+  AdminProductQuery,
   AdminOrder,
+  VariantInput,
   AdminOrderRow,
   DateRange,
   Granularity,
@@ -42,7 +45,36 @@ export const adminApi = {
     api<AdminOrder>(`/orders/${enc(id)}/status`, { method: "PATCH", json: { status, note: note || undefined } }),
   refund: (id: string, body: { reason: string; amountPiasters?: number; restock?: boolean }) =>
     api<AdminOrder>(`/orders/${enc(id)}/refund`, { method: "PATCH", json: body }),
+
+  products: (q: AdminProductQuery) => api<Paginated<AdminProduct>>(`/products/admin/all${qs({ ...q })}`),
+  product: (id: string) => api<AdminProduct>(`/products/admin/${enc(id)}`),
+  /** multipart: fields + `images` files. */
+  createProduct: (form: FormData) => api<AdminProduct>("/products", { method: "POST", form }),
+  updateProduct: (id: string, form: FormData) => api<AdminProduct>(`/products/${enc(id)}`, { method: "PATCH", form }),
+  deleteProduct: (id: string) => api<{ id: string; deleted: true }>(`/products/${enc(id)}`, { method: "DELETE" }),
+  addVariant: (productId: string, v: VariantInput) => api<unknown>(`/products/${enc(productId)}/variants`, { method: "POST", json: v }),
+  updateVariant: (id: string, v: Partial<VariantInput>) => api<unknown>(`/variants/${enc(id)}`, { method: "PATCH", json: v }),
+  deleteVariant: (id: string) => api<unknown>(`/variants/${enc(id)}`, { method: "DELETE" }),
 };
+
+/**
+ * Ask the storefront to drop its cached copies (shop, product pages) so a
+ * change shows right away. Best effort: pages also refresh on their own.
+ */
+export async function refreshStore(tags: string[]) {
+  try {
+    const { getAccessToken } = await import("@/lib/api/session");
+    const token = await getAccessToken();
+    if (!token) return;
+    await fetch("/api/revalidate", {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+      body: JSON.stringify({ tags }),
+    });
+  } catch {
+    /* the cache expires by itself within minutes */
+  }
+}
 
 export const akq = {
   overview: (r: DateRange) => ["admin", "overview", r] as const,
@@ -104,3 +136,41 @@ export const useSetOrderStatus = (id: string) =>
 
 export const useRefundOrder = (id: string) =>
   useOrderMutation(id, (body: { reason: string; amountPiasters?: number; restock?: boolean }) => adminApi.refund(id, body));
+
+// ───────────────────────── products ─────────────────────────
+
+export const pkq = {
+  list: (q: AdminProductQuery) => ["admin", "products", q] as const,
+  one: (id: string) => ["admin", "product", id] as const,
+};
+
+export const useAdminProducts = (q: AdminProductQuery) =>
+  useQuery({ queryKey: pkq.list(q), queryFn: () => adminApi.products(q), placeholderData: keepPreviousData });
+
+export const useAdminProduct = (id: string | undefined) =>
+  useQuery({ queryKey: pkq.one(id ?? ""), queryFn: () => adminApi.product(id!), enabled: !!id });
+
+function useProductChange<V, R>(fn: (v: V) => Promise<R>, productId?: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: fn,
+    onSuccess: (result) => {
+      const product = result as Partial<AdminProduct> | undefined;
+      const id = productId ?? product?.id;
+      void client.invalidateQueries({ queryKey: ["admin", "products"] });
+      if (id) void client.invalidateQueries({ queryKey: pkq.one(id) });
+      void client.invalidateQueries({ queryKey: ["admin", "low-stock"] });
+      void refreshStore(["products", ...(product?.slug ? [`product:${product.slug}`] : [])]);
+    },
+  });
+}
+
+export const useCreateProduct = () => useProductChange((form: FormData) => adminApi.createProduct(form));
+export const useUpdateProduct = (id: string) => useProductChange((form: FormData) => adminApi.updateProduct(id, form), id);
+export const useDeleteProduct = (id: string) => useProductChange(() => adminApi.deleteProduct(id), id);
+export const useAddVariant = (productId: string) =>
+  useProductChange((v: VariantInput) => adminApi.addVariant(productId, v), productId);
+export const useUpdateVariant = (productId: string) =>
+  useProductChange(({ id, v }: { id: string; v: Partial<VariantInput> }) => adminApi.updateVariant(id, v), productId);
+export const useDeleteVariant = (productId: string) =>
+  useProductChange((id: string) => adminApi.deleteVariant(id), productId);

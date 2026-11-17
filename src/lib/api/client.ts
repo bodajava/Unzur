@@ -36,12 +36,14 @@ export function qs(query?: Query): string {
 interface RequestOptions extends Omit<RequestInit, "body"> {
   /** JSON body (serialized for you). */
   json?: unknown;
+  /** multipart/form-data body (file uploads); the browser sets the boundary. */
+  form?: FormData;
   /** Skip the Authorization header (public auth endpoints). */
   anonymous?: boolean;
 }
 
 async function send(path: string, opts: RequestOptions, token: string | null): Promise<Response> {
-  const { json, headers, ...rest } = opts;
+  const { json, form, headers, ...rest } = opts;
   const init: RequestInit = { ...rest };
   delete (init as RequestOptions).anonymous;
   const guestId = getGuestId();
@@ -57,7 +59,7 @@ async function send(path: string, opts: RequestOptions, token: string | null): P
       ...(token ? { authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
-    body: json !== undefined ? JSON.stringify(json) : undefined,
+    body: form ?? (json !== undefined ? JSON.stringify(json) : undefined),
   });
 }
 

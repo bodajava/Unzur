@@ -12,6 +12,9 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
     ],
     formats: ["image/avif", "image/webp"],
+    // The optimizer refuses local addresses (SSRF guard). Allow it only when the
+    // API itself runs on this machine (development); production keeps the guard.
+    dangerouslyAllowLocalIP: ["localhost", "127.0.0.1", "::1"].includes(api.hostname),
   },
   turbopack: {
     // Keep Turbopack inside this project (a pnpm-workspace.yaml in the home folder confused it).

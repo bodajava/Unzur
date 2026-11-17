@@ -142,3 +142,77 @@ export const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   REFUNDED: [],
 };
 export const REFUNDABLE: OrderStatus[] = ["CONFIRMED", "PREPARING", "SHIPPED", "DELIVERED"];
+
+// ───────────────────────── products ─────────────────────────
+
+export interface AdminImage {
+  id: string;
+  url: string;
+  altText: string | null;
+  sortOrder: number;
+  isPrimary: boolean;
+}
+
+export interface AdminVariant {
+  id: string;
+  name: string;
+  sku: string;
+  price: number;
+  salePrice: number | null;
+  stock: number;
+  attributes: Record<string, unknown> | null;
+  isActive: boolean;
+}
+
+export interface AdminProduct {
+  id: string;
+  name: string;
+  slug: string;
+  sku: string | null;
+  description: string;
+  shortDescription: string | null;
+  basePrice: number;
+  salePrice: number | null;
+  costPrice: number | null;
+  stock: number;
+  lowStockThreshold: number;
+  isActive: boolean;
+  isFeatured: boolean;
+  categoryId: string;
+  brandId: string | null;
+  deletedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  category: { id: string; name: string; slug: string };
+  brand: { id: string; name: string; slug: string; logoUrl: string | null } | null;
+  images: AdminImage[];
+  variants: AdminVariant[];
+  stockStats: {
+    productStock: number;
+    variantStock: number;
+    totalStock: number;
+    activeVariants: number;
+    isLowStock: boolean;
+    isOutOfStock: boolean;
+  };
+}
+
+export interface AdminProductQuery extends PageQuery {
+  category?: string;
+  isActive?: boolean;
+  includeDeleted?: boolean;
+  inStock?: boolean;
+}
+
+export interface VariantInput {
+  name: string;
+  sku: string;
+  price: number;
+  salePrice?: number | null;
+  stock?: number;
+  isActive?: boolean;
+}
+
+export const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+export const MAX_IMAGES = 10;

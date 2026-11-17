@@ -19,6 +19,7 @@ export function AdminHeader({ user, onSignOut }: { user: User; onSignOut: () => 
   const links = [
     { href: href("/admin"), label: t.admin.nav.overview, exact: true },
     { href: href("/admin/orders"), label: t.admin.nav.orders },
+    { href: href("/admin/products"), label: t.admin.nav.products },
   ];
   const active = (l: { href: string; exact?: boolean }) => (l.exact ? pathname === l.href : pathname.startsWith(l.href));
   const name = `${user.firstName} ${user.lastName}`.trim() || user.email;
