@@ -34,6 +34,12 @@ export class CategoriesService {
 
   // ───────────── 2.7 / 2.8 Public ─────────────
 
+  /** Dashboard list: hidden categories included, with how many live products each holds. */
+  async adminList() {
+    const rows = await this.categories.findAllForAdmin();
+    return rows.map(({ _count, deletedAt: _deleted, ...c }) => ({ ...c, productCount: _count.products }));
+  }
+
   async tree(): Promise<CategoryNode[]> {
     return buildCategoryTree(await this.categories.findAllPublic());
   }

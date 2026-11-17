@@ -22,6 +22,13 @@ import { CreateCategoryDto, UpdateCategoryDto } from './dto/index.js';
 export class CategoriesController {
   constructor(private readonly categories: CategoriesService) {}
 
+  /** 2.7b Dashboard: every category (hidden ones too) with product counts. */
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
+  @Get('admin/all')
+  adminList() {
+    return this.categories.adminList();
+  }
+
   /** 2.7 Active categories as a tree (children nested). */
   @Public()
   @Get()

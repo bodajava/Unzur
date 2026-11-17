@@ -26,6 +26,12 @@ export class BrandsService {
 
   // ───────────── 2.10 / 2.11 Public ─────────────
 
+  /** Dashboard list: hidden brands included, with how many live products each has. */
+  async adminList() {
+    const rows = await this.brands.findAllForAdmin();
+    return rows.map(({ _count, deletedAt: _deleted, ...b }) => ({ ...b, productCount: _count.products }));
+  }
+
   list(): Promise<BrandPublic[]> {
     return this.brands.findAllPublic();
   }

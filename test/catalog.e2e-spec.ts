@@ -167,6 +167,31 @@ describe('Catalog, variants & discovery (e2e)', () => {
     ]);
   });
 
+  it('2.7b / 2.10b dashboard lists include hidden categories and brands with product counts', async () => {
+    await http.get(`${API}/categories/admin/all`).expect(401);
+    await http.patch(`${API}/brands/${brand.id}`).set(auth(adminToken)).send({ isActive: false }).expect(200);
+
+    const publicBrands = (await http.get(`${API}/brands`).expect(200)).body.data as { id: string }[];
+    expect(publicBrands.some((b) => b.id === brand.id)).toBe(false);
+
+    const brands = (await http.get(`${API}/brands/admin/all`).set(auth(staffToken)).expect(200)).body.data as {
+      id: string;
+      isActive: boolean;
+      productCount: number;
+    }[];
+    expect(brands.find((b) => b.id === brand.id)).toMatchObject({ isActive: false, productCount: 0 });
+
+    const cats = (await http.get(`${API}/categories/admin/all`).set(auth(staffToken)).expect(200)).body.data as {
+      id: string;
+      parentId: string | null;
+      productCount: number;
+    }[];
+    expect(cats.find((c) => c.id === childCat.id)).toMatchObject({ parentId: parentCat.id, productCount: 0 });
+    expect(JSON.stringify(cats)).not.toContain('deletedAt');
+
+    await http.patch(`${API}/brands/${brand.id}`).set(auth(adminToken)).send({ isActive: true }).expect(200);
+  });
+
   it('2.7 / 2.8 / 2.10 / 2.11 public category tree, category by slug, brand by id or slug', async () => {
     const tree = await http.get(`${API}/categories`).expect(200);
     const node = tree.body.data.find((c: { id: string }) => c.id === parentCat.id);

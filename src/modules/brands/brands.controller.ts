@@ -22,6 +22,13 @@ import { CreateBrandDto, UpdateBrandDto } from './dto/index.js';
 export class BrandsController {
   constructor(private readonly brands: BrandsService) {}
 
+  /** 2.10b Dashboard: every brand (hidden ones too) with product counts. */
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
+  @Get('admin/all')
+  adminList() {
+    return this.brands.adminList();
+  }
+
   /** 2.10 */
   @Public()
   @Get()

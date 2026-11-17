@@ -22,6 +22,15 @@ export class CategoryRepository extends BaseRepository<
     return db.category;
   }
 
+  /** Dashboard: every live row (hidden ones too) with its live product count. */
+  findAllForAdmin() {
+    return this.db.category.findMany({
+      where: { deletedAt: null },
+      include: { _count: { select: { products: { where: { deletedAt: null } } } } },
+      orderBy: { name: 'asc' },
+    });
+  }
+
   findAllPublic(): Promise<CategoryPublic[]> {
     return this.db.category.findMany({
       where: PUBLIC_CATEGORY_WHERE,

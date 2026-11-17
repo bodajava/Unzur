@@ -22,6 +22,15 @@ export class BrandRepository extends BaseRepository<
     return db.brand;
   }
 
+  /** Dashboard: every live row (hidden ones too) with its live product count. */
+  findAllForAdmin() {
+    return this.db.brand.findMany({
+      where: { deletedAt: null },
+      include: { _count: { select: { products: { where: { deletedAt: null } } } } },
+      orderBy: { name: 'asc' },
+    });
+  }
+
   findAllPublic(): Promise<BrandPublic[]> {
     return this.db.brand.findMany({
       where: PUBLIC_BRAND_WHERE,
