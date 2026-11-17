@@ -1,0 +1,1268 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+input AddToCartInput {
+  productId: ID!
+  quantity: Int!
+  variantId: ID
+}
+
+type Address {
+  apartment: String
+  building: String
+  city: String!
+  createdAt: DateTime!
+  floor: String
+  fullName: String!
+  governorate: String!
+  id: ID!
+  isDefault: Boolean!
+  label: String!
+  notes: String
+  phone: String!
+  street: String!
+  updatedAt: DateTime!
+}
+
+input AdminChatInput {
+  history: [ChatMessageInput!]
+  message: String!
+}
+
+type AdminChatResult {
+  dataSnapshot: JSON!
+  reply: String!
+  source: String!
+}
+
+type AdminOrderDetail {
+  cancelOrRefundReason: String
+  couponCode: String
+  createdAt: DateTime!
+  customerEmail: String!
+  customerName: String!
+  customerPhone: String!
+  discountAmount: Int!
+  giftCardAmount: Int!
+  giftCardId: ID
+  guestId: String
+  id: ID!
+  itemCount: Int!
+  items: [OrderItem!]!
+  loyaltyDiscount: Int!
+  notes: String
+  orderNumber: String!
+  paymentMethod: PaymentMethod!
+  paymentStatus: PaymentStatus!
+  payments: [Payment!]!
+  shippingAddress: JSON!
+  shippingCost: Int!
+  shippingZoneId: ID
+  status: OrderStatus!
+  statusHistory: [AdminOrderEvent!]!
+  subtotal: Int!
+  totalAmount: Int!
+  updatedAt: DateTime!
+  user: OrderCustomerAccount
+  userId: ID
+}
+
+type AdminOrderEvent {
+  changedBy: OrderActor
+  createdAt: DateTime!
+  fromStatus: OrderStatus
+  id: ID!
+  note: String
+  toStatus: OrderStatus!
+}
+
+type AdminOrderListItem {
+  couponCode: String
+  createdAt: DateTime!
+  customerEmail: String!
+  customerName: String!
+  customerPhone: String!
+  discountAmount: Int!
+  giftCardAmount: Int!
+  guestId: String
+  id: ID!
+  itemCount: Int!
+  loyaltyDiscount: Int!
+  orderNumber: String!
+  paymentMethod: PaymentMethod!
+  paymentStatus: PaymentStatus!
+  shippingAddress: JSON!
+  shippingCost: Int!
+  status: OrderStatus!
+  subtotal: Int!
+  totalAmount: Int!
+  updatedAt: DateTime!
+  userId: ID
+}
+
+type AdminOrderPage {
+  items: [AdminOrderListItem!]!
+  meta: PaginationMeta!
+}
+
+input AdvisorInput {
+  focus: String
+  productId: ID
+  question: String
+}
+
+type AdvisorResult {
+  analysis: String!
+  citedMetrics: [CitedMetric!]!
+  diagnostics: JSON!
+  focus: String!
+  source: String!
+}
+
+type AnalyticsDeltas {
+  averageOrderValue: Float
+  customers: Float
+  orders: Float
+  revenue: Float
+}
+
+type AnalyticsInsight {
+  category: String!
+  description: String!
+  metricValue: Float!
+  productId: ID
+  severity: String!
+  title: String!
+}
+
+type AnalyticsOverview {
+  averageOrderValue: Int!
+  conversionRate: Float!
+  deltas: AnalyticsDeltas!
+  fromDate: DateTime!
+  guestOrdersCount: Int!
+  newCustomers: Int!
+  pendingOrdersCount: Int!
+  returningCustomers: Int!
+  toDate: DateTime!
+  totalCustomers: Int!
+  totalOrders: Int!
+  totalRevenue: Int!
+  visitors: Int!
+}
+
+input AnalyticsRangeInput {
+  fromDate: DateTime
+  toDate: DateTime
+}
+
+type AppliedCoupon {
+  code: String!
+  discountAmount: Int!
+  discountType: DiscountType
+  discountValue: Int
+  message: String
+  valid: Boolean!
+}
+
+input ApplyReferralInput {
+  code: String!
+}
+
+type AuditActor {
+  email: String!
+  firstName: String!
+  id: ID!
+  lastName: String!
+  role: String!
+}
+
+type AuditLogEntry {
+  action: String!
+  actor: AuditActor
+  createdAt: DateTime!
+  entityId: String
+  entityType: String!
+  id: ID!
+  ipAddress: String
+  newValues: JSON
+  oldValues: JSON
+}
+
+input AuditLogFilter {
+  action: String
+  actorId: ID
+  entityType: String
+  fromDate: DateTime
+  limit: Int = 20
+  page: Int = 1
+  search: String
+
+  """Comma-separated fields, "-" = descending"""
+  sort: String
+  toDate: DateTime
+}
+
+type AuditLogPage {
+  items: [AuditLogEntry!]!
+  meta: PaginationMeta!
+}
+
+type Brand {
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  logoUrl: String
+  name: String!
+  slug: String!
+  updatedAt: DateTime!
+}
+
+type BrandRef {
+  id: ID!
+  logoUrl: String
+  name: String!
+  slug: String!
+}
+
+input CancelOrderInput {
+  contact: String
+  reason: String
+}
+
+type Cart {
+  canCheckout: Boolean!
+  coupon: AppliedCoupon
+  discountAmount: Int!
+  estimatedTotal: Int!
+  guestId: String
+  id: ID
+  issues: [String!]!
+  itemCount: Int!
+  items: [CartLine!]!
+  subtotal: Int!
+}
+
+type CartLine {
+  availableStock: Int!
+  hasEnoughStock: Boolean!
+  id: ID!
+  inStock: Boolean!
+  isAvailable: Boolean!
+  lineTotal: Int!
+  originalUnitPrice: Int!
+  product: CartLineProduct!
+  productId: ID!
+  quantity: Int!
+  unitPrice: Int!
+  variant: CartLineVariant
+  variantId: ID
+}
+
+type CartLineProduct {
+  id: ID!
+  name: String!
+  primaryImage: ImageRef
+  slug: String!
+}
+
+type CartLineVariant {
+  attributes: JSON
+  id: ID!
+  name: String!
+  sku: String!
+}
+
+type Category {
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  imageUrl: String
+  name: String!
+  parentId: ID
+  slug: String!
+  updatedAt: DateTime!
+}
+
+type CategoryDetail {
+  children: [Category!]!
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  imageUrl: String
+  name: String!
+  parent: CategoryRef
+  parentId: ID
+  slug: String!
+  updatedAt: DateTime!
+}
+
+type CategoryNode {
+  children: [CategoryNode!]!
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  imageUrl: String
+  name: String!
+  parentId: ID
+  slug: String!
+  updatedAt: DateTime!
+}
+
+type CategoryRef {
+  id: ID!
+  name: String!
+  slug: String!
+}
+
+input ChatMessageInput {
+  content: String!
+  role: String!
+}
+
+input CheckoutInput {
+  apartment: String
+  building: String
+  city: String!
+  couponCode: String
+  customerEmail: String!
+  customerName: String!
+  customerPhone: String!
+  floor: String
+  giftCardCode: String
+  governorate: String!
+  notes: String
+  paymentMethod: PaymentMethod!
+  redeemLoyaltyPoints: Int
+  street: String!
+}
+
+type CheckoutResult {
+  loyaltyPointsUsed: Int!
+  order: CustomerOrder!
+  payment: PaymentSession
+  paymentError: String
+}
+
+type CitedMetric {
+  label: String!
+  value: String!
+}
+
+input ContactMessageInput {
+  email: String!
+  message: String!
+  name: String!
+  phone: String
+  subject: String
+}
+
+type ContactMessageReceipt {
+  id: ID!
+  received: Boolean!
+}
+
+type Coupon {
+  code: String!
+  createdAt: DateTime!
+  description: String
+  discountType: DiscountType!
+  discountValue: Int!
+  expiresAt: DateTime!
+  id: ID!
+  isActive: Boolean!
+  maxDiscountAmount: Int
+  minOrderAmount: Int!
+  perUserLimit: Int!
+  startsAt: DateTime!
+  stats: CouponUsageStats!
+  status: String!
+  updatedAt: DateTime!
+  usageLimit: Int
+  usedCount: Int!
+}
+
+type CouponCampaign {
+  code: String!
+  queued: Boolean!
+  recipients: Int!
+  target: String!
+}
+
+type CouponPage {
+  items: [Coupon!]!
+  meta: PaginationMeta!
+}
+
+type CouponRemoval {
+  deactivated: Boolean!
+  deleted: Boolean!
+  id: ID!
+  reason: String
+}
+
+type CouponUsageStats {
+  orders: Int!
+  remaining: Int
+  usedCount: Int!
+}
+
+type CouponValidation {
+  appliedToCart: Boolean!
+  code: String!
+  discountAmount: Int!
+  discountType: DiscountType!
+  discountValue: Int!
+  maxDiscountAmount: Int
+  subtotal: Int!
+  totalAfterDiscount: Int!
+  valid: Boolean!
+}
+
+input CouponsFilter {
+  limit: Int = 20
+  page: Int = 1
+  search: String
+
+  """Comma-separated fields, "-" = descending"""
+  sort: String
+
+  """ACTIVE | SCHEDULED | EXPIRED | INACTIVE"""
+  status: String
+}
+
+input CreateAddressInput {
+  apartment: String
+  building: String
+  city: String!
+  floor: String
+  fullName: String!
+  governorate: String!
+  isDefault: Boolean
+  label: String!
+  notes: String
+  phone: String!
+  street: String!
+}
+
+input CreateCouponInput {
+  code: String!
+  description: String
+  discountType: DiscountType!
+  discountValue: Int!
+  expiresAt: DateTime!
+  isActive: Boolean
+  maxDiscountAmount: Int
+  minOrderAmount: Int
+  perUserLimit: Int
+  startsAt: DateTime!
+  usageLimit: Int
+}
+
+input CreateReviewInput {
+  comment: String
+  rating: Int!
+  title: String
+}
+
+input CreateShippingZoneInput {
+  estimatedDays: String!
+  fee: Int!
+  governorate: String!
+  isActive: Boolean
+  nameAr: String
+}
+
+type CustomerAnalytics {
+  newVsReturning: NewVsReturning!
+  repeatPurchaseRate: Float!
+  topCustomers: [TopCustomer!]!
+}
+
+input CustomerChatInput {
+  history: [ChatMessageInput!]
+  message: String!
+  productId: ID
+}
+
+type CustomerChatResult {
+  recommendedProducts: [ProductCard!]!
+  reply: String!
+  source: String!
+}
+
+type CustomerDirectoryEntry {
+  email: String!
+  firstSeenAt: DateTime!
+  identifier: String!
+  isRegistered: Boolean!
+  lastOrderAt: DateTime
+  loyaltyPoints: Int!
+  name: String!
+  ordersCount: Int!
+  phone: String
+  totalSpent: Int!
+}
+
+input CustomerDirectoryFilter {
+  limit: Int = 20
+  page: Int = 1
+  search: String
+
+  """Comma-separated fields, "-" = descending"""
+  sort: String
+}
+
+type CustomerDirectoryPage {
+  items: [CustomerDirectoryEntry!]!
+  meta: PaginationMeta!
+}
+
+type CustomerOrder {
+  cancelOrRefundReason: String
+  couponCode: String
+  createdAt: DateTime!
+  customerName: String!
+  discountAmount: Int!
+  giftCardAmount: Int!
+  id: ID!
+  items: [OrderItem!]!
+  loyaltyDiscount: Int!
+  notes: String
+  orderNumber: String!
+  paymentMethod: PaymentMethod!
+  paymentStatus: PaymentStatus!
+  shippingAddress: JSON!
+  shippingCost: Int!
+  status: OrderStatus!
+  statusHistory: [OrderEvent!]!
+  subtotal: Int!
+  totalAmount: Int!
+  updatedAt: DateTime!
+}
+
+type CustomerOrderPage {
+  items: [CustomerOrder!]!
+  meta: PaginationMeta!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type DeleteResult {
+  deactivated: Boolean
+  deleted: Boolean!
+  id: ID!
+  reason: String
+}
+
+enum DiscountType {
+  FIXED_AMOUNT
+  PERCENTAGE
+}
+
+type GiftCardPreview {
+  code: String!
+  currentBalance: Int!
+  expiresAt: DateTime
+  isValid: Boolean!
+  message: String
+}
+
+type ImageRef {
+  altText: String
+  id: ID!
+  url: String!
+}
+
+"""Any JSON value"""
+scalar JSON
+
+type LowStockItem {
+  name: String!
+  productId: ID!
+  sku: String
+  slug: String!
+  stock: Int!
+  threshold: Int!
+  type: String!
+  variantId: ID
+  variantName: String
+}
+
+type LoyaltyEntry {
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  orderId: ID
+  points: Int!
+  type: String!
+}
+
+type LoyaltyRedemption {
+  couponCode: String!
+  discountValue: Int!
+  expiresAt: DateTime!
+  pointsRedeemed: Int!
+  remainingPoints: Int!
+}
+
+type LoyaltySummary {
+  history: [LoyaltyEntry!]!
+  meta: PaginationMeta!
+  minRedeemPoints: Int!
+  pointValuePiasters: Int!
+  points: Int!
+  valuePiasters: Int!
+}
+
+type Mutation {
+  """3.2 Creates a guest id when the visitor has none"""
+  addToCart(input: AddToCartInput!): Cart!
+
+  """11.2"""
+  addToWishlist(productId: ID!): WishlistChange!
+
+  """9.2 Data-grounded business advisor"""
+  adminAiAdvisor(input: AdvisorInput!): AdvisorResult!
+
+  """9.3 Staff assistant"""
+  adminAiChat(input: AdminChatInput!): AdminChatResult!
+
+  """17.4"""
+  applyReferralCode(input: ApplyReferralInput!): ReferralApplied!
+
+  """14.1 Cancel before shipping"""
+  cancelOrder(id: ID!, input: CancelOrderInput): CustomerOrder!
+
+  """4.1 Place an order from the current cart"""
+  checkout(input: CheckoutInput!): CheckoutResult!
+
+  """3.5 Removes all items and the coupon"""
+  clearCart: Cart!
+
+  """10.4"""
+  createAddress(input: CreateAddressInput!): Address!
+
+  """6.3"""
+  createCoupon(input: CreateCouponInput!): Coupon!
+
+  """12.2 Verified buyers only"""
+  createReview(input: CreateReviewInput!, productId: ID!): SubmittedReview!
+  createShippingZone(input: CreateShippingZoneInput!): ShippingZone!
+
+  """9.1 Shopping assistant (public data only)"""
+  customerAiChat(input: CustomerChatInput!): CustomerChatResult!
+
+  """10.6"""
+  deleteAddress(id: ID!): DeleteResult!
+
+  """6.3"""
+  deleteCoupon(id: ID!): CouponRemoval!
+  deleteShippingZone(id: ID!): DeleteResult!
+
+  """18.2 Check a gift card before checkout"""
+  redeemGiftCard(input: RedeemGiftCardInput!): GiftCardPreview!
+
+  """17.2 Points -> single-use coupon"""
+  redeemLoyaltyPoints(input: RedeemPointsInput!): LoyaltyRedemption!
+  removeCartCoupon: Cart!
+
+  """3.4"""
+  removeCartItem(itemId: ID!): Cart!
+
+  """11.3"""
+  removeFromWishlist(productId: ID!): WishlistChange!
+
+  """7.4"""
+  sendContactMessage(input: ContactMessageInput!): ContactMessageReceipt!
+
+  """6.4 Email the coupon in the background"""
+  sendCouponToBuyers(input: SendCouponInput!): CouponCampaign!
+
+  """10.7"""
+  setDefaultAddress(id: ID!): Address!
+
+  """7.1"""
+  subscribeNewsletter(input: SubscribeInput!): NewsletterSubscription!
+
+  """10.5"""
+  updateAddress(id: ID!, input: UpdateAddressInput!): Address!
+
+  """3.3 quantity 0 removes the line"""
+  updateCartItem(input: UpdateCartItemInput!, itemId: ID!): Cart!
+
+  """6.3"""
+  updateCoupon(id: ID!, input: UpdateCouponInput!): Coupon!
+
+  """10.1"""
+  updateProfile(input: UpdateProfileInput!): UserProfile!
+
+  """15.4 Admin: bulk upsert"""
+  updateSettings(input: UpdateSettingsInput!): [StoreSetting!]!
+  updateShippingZone(id: ID!, input: UpdateShippingZoneInput!): ShippingZone!
+
+  """6.1 Validate (and optionally apply) a coupon"""
+  validateCoupon(input: ValidateCouponInput!): CouponValidation!
+}
+
+type NewVsReturning {
+  newCount: Int!
+  returningCount: Int!
+}
+
+type NewsletterSubscription {
+  email: String!
+  result: String!
+  subscribed: Boolean!
+}
+
+type OrderActor {
+  firstName: String!
+  id: ID!
+  lastName: String!
+  role: UserRole!
+}
+
+type OrderCustomerAccount {
+  email: String!
+  firstName: String!
+  id: ID!
+  lastName: String!
+  phone: String
+}
+
+type OrderEvent {
+  createdAt: DateTime!
+  fromStatus: OrderStatus
+  id: ID!
+  note: String
+  toStatus: OrderStatus!
+}
+
+type OrderItem {
+  id: ID!
+  imageUrl: String
+  priceAtPurchase: Int!
+  productId: ID!
+  productName: String!
+  quantity: Int!
+  variantId: ID
+  variantName: String
+}
+
+enum OrderStatus {
+  CANCELLED
+  CONFIRMED
+  DELIVERED
+  PENDING_PAYMENT
+  PREPARING
+  REFUNDED
+  SHIPPED
+}
+
+input OrdersFilter {
+  fromDate: DateTime
+  limit: Int = 20
+  page: Int = 1
+  paymentMethod: PaymentMethod
+  paymentStatus: PaymentStatus
+  search: String
+
+  """Comma-separated fields, "-" = descending"""
+  sort: String
+  status: OrderStatus
+  toDate: DateTime
+}
+
+type PaginationMeta {
+  hasNextPage: Boolean!
+  hasPrevPage: Boolean!
+  limit: Int!
+  page: Int!
+  total: Int!
+  totalPages: Int!
+}
+
+type Payment {
+  amountPiasters: Int!
+  createdAt: DateTime!
+  currency: String!
+  id: ID!
+  paymobTransactionId: String
+  provider: String!
+  refundedPiasters: Int!
+  status: String!
+  updatedAt: DateTime!
+}
+
+enum PaymentMethod {
+  COD
+  PAYMOB_CARD
+  PAYMOB_WALLET
+}
+
+type PaymentSession {
+  checkoutUrl: String!
+  intentionId: String!
+  paymentId: ID!
+}
+
+enum PaymentStatus {
+  FAILED
+  PAID
+  PARTIALLY_REFUNDED
+  PENDING
+  REFUNDED
+  UNPAID
+}
+
+type ProductCard {
+  basePrice: Int!
+  brand: BrandRef
+  category: CategoryRef!
+  createdAt: DateTime!
+  id: ID!
+  isFeatured: Boolean!
+  name: String!
+  primaryImage: ImageRef
+  salePrice: Int
+  shortDescription: String
+  slug: String!
+  stock: Int!
+}
+
+type ProductDetail {
+  averageRating: Float
+  basePrice: Int!
+  brand: BrandRef
+  category: CategoryRef!
+  createdAt: DateTime!
+  description: String!
+  id: ID!
+  images: [ProductImage!]!
+  isFeatured: Boolean!
+  name: String!
+  relatedProducts: [ProductCard!]!
+  reviewCount: Int!
+  salePrice: Int
+  shortDescription: String
+  sku: String
+  slug: String!
+  stock: Int!
+  updatedAt: DateTime!
+  variants: [ProductVariant!]!
+}
+
+type ProductImage {
+  altText: String
+  id: ID!
+  isPrimary: Boolean!
+  sortOrder: Int!
+  url: String!
+}
+
+type ProductPage {
+  items: [ProductCard!]!
+  meta: PaginationMeta!
+}
+
+type ProductPerformance {
+  averageRating: Float
+  cancellationCount: Int!
+  conversionRate: Float!
+  costPrice: Int
+  currentPrice: Int!
+  estimatedProfit: Int
+  isActive: Boolean!
+  lowStockThreshold: Int!
+  name: String!
+  productId: ID!
+  refundCount: Int!
+  revenue: Int!
+  reviewCount: Int!
+  slug: String!
+  stock: Int!
+  unitsSold: Int!
+  viewsCount: Int!
+}
+
+type ProductReviews {
+  items: [PublicReview!]!
+  meta: PaginationMeta!
+  ratingSummary: RatingSummary!
+}
+
+type ProductSuggestion {
+  basePrice: Int!
+  id: ID!
+  name: String!
+  primaryImage: ImageRef
+  salePrice: Int
+  slug: String!
+}
+
+type ProductVariant {
+  attributes: JSON
+  id: ID!
+  name: String!
+  price: Int!
+  salePrice: Int
+  sku: String!
+  stock: Int!
+}
+
+input ProductsFilter {
+  brand: String
+  category: String
+  inStock: Boolean
+  isFeatured: Boolean
+  limit: Int = 20
+  maxPrice: Int
+  minPrice: Int
+  page: Int = 1
+  search: String
+
+  """Comma-separated fields, "-" = descending"""
+  sort: String
+}
+
+input ProductsPerformanceInput {
+  fromDate: DateTime
+  limit: Int
+  order: String
+  sortBy: String
+  toDate: DateTime
+}
+
+type PublicReview {
+  comment: String
+  createdAt: DateTime!
+  id: ID!
+  rating: Int!
+  reviewerName: String!
+  title: String
+  verifiedPurchase: Boolean!
+}
+
+type Query {
+  """19.2"""
+  adminAuditLogs(filter: AuditLogFilter): AuditLogPage!
+
+  """19.4"""
+  adminCustomers(filter: CustomerDirectoryFilter): CustomerDirectoryPage!
+
+  """19.1"""
+  adminLowStock(limit: Int): [LowStockItem!]!
+
+  """15.4 Admin: all settings"""
+  adminSettings: [StoreSetting!]!
+
+  """8.4"""
+  analyticsCustomers(range: AnalyticsRangeInput): CustomerAnalytics!
+
+  """8.5"""
+  analyticsInsights(range: AnalyticsRangeInput): [AnalyticsInsight!]!
+
+  """8.1"""
+  analyticsOverview(range: AnalyticsRangeInput): AnalyticsOverview!
+
+  """8.3"""
+  analyticsProductsPerformance(input: ProductsPerformanceInput): [ProductPerformance!]!
+
+  """8.2"""
+  analyticsSalesTrend(input: SalesTrendInput): [SalesTrendPoint!]!
+
+  """2.11 By id or slug"""
+  brand(identifier: String!): Brand!
+
+  """2.10"""
+  brands: [Brand!]!
+
+  """3.1 The current cart (user, else guest)"""
+  cart: Cart!
+
+  """2.7 Category tree"""
+  categories: [CategoryNode!]!
+
+  """2.8"""
+  category(slug: String!): CategoryDetail!
+
+  """6.2 Admin: coupons with usage stats"""
+  coupons(filter: CouponsFilter): CouponPage!
+
+  """1.8 The logged-in user (Bearer token required)"""
+  me: UserProfile!
+
+  """10.3"""
+  myAddresses: [Address!]!
+
+  """17.1"""
+  myLoyalty(limit: Int, page: Int): LoyaltySummary!
+
+  """4.3"""
+  myOrders(limit: Int, page: Int): CustomerOrderPage!
+
+  """17.3"""
+  myReferrals: ReferralSummary!
+
+  """11.1"""
+  myWishlist(limit: Int, page: Int): WishlistPage!
+
+  """4.5"""
+  order(id: ID!): AdminOrderDetail!
+
+  """4.4"""
+  orders(filter: OrdersFilter): AdminOrderPage!
+
+  """2.2 Product page (records a view)"""
+  product(slug: String!): ProductDetail!
+
+  """12.1 Approved reviews + rating summary"""
+  productReviews(limit: Int, page: Int, productId: ID!): ProductReviews!
+
+  """2.1 Paginated, filterable product list"""
+  products(filter: ProductsFilter): ProductPage!
+
+  """15.3 Public settings as { key: value }"""
+  publicSettings: JSON!
+
+  """16.3 For the user, else the guest"""
+  recentlyViewed: [ProductCard!]!
+
+  """16.1 Search-as-you-type (max 8)"""
+  searchSuggest(q: String!): [ProductSuggestion!]!
+
+  """15.1 Fee for a governorate (free above the threshold)"""
+  shippingRate(cartSubtotal: Int, governorate: String!): ShippingRate!
+
+  """15.2 Admin"""
+  shippingZones: [ShippingZone!]!
+
+  """4.2 Track with the order email or phone"""
+  trackOrder(contact: String!, orderNumber: String!): CustomerOrder!
+}
+
+type RatingCount {
+  count: Int!
+  stars: Int!
+}
+
+type RatingSummary {
+  averageRating: Float
+  breakdown: [RatingCount!]!
+  totalReviews: Int!
+}
+
+input RedeemGiftCardInput {
+  code: String!
+}
+
+input RedeemPointsInput {
+  points: Int!
+}
+
+type ReferralApplied {
+  applied: Boolean!
+  bonusPoints: Int!
+  yourPoints: Int!
+}
+
+type ReferralEntry {
+  id: ID!
+  joinedAt: DateTime!
+  name: String!
+  rewarded: Boolean!
+}
+
+type ReferralSummary {
+  bonusPoints: Int!
+  canApplyCode: Boolean!
+  referralCode: String!
+  referrals: [ReferralEntry!]!
+  rewardedReferrals: Int!
+  totalReferrals: Int!
+}
+
+input SalesTrendInput {
+  fromDate: DateTime
+  granularity: String
+  toDate: DateTime
+}
+
+type SalesTrendPoint {
+  averageOrderValue: Int!
+  ordersCount: Int!
+  period: String!
+  revenue: Int!
+}
+
+input SendCouponInput {
+  couponId: ID!
+  emails: [String!]
+  message: String
+  target: String!
+}
+
+input SettingInput {
+  isPublic: Boolean
+  key: String!
+  value: JSON
+}
+
+type ShippingRate {
+  amountToFreeShipping: Int
+  estimatedDays: String!
+  fee: Int!
+  freeShippingThreshold: Int
+  governorate: String!
+  isFreeShipping: Boolean!
+  nameAr: String
+  originalFee: Int!
+  zoneId: ID!
+}
+
+type ShippingZone {
+  createdAt: DateTime!
+  estimatedDays: String!
+  fee: Int!
+  governorate: String!
+  id: ID!
+  isActive: Boolean!
+  nameAr: String
+  updatedAt: DateTime!
+}
+
+type StoreSetting {
+  createdAt: DateTime!
+  id: ID!
+  isPublic: Boolean!
+  key: String!
+  updatedAt: DateTime!
+  value: JSON
+}
+
+type SubmittedReview {
+  comment: String
+  createdAt: DateTime!
+  id: ID!
+  isApproved: Boolean!
+  rating: Int!
+  title: String
+}
+
+input SubscribeInput {
+  email: String!
+}
+
+type TopCustomer {
+  email: String!
+  identifier: String!
+  isRegistered: Boolean!
+  lastOrderAt: DateTime!
+  name: String!
+  ordersCount: Int!
+  totalSpent: Int!
+}
+
+input UpdateAddressInput {
+  apartment: String
+  building: String
+  city: String
+  floor: String
+  fullName: String
+  governorate: String
+  isDefault: Boolean
+  label: String
+  notes: String
+  phone: String
+  street: String
+}
+
+input UpdateCartItemInput {
+  quantity: Int!
+}
+
+input UpdateCouponInput {
+  code: String
+  description: String
+  discountType: DiscountType
+  discountValue: Int
+  expiresAt: DateTime
+  isActive: Boolean
+  maxDiscountAmount: Int
+  minOrderAmount: Int
+  perUserLimit: Int
+  startsAt: DateTime
+  usageLimit: Int
+}
+
+input UpdateProfileInput {
+  firstName: String
+  lastName: String
+  phone: String
+}
+
+input UpdateSettingsInput {
+  settings: [SettingInput!]!
+}
+
+input UpdateShippingZoneInput {
+  estimatedDays: String
+  fee: Int
+  governorate: String
+  isActive: Boolean
+  nameAr: String
+}
+
+type UserProfile {
+  createdAt: DateTime!
+  email: String!
+  firstName: String!
+  id: ID!
+  isActive: Boolean!
+  isEmailVerified: Boolean!
+  lastName: String!
+  loyaltyPoints: Int!
+  phone: String
+  referralCode: String!
+  role: UserRole!
+  updatedAt: DateTime!
+}
+
+enum UserRole {
+  ADMIN
+  CUSTOMER
+  STAFF
+  SUPER_ADMIN
+}
+
+input ValidateCouponInput {
+  applyToCart: Boolean
+  cartSubtotal: Int
+  code: String!
+  email: String
+}
+
+type WishlistChange {
+  changed: Boolean!
+  inWishlist: Boolean!
+  productId: ID!
+}
+
+type WishlistItem {
+  addedAt: DateTime!
+  id: ID!
+  inStock: Boolean!
+  isAvailable: Boolean!
+  product: ProductCard!
+  productId: ID!
+}
+
+type WishlistPage {
+  items: [WishlistItem!]!
+  meta: PaginationMeta!
+}

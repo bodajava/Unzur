@@ -1,0 +1,21 @@
+# Dependencies & build output
+/node_modules
+/dist
+/coverage
+*.tsbuildinfo
+
+# Generated Prisma client (rebuilt by `prisma generate` / postinstall)
+/src/generated/prisma
+
+# Environment variables (secrets). .env.example is committed.
+.env
+.env.*
+!.env.example
+
+# Local storage driver (user uploads)
+/uploads
+
+# Logs & OS files
+*.log
+npm-debug.log*
+.DS_Store
