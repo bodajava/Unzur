@@ -8,7 +8,10 @@ import { ApiError } from "./client";
  */
 export function errorMessage(error: unknown, t: Dictionary): string {
   if (error instanceof ApiError) {
-    if (error.isNetwork || error.status >= 500) return t.errors.network;
+    if (error.isNetwork) return t.errors.network;
+    // 503 = a service we depend on is off (today: online payment through Paymob).
+    if (error.status === 503) return t.errors.unavailable;
+    if (error.status >= 500) return t.errors.generic;
     if (error.status === 401) return t.errors.sessionExpired;
     return error.message || t.errors.generic;
   }

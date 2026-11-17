@@ -297,10 +297,11 @@ export interface OrderEvent {
   createdAt: string;
 }
 
+/** Customer views (tracking, my orders) only include the delivery area. */
 export interface ShippingAddress {
   governorate: string;
   city: string;
-  street: string;
+  street?: string;
   building?: string | null;
   floor?: string | null;
   apartment?: string | null;
