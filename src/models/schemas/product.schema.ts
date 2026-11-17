@@ -45,6 +45,12 @@ export const PRODUCT_CARD_SELECT = {
   category: CATEGORY_REF,
   brand: BRAND_REF,
   images: PRIMARY_IMAGE,
+  /** Active versions, so a list can add to cart (or ask which version) without opening the product. */
+  variants: {
+    where: { isActive: true },
+    select: { id: true, name: true, price: true, salePrice: true, stock: true },
+    orderBy: { price: 'asc' },
+  },
 } as const satisfies Prisma.ProductSelect;
 
 export type ProductCardRow = Prisma.ProductGetPayload<{ select: typeof PRODUCT_CARD_SELECT }>;

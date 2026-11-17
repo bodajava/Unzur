@@ -231,6 +231,14 @@ input CancelOrderInput {
   reason: String
 }
 
+type CardVariant {
+  id: ID!
+  name: String!
+  price: Int!
+  salePrice: Int
+  stock: Int!
+}
+
 type Cart {
   canCheckout: Boolean!
   coupon: AppliedCoupon
@@ -833,6 +841,7 @@ type ProductCard {
   shortDescription: String
   slug: String!
   stock: Int!
+  variants: [CardVariant!]!
 }
 
 type ProductDetail {

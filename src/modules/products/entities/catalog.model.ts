@@ -7,6 +7,15 @@ import { CategoryRefModel } from '../../categories/entities/category.model.js';
 
 /** PUBLIC catalog types: no costPrice, no deletedAt. Money in piasters. */
 
+@ObjectType('CardVariant')
+export class CardVariantModel {
+  @Field(() => ID) id: string;
+  @Field() name: string;
+  @Field(() => Int) price: number;
+  @Field(() => Int, { nullable: true }) salePrice: number | null;
+  @Field(() => Int) stock: number;
+}
+
 @ObjectType('ProductCard')
 export class ProductCardModel {
   @Field(() => ID) id: string;
@@ -21,6 +30,7 @@ export class ProductCardModel {
   @Field(() => CategoryRefModel) category: CategoryRefModel;
   @Field(() => BrandRefModel, { nullable: true }) brand: BrandRefModel | null;
   @Field(() => ImageRefModel, { nullable: true }) primaryImage: ImageRefModel | null;
+  @Field(() => [CardVariantModel]) variants: CardVariantModel[];
 }
 
 @ObjectType('ProductPage')
