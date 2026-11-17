@@ -539,6 +539,13 @@ describe('Catalog, variants & discovery (e2e)', () => {
     expect(deleted?.costPrice).toBe(20000);
     expect(deleted?.stockStats).toMatchObject({ totalStock: 5, isOutOfStock: false });
 
+    // 2.3b one product for the editor (staff only), deleted ones included
+    await http.get(`${API}/products/admin/${english.id}`).expect(401);
+    const one = (await http.get(`${API}/products/admin/${english.id}`).set(auth(staffToken)).expect(200)).body.data;
+    expect(one).toMatchObject({ id: english.id, costPrice: 20000 });
+    expect(one.deletedAt).toBeTruthy();
+    await http.get(`${API}/products/admin/not-a-uuid`).set(auth(staffToken)).expect(400);
+
     // category with live products cannot be deleted; empty child can
     await http.delete(`${API}/categories/${parentCat.id}`).set(auth(adminToken)).expect(409);
     await http.delete(`${API}/categories/${childCat.id}`).set(auth(adminToken)).expect(200);

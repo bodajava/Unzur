@@ -69,6 +69,13 @@ export class ProductsController {
     return this.products.adminList(query);
   }
 
+  /** 2.3b One product for the dashboard editor: costPrice, all images, hidden variants, stock stats. */
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
+  @Get('admin/:id')
+  adminFindOne(@Param('id', ParseIdPipe) id: string) {
+    return this.products.adminFindById(id);
+  }
+
   /** 16.3 For the logged-in user, else the guest (x-guest-id / guest_id cookie). */
   @Public()
   @Get('recently-viewed')
