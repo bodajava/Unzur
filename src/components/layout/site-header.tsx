@@ -4,11 +4,13 @@ import { useGSAP } from "@gsap/react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { useCartSummary } from "@/lib/api/hooks";
 import type { CategoryNode } from "@/lib/api/types";
 import { lockScroll } from "@/lib/motion/scroll-state";
 import { Logo } from "@/components/brand/logo";
+import { LiquidGlass } from "@/components/ui/liquid-glass";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { useI18n } from "@/i18n/client";
 import { fmt, plural } from "@/i18n/format";
@@ -29,13 +31,13 @@ function Marquee() {
           <span lang={/[؀-ۿ]/.test(text) ? "ar" : "en"} className="eyebrow !tracking-[0.1em]">
             {text}
           </span>
-          <span className="h-3 w-px bg-ink/40" />
+          <span className="h-3 w-px bg-current opacity-40" />
         </span>
       ))}
     </div>
   );
   return (
-    <div className="overflow-hidden border-b border-ink/10 py-2" dir="ltr">
+    <div className="overflow-hidden border-b border-current/10 py-2" dir="ltr">
       <div className="marquee-track flex w-max">
         {half(false)}
         {half(true)}
@@ -60,6 +62,8 @@ export function SiteHeader({ categories }: { categories: CategoryNode[] }) {
   const ref = useRef<HTMLElement>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [tone, setTone] = useState<"auto" | "light" | "blue">("auto");
+  const pathname = usePathname();
   const topCategories = categories.slice(0, 2);
 
   // Slides away while scrolling down, comes back on the way up.
@@ -75,6 +79,34 @@ export function SiteHeader({ categories }: { categories: CategoryNode[] }) {
     },
     { scope: ref },
   );
+
+  // Like Apple's glass, the bar adapts to what is under it: clear with light
+  // text over the blue hero, tinted with blue text over the light sections.
+  useEffect(() => {
+    let frame = 0;
+    const check = () => {
+      frame = 0;
+      const bar = ref.current;
+      if (!bar) return;
+      const line = bar.getBoundingClientRect().bottom - 8;
+      const overBlue = [...document.querySelectorAll<HTMLElement>("[data-header-tone='blue']")].some((el) => {
+        const box = el.getBoundingClientRect();
+        return box.top <= line && box.bottom >= line;
+      });
+      setTone(overBlue ? "blue" : "light");
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(check);
+    };
+    check();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+  }, [pathname]);
 
   const openSearch = () => {
     setSearchOpen(true);
@@ -92,7 +124,7 @@ export function SiteHeader({ categories }: { categories: CategoryNode[] }) {
   return (
     <>
       <header ref={ref} className="fixed inset-x-0 top-0 z-50 px-2.5 pt-2.5 sm:px-4 sm:pt-4">
-        <div className="overflow-hidden rounded-[14px] bg-glass shadow-[0_10px_40px_-20px_rgba(27,68,255,0.45)] backdrop-blur-xl dark:shadow-[0_10px_50px_-18px_rgba(27,68,255,0.6)] dark:ring-1 dark:ring-white/8">
+        <LiquidGlass radius={14} tone={tone}>
           <Marquee />
           <nav aria-label={t.nav.main} className="grid h-14 grid-cols-[1fr_auto_1fr] items-center px-4 sm:h-16 sm:px-6">
             <div className="flex items-center gap-7">
@@ -137,7 +169,7 @@ export function SiteHeader({ categories }: { categories: CategoryNode[] }) {
               <CartLink />
             </div>
           </nav>
-        </div>
+        </LiquidGlass>
       </header>
       <SearchPanel open={searchOpen} onClose={closeSearch} />
       <MobileMenu open={menuOpen} onClose={() => toggleMenu(false)} categories={categories} />

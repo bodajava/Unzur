@@ -30,8 +30,8 @@ export default async function HomePage() {
         }}
       />
       <Hero words={words} />
-      <Concept />
       <Pieces products={products} />
+      <Concept />
       <Collections categories={categories} />
     </>
   );

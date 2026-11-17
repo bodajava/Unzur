@@ -42,7 +42,7 @@ export function Concept() {
   );
 
   return (
-    <section ref={ref} aria-labelledby="concept-title" className="bg-page px-6 pb-28 pt-16 sm:px-10 lg:px-14 lg:pb-44 lg:pt-24">
+    <section ref={ref} aria-labelledby="concept-title" className="bg-page px-6 py-24 sm:px-10 sm:py-28 lg:px-14 lg:py-40">
       <div className="mx-auto grid max-w-[90rem] gap-10 lg:grid-cols-12 lg:gap-16">
         <div className="lg:col-span-4">
           <h2 id="concept-title" data-concept-title className="display text-[clamp(2.4rem,5.2vw,5rem)]">

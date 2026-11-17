@@ -65,7 +65,7 @@ export function Pieces({ products }: { products: Product[] }) {
 
   return (
     <section ref={ref} id="pieces" aria-labelledby="pieces-title" className="overflow-hidden bg-page py-20 lg:flex lg:h-svh lg:flex-col lg:justify-center lg:py-0">
-      <div className="flex items-end justify-between gap-6 px-6 sm:px-10 lg:px-14">
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 px-6 sm:px-10 lg:px-14">
         <div>
           <p className="eyebrow text-muted">{plural(lang, t.pieces.count, products.length)}</p>
           <h2 id="pieces-title" className="display mt-3 text-[clamp(2.4rem,5.2vw,5rem)]">
@@ -80,7 +80,7 @@ export function Pieces({ products }: { products: Product[] }) {
       {products.length ? (
         <ul
           data-track
-          className="mt-12 flex snap-x snap-mandatory gap-5 overflow-x-auto px-6 pb-6 [scrollbar-width:none] sm:px-10 lg:mt-14 lg:snap-none lg:gap-8 lg:overflow-visible lg:px-14 lg:pb-0"
+          className="mt-12 flex snap-x snap-mandatory scroll-px-6 gap-5 overflow-x-auto overscroll-x-contain px-6 pb-6 [scrollbar-width:none] sm:scroll-px-10 sm:px-10 lg:mt-14 lg:snap-none lg:gap-8 lg:overflow-visible lg:px-14 lg:pb-0"
         >
           {products.map((p, i) => (
             <li key={p.id} data-card className="w-[78vw] shrink-0 snap-start sm:w-[44vw] lg:w-[24vw]">

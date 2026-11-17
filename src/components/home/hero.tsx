@@ -152,6 +152,8 @@ export function Hero({ words }: { words: string[] }) {
             .to(q("[data-zoom]"), { x: () => at().dx, y: () => at().dy, duration: 0.45, ease: "power2.inOut" }, 0.02)
             .to(q("[data-zoom]"), { scale: () => at().scale, duration: 0.8, ease: "expo.in" }, 0.05)
             .to(q("[data-veil]"), { opacity: 1, duration: 0.12 }, 0.76)
+            // Once the veil is opaque, drop the giant pupil so no sub-pixel edge shows through.
+            .set(q("[data-zoom]"), { autoAlpha: 0 }, 0.88)
             // a beat of stillness inside the pupil before the page arrives
             .to({}, { duration: 0.12 });
 
@@ -179,6 +181,7 @@ export function Hero({ words }: { words: string[] }) {
     <section
       ref={root}
       aria-labelledby="hero-title"
+      data-header-tone="blue"
       className="relative h-svh min-h-[620px] overflow-hidden bg-hero text-on-hero"
     >
       <Starfield progress={progress} className="absolute inset-0 h-full w-full" />
@@ -191,7 +194,7 @@ export function Hero({ words }: { words: string[] }) {
           className="absolute top-1/2 left-1/2 h-[60%] w-[min(110vw,1100px)] -translate-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(232,232,229,0.22),rgba(167,182,255,0.12)_55%,transparent)] blur-2xl dark:bg-[radial-gradient(closest-side,rgba(27,68,255,0.5),rgba(27,68,255,0.16)_55%,transparent)]"
         />
         <div data-float className="relative">
-          <div data-tilt className="w-[min(84vw,52svh)] [transform-style:preserve-3d] xl:w-[min(40vw,84svh)]">
+          <div data-tilt className="w-[min(84vw,52svh)] [transform-style:preserve-3d] sm:w-[min(82vw,60svh)] xl:w-[min(40vw,84svh)]">
             <div data-zoom style={{ transformOrigin: ORIGIN }}>
               <div data-logo>
                 <Logo className="block h-auto w-full text-mark" />
