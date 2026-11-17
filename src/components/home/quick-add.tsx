@@ -10,8 +10,8 @@ import type { ProductCard } from "@/lib/api/types";
 
 /**
  * "Add to cart" on a product card. One tap for simple products; products with
- * versions open a small chooser on the card first. Sits over the photo:
- * revealed on hover with a mouse, always visible on touch screens.
+ * versions open a small chooser on the card first. Always visible over the
+ * bottom of the photo, so nobody has to open the product to buy it.
  */
 export function QuickAdd({ product }: { product: ProductCard }) {
   const { t } = useI18n();
@@ -32,13 +32,10 @@ export function QuickAdd({ product }: { product: ProductCard }) {
       },
     );
 
-  const reveal =
-    "opacity-0 translate-y-2 transition duration-300 ease-float group-hover/card:translate-y-0 group-hover/card:opacity-100 group-focus-within/card:translate-y-0 group-focus-within/card:opacity-100 [@media(hover:none)]:translate-y-0 [@media(hover:none)]:opacity-100";
-
   if (soldOut) return null;
 
   return (
-    <div className={`absolute inset-x-3 bottom-3 z-10 ${choosing ? "" : reveal}`}>
+    <div className="absolute inset-x-3 bottom-3 z-10">
       {choosing ? (
         <div
           role="group"

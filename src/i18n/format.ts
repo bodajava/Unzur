@@ -34,3 +34,15 @@ export function formatDate(iso: string, lang: Locale = "en"): string {
     timeZone: "Africa/Cairo",
   }).format(new Date(iso));
 }
+
+/** ISO date -> "18 Nov 2026, 14:05" (Cairo time). */
+export function formatDateTime(iso: string, lang: Locale = "en"): string {
+  return new Intl.DateTimeFormat(intlLocale[lang], {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Africa/Cairo",
+  }).format(new Date(iso));
+}

@@ -1,14 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Providers } from "@/components/providers";
-import { SiteFooter } from "@/components/layout/site-footer";
-import { SiteHeader } from "@/components/layout/site-header";
 import { InlineScript } from "@/components/theme/inline-script";
 import { themeScript } from "@/components/theme/theme";
 import { JsonLd } from "@/components/ui/json-ld";
 import { alternatesFor, dirOf, locales, localePath, ogLocale, type Locale } from "@/i18n/config";
 import { I18nProvider } from "@/i18n/client";
 import { getDictionary, getLang } from "@/i18n/server";
-import { getCategories } from "@/lib/api/server";
 import { site } from "@/lib/site";
 import { archivo, gothic, plexArabic } from "../fonts";
 import "../globals.css";
@@ -59,7 +56,7 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
   const lang: Locale = await getLang();
-  const [t, categories] = await Promise.all([getDictionary(lang), getCategories()]);
+  const t = await getDictionary(lang);
 
   return (
     <html
@@ -112,11 +109,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
           {t.common.skipToContent}
         </a>
         <I18nProvider lang={lang} dict={t}>
-          <Providers>
-            <SiteHeader categories={categories} />
-            <main id="main">{children}</main>
-            <SiteFooter />
-          </Providers>
+          <Providers>{children}</Providers>
         </I18nProvider>
       </body>
     </html>
