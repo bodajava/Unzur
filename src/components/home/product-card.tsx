@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { formatPrice } from "@/lib/format";
+import { useI18n } from "@/i18n/client";
+import { formatPrice } from "@/i18n/format";
 import type { ProductCard as Product } from "@/lib/api/types";
 
 /** Initials stand in for a missing photo, set in the display face. */
@@ -13,11 +16,12 @@ function initials(name: string) {
 }
 
 export function ProductCard({ product, priority = false }: { product: Product; priority?: boolean }) {
+  const { lang, t, href } = useI18n();
   const price = product.salePrice ?? product.basePrice;
   return (
     <article className="group">
-      <Link href={`/products/${product.slug}`} className="block focus-visible:outline-offset-4">
-        <div className="relative aspect-[4/5] overflow-hidden rounded-[10px] bg-mist">
+      <Link href={href(`/products/${product.slug}`)} className="block focus-visible:outline-offset-4">
+        <div className="relative aspect-[4/5] overflow-hidden rounded-[10px] bg-panel dark:ring-1 dark:ring-white/8">
           {product.primaryImage ? (
             <Image
               src={product.primaryImage.url}
@@ -30,22 +34,28 @@ export function ProductCard({ product, priority = false }: { product: Product; p
           ) : (
             <div
               aria-hidden
-              className="display absolute inset-0 grid place-items-center text-[clamp(4rem,9vw,8rem)] text-pale transition-transform duration-[1.2s] ease-float group-hover:scale-[1.06]"
+              lang="en"
+              className="display absolute inset-0 grid place-items-center text-[clamp(4rem,9vw,8rem)] text-soft transition-transform duration-[1.2s] ease-float group-hover:scale-[1.06]"
             >
               {initials(product.name)}
             </div>
           )}
-          <span className="eyebrow absolute left-3 top-3 rounded-full bg-haze/85 px-2.5 py-1 text-[0.65rem] backdrop-blur">
+          <span
+            lang="en"
+            className="eyebrow absolute start-3 top-3 rounded-full bg-canvas/85 px-2.5 py-1 text-[0.65rem] backdrop-blur"
+          >
             {product.category.name}
           </span>
         </div>
-        <h3 className="display mt-4 text-[clamp(1.15rem,1.6vw,1.5rem)]">{product.name}</h3>
+        <h3 lang="en" className="display mt-4 text-[clamp(1.15rem,1.6vw,1.5rem)]">
+          {product.name}
+        </h3>
         <p className="mt-1.5 flex items-baseline gap-2 text-sm tabular-nums">
-          <span>{formatPrice(price)}</span>
+          <span>{formatPrice(price, lang)}</span>
           {product.salePrice !== null && (
-            <span className="text-ash line-through">
-              <span className="sr-only">was </span>
-              {formatPrice(product.basePrice)}
+            <span className="text-muted line-through">
+              <span className="sr-only">{t.product.was} </span>
+              {formatPrice(product.basePrice, lang)}
             </span>
           )}
         </p>

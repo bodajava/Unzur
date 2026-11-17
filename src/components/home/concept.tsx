@@ -4,16 +4,16 @@ import { useGSAP } from "@gsap/react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useRef } from "react";
-import { site } from "@/lib/site";
+import { useI18n } from "@/i18n/client";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
-const CONCEPT_AR =
-  "قطع متجرّدة في الفن، حرّة في التعبير، تتجاوز المألوف لتعيد تعريف العلاقة بين الأثاث والمساحة. تستلهم أشكالها من العمارة والهندسة والخيال، وتجمع بين الجرأة والبساطة في تفاصيل تحمل طابعًا خاصًا. أنظر لا يصمّم الأثاث ليملأ الفراغ، بل ليمنحه شخصية؛ كل قطعة حضور مستقل، وكل زاوية فرصة لرؤية الأشياء بشكل مختلف.";
-
 /** The brand idea. Words come into focus one by one as the visitor scrolls. */
 export function Concept() {
+  const { lang, t } = useI18n();
   const ref = useRef<HTMLElement>(null);
+  const bodyLang = t.concept.bodyLang;
+  const tagline = lang === "ar" ? "انظر أو كُفّ عن النظر" : "Look, or stop looking.";
 
   useGSAP(
     () => {
@@ -38,37 +38,31 @@ export function Concept() {
         });
       });
     },
-    { scope: ref },
+    { scope: ref, dependencies: [lang] },
   );
 
   return (
-    <section ref={ref} aria-labelledby="concept-title" className="bg-haze px-6 pb-28 pt-16 sm:px-10 lg:px-14 lg:pb-44 lg:pt-24">
+    <section ref={ref} aria-labelledby="concept-title" className="bg-page px-6 pb-28 pt-16 sm:px-10 lg:px-14 lg:pb-44 lg:pt-24">
       <div className="mx-auto grid max-w-[90rem] gap-10 lg:grid-cols-12 lg:gap-16">
         <div className="lg:col-span-4">
           <h2 id="concept-title" data-concept-title className="display text-[clamp(2.4rem,5.2vw,5rem)]">
-            The concept
+            {t.concept.title}
           </h2>
-          <p className="mt-6 max-w-sm text-[0.95rem] leading-relaxed text-ash">
-            Pieces made with the freedom of art. UNZUR does not design furniture to fill a room; it designs it to give
-            the room a character.
-          </p>
+          <p className="mt-6 max-w-sm text-[0.95rem] leading-relaxed text-muted">{t.concept.intro}</p>
         </div>
         <div className="lg:col-span-8">
           <p
-            lang="ar"
-            dir="rtl"
+            lang={bodyLang}
             data-concept-text
-            className="text-[clamp(1.3rem,2.55vw,2.35rem)] font-medium leading-[1.75]"
+            className={`text-[clamp(1.3rem,2.55vw,2.35rem)] font-medium ${bodyLang === "ar" ? "leading-[1.75]" : "leading-[1.35] tracking-[-0.01em]"}`}
           >
-            {CONCEPT_AR.split(" ").map((word, i) => (
+            {t.concept.body.split(" ").map((word, i) => (
               <span key={i} data-concept-word className="inline-block">
                 {word}&nbsp;
               </span>
             ))}
           </p>
-          <p lang="ar" dir="rtl" className="mt-10 text-[clamp(1.6rem,3.2vw,3rem)] font-semibold">
-            {site.taglineAr}
-          </p>
+          <p className="mt-10 text-[clamp(1.6rem,3.2vw,3rem)] font-semibold">{tagline}</p>
         </div>
       </div>
     </section>

@@ -5,6 +5,8 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Link from "next/link";
 import { useRef } from "react";
+import { useI18n } from "@/i18n/client";
+import { plural } from "@/i18n/format";
 import type { ProductCard as Product } from "@/lib/api/types";
 import { ProductCard } from "./product-card";
 
@@ -14,6 +16,7 @@ gsap.registerPlugin(ScrollTrigger, useGSAP);
 const DEPTHS = [0.2, -0.35, 0.5, -0.15, 0.35, -0.45, 0.1, -0.25];
 
 export function Pieces({ products }: { products: Product[] }) {
+  const { lang, dir, t, href } = useI18n();
   const ref = useRef<HTMLElement>(null);
 
   useGSAP(
@@ -35,7 +38,9 @@ export function Pieces({ products }: { products: Product[] }) {
             invalidateOnRefresh: true,
           },
         });
-        tl.to(track, { x: () => -distance(), duration: 1 }, 0);
+        // Right-to-left pages scroll the row the other way.
+        const sign = dir === "rtl" ? 1 : -1;
+        tl.to(track, { x: () => sign * distance(), duration: 1 }, 0);
         gsap.utils.toArray<HTMLElement>("[data-card]", ref.current).forEach((card, i) => {
           const d = DEPTHS[i % DEPTHS.length];
           tl.fromTo(card, { y: d * 90, rotation: d * 2.5 }, { y: -d * 90, rotation: -d * 2.5, duration: 1 }, 0);
@@ -55,22 +60,20 @@ export function Pieces({ products }: { products: Product[] }) {
         });
       });
     },
-    { scope: ref, dependencies: [products.length] },
+    { scope: ref, dependencies: [products.length, dir] },
   );
 
   return (
-    <section ref={ref} id="pieces" aria-labelledby="pieces-title" className="overflow-hidden bg-haze py-20 lg:flex lg:h-svh lg:flex-col lg:justify-center lg:py-0">
+    <section ref={ref} id="pieces" aria-labelledby="pieces-title" className="overflow-hidden bg-page py-20 lg:flex lg:h-svh lg:flex-col lg:justify-center lg:py-0">
       <div className="flex items-end justify-between gap-6 px-6 sm:px-10 lg:px-14">
         <div>
-          <p className="eyebrow text-ash">
-            {products.length} piece{products.length === 1 ? "" : "s"}
-          </p>
+          <p className="eyebrow text-muted">{plural(lang, t.pieces.count, products.length)}</p>
           <h2 id="pieces-title" className="display mt-3 text-[clamp(2.4rem,5.2vw,5rem)]">
-            Best sellers
+            {t.pieces.title}
           </h2>
         </div>
-        <Link href="/shop" className="nav-link mb-2 shrink-0">
-          Shop all →
+        <Link href={href("/shop")} className="nav-link mb-2 shrink-0">
+          {t.pieces.shopAll} {t.common.arrow}
         </Link>
       </div>
 
@@ -86,9 +89,7 @@ export function Pieces({ products }: { products: Product[] }) {
           ))}
         </ul>
       ) : (
-        <p className="mt-12 px-6 text-ash sm:px-10 lg:px-14">
-          New pieces are on their way. Join the newsletter below to hear first.
-        </p>
+        <p className="mt-12 px-6 text-muted sm:px-10 lg:px-14">{t.pieces.empty}</p>
       )}
     </section>
   );

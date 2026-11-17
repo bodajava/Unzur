@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import type { CategoryNode } from "@/lib/api/types";
-import { site } from "@/lib/site";
+import { Logo } from "@/components/brand/logo";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { useI18n } from "@/i18n/client";
+import { LanguageSwitch } from "./language-switch";
 
 export function MobileMenu({
   open,
@@ -14,6 +17,7 @@ export function MobileMenu({
   onClose: () => void;
   categories: CategoryNode[];
 }) {
+  const { t, href } = useI18n();
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -23,9 +27,9 @@ export function MobileMenu({
 
   if (!open) return null;
   const links = [
-    { href: "/#pieces", label: "Best sellers" },
-    ...categories.map((c) => ({ href: `/category/${c.slug}`, label: c.name })),
-    { href: "/account", label: "Account" },
+    { href: href("/#pieces"), label: t.nav.bestSellers },
+    ...categories.map((c) => ({ href: href(`/category/${c.slug}`), label: c.name })),
+    { href: href("/account"), label: t.nav.account },
   ];
 
   return (
@@ -33,27 +37,36 @@ export function MobileMenu({
       id="mobile-menu"
       role="dialog"
       aria-modal="true"
-      aria-label="Menu"
-      className="fixed inset-0 z-[60] flex flex-col bg-blue px-6 pb-10 pt-6 text-haze"
+      aria-label={t.nav.menu}
+      className="fixed inset-0 z-[60] flex flex-col bg-blue px-6 pb-10 pt-6 text-haze dark:bg-night dark:text-on-hero"
     >
       <div className="flex items-center justify-between">
-        <span className="wordmark text-[2.5rem]">{site.name}</span>
+        <Logo title="UNZUR" className="block h-8 w-auto dark:text-blue" />
         <button type="button" onClick={onClose} className="nav-link" autoFocus>
-          Close
+          {t.common.close}
         </button>
       </div>
-      <nav aria-label="Mobile" className="mt-auto">
+      <nav aria-label={t.nav.mobile} className="mt-auto">
         <ul className="space-y-2">
           {links.map((l) => (
             <li key={l.href}>
-              <Link href={l.href} onClick={onClose} className="display block text-[clamp(2.25rem,11vw,3.5rem)]">
+              <Link
+                href={l.href}
+                onClick={onClose}
+                lang={/[\u0600-\u06ff]/.test(l.label) ? "ar" : "en"}
+                className="display block text-[clamp(2.25rem,11vw,3.5rem)]"
+              >
                 {l.label}
               </Link>
             </li>
           ))}
         </ul>
-        <p lang="ar" className="mt-10 text-pale">
-          {site.taglineAr}
+        <div className="mt-10 flex items-center gap-6 text-pale">
+          <LanguageSwitch onNavigate={onClose} />
+          <ThemeToggle />
+        </div>
+        <p lang="ar" className="mt-6 text-pale/80">
+          انظر أو كُفّ عن النظر
         </p>
       </nav>
     </div>

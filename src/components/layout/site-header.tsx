@@ -8,30 +8,34 @@ import { useRef, useState } from "react";
 import { useCartSummary } from "@/lib/api/hooks";
 import type { CategoryNode } from "@/lib/api/types";
 import { lockScroll } from "@/lib/motion/scroll-state";
-import { site } from "@/lib/site";
+import { Logo } from "@/components/brand/logo";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { useI18n } from "@/i18n/client";
+import { fmt, plural } from "@/i18n/format";
+import { LanguageSwitch } from "./language-switch";
 import { MobileMenu } from "./mobile-menu";
 import { SearchPanel } from "./search-panel";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
-const MARQUEE = ["UNZUR", site.taglineAr, "Look, or stop looking", "Furniture & lighting"];
-
 function Marquee() {
+  const { t } = useI18n();
+  const items = t.nav.marquee;
   // Two identical halves: the track slides by -50% and loops seamlessly.
   const half = (hidden: boolean) => (
     <div className="flex shrink-0 items-center" aria-hidden={hidden || undefined}>
-      {[...MARQUEE, ...MARQUEE].map((text, i) => (
+      {[...items, ...items].map((text, i) => (
         <span key={i} className="flex items-center gap-6 px-6 whitespace-nowrap">
-          <span lang={/[؀-ۿ]/.test(text) ? "ar" : undefined} className="eyebrow !tracking-[0.1em]">
+          <span lang={/[؀-ۿ]/.test(text) ? "ar" : "en"} className="eyebrow !tracking-[0.1em]">
             {text}
           </span>
-          <span className="h-3 w-px bg-blue/40" />
+          <span className="h-3 w-px bg-ink/40" />
         </span>
       ))}
     </div>
   );
   return (
-    <div className="overflow-hidden border-b border-blue/10 py-2">
+    <div className="overflow-hidden border-b border-ink/10 py-2" dir="ltr">
       <div className="marquee-track flex w-max">
         {half(false)}
         {half(true)}
@@ -41,16 +45,18 @@ function Marquee() {
 }
 
 function CartLink() {
+  const { lang, t, href } = useI18n();
   const { data } = useCartSummary();
   const count = data?.itemCount ?? 0;
   return (
-    <Link href="/cart" className="nav-link tabular-nums" aria-label={`Cart, ${count} item${count === 1 ? "" : "s"}`}>
-      Cart: {count}
+    <Link href={href("/cart")} className="nav-link whitespace-nowrap tabular-nums" aria-label={plural(lang, t.nav.cartLabel, count)}>
+      {fmt(t.nav.cart, { count })}
     </Link>
   );
 }
 
 export function SiteHeader({ categories }: { categories: CategoryNode[] }) {
+  const { t, href } = useI18n();
   const ref = useRef<HTMLElement>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -86,9 +92,9 @@ export function SiteHeader({ categories }: { categories: CategoryNode[] }) {
   return (
     <>
       <header ref={ref} className="fixed inset-x-0 top-0 z-50 px-2.5 pt-2.5 sm:px-4 sm:pt-4">
-        <div className="overflow-hidden rounded-[14px] bg-haze/90 shadow-[0_10px_40px_-20px_rgba(27,68,255,0.45)] backdrop-blur-xl">
+        <div className="overflow-hidden rounded-[14px] bg-glass shadow-[0_10px_40px_-20px_rgba(27,68,255,0.45)] backdrop-blur-xl dark:shadow-[0_10px_50px_-18px_rgba(27,68,255,0.6)] dark:ring-1 dark:ring-white/8">
           <Marquee />
-          <nav aria-label="Main" className="grid h-14 grid-cols-[1fr_auto_1fr] items-center px-4 sm:h-16 sm:px-6">
+          <nav aria-label={t.nav.main} className="grid h-14 grid-cols-[1fr_auto_1fr] items-center px-4 sm:h-16 sm:px-6">
             <div className="flex items-center gap-7">
               <button
                 type="button"
@@ -97,30 +103,32 @@ export function SiteHeader({ categories }: { categories: CategoryNode[] }) {
                 aria-controls="mobile-menu"
                 onClick={() => toggleMenu(true)}
               >
-                Menu
+                {t.nav.menu}
               </button>
-              <Link href="/#pieces" className="nav-link hidden lg:inline">
-                Best sellers
+              <Link href={href("/#pieces")} className="nav-link hidden lg:inline">
+                {t.nav.bestSellers}
               </Link>
               {topCategories.map((c) => (
-                <Link key={c.id} href={`/category/${c.slug}`} className="nav-link hidden lg:inline">
+                <Link key={c.id} href={href(`/category/${c.slug}`)} lang="en" className="nav-link hidden lg:inline">
                   {c.name}
                 </Link>
               ))}
             </div>
 
-            <Link href="/" aria-label={`${site.name} home`} className="wordmark text-[2.35rem] sm:text-[2.75rem]">
-              {site.name}
+            <Link href={href("/")} aria-label={t.nav.homeLabel} className="block py-1">
+              <Logo idle className="block h-7 w-auto sm:h-8" />
             </Link>
 
-            <div className="flex items-center justify-end gap-5 sm:gap-7">
-              <Link href="/account" className="nav-link hidden lg:inline">
-                Account
+            <div className="flex items-center justify-end gap-5 sm:gap-6 xl:gap-7">
+              <LanguageSwitch className="nav-link hidden lg:inline" />
+              <ThemeToggle className="nav-link hidden lg:inline-flex" />
+              <Link href={href("/account")} className="nav-link hidden lg:inline">
+                {t.nav.account}
               </Link>
               <button type="button" className="nav-link hidden sm:inline" onClick={openSearch}>
-                Search
+                {t.nav.search}
               </button>
-              <button type="button" className="nav-link sm:hidden" onClick={openSearch} aria-label="Search">
+              <button type="button" className="nav-link sm:hidden" onClick={openSearch} aria-label={t.nav.search}>
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
                   <circle cx="8.5" cy="8.5" r="6" stroke="currentColor" strokeWidth="1.8" />
                   <path d="m13 13 5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />

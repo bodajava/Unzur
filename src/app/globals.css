@@ -1,13 +1,20 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /*
- * UNZUR tokens
- *   blue      #1B44FF  brand, all text on light surfaces
- *   pale      #A7B6FF  accents on blue, hover fills
- *   haze      #E8E8E5  light gray surface (main background)
- *   mist      #F4F4F2  lighter panels, image wells
- *   graphite  #232428  dark gray surface
- *   ash       #8A8B90  secondary text, captions
+ * UNZUR brand colours (fixed)
+ *   blue      #1B44FF  brand
+ *   pale      #A7B6FF  accents on blue
+ *   haze      #E8E8E5  light gray
+ *   mist      #F4F4F2  lighter gray
+ *   graphite  #232428  dark gray
+ *   ash       #8A8B90  captions
+ *   night     #05060F  deep space
+ *
+ * Semantic colours (what components use). Day values here; night values in
+ * [data-theme="dark"] below. At night, page sections are transparent so the
+ * star field behind the whole site shows through.
  */
 @theme {
   --color-blue: #1b44ff;
@@ -17,6 +24,21 @@
   --color-mist: #f4f4f2;
   --color-graphite: #232428;
   --color-ash: #8a8b90;
+  --color-night: #05060f;
+
+  --color-canvas: #e8e8e5; /* solid page colour (html, veils, overlays) */
+  --color-page: #e8e8e5; /* section backgrounds */
+  --color-panel: #f4f4f2; /* image wells, cards */
+  --color-ink: #1b44ff; /* text, lines */
+  --color-soft: #a7b6ff; /* placeholders, quiet accents */
+  --color-muted: #8a8b90; /* captions, secondary text */
+  --color-glass: rgb(232 232 229 / 0.9); /* floating header */
+  --color-hero: #1b44ff;
+  --color-on-hero: #e8e8e5;
+  --color-hero-accent: #a7b6ff;
+  --color-mark: #e8e8e5; /* the hero logo */
+  --color-deep: #232428; /* dark band (collections) */
+  --color-on-deep: #e8e8e5;
 
   --font-display: var(--font-gothic), "Arial Black", sans-serif;
   --font-body: var(--font-archivo), system-ui, sans-serif;
@@ -25,17 +47,33 @@
   --ease-float: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+[data-theme="dark"] {
+  color-scheme: dark;
+  --color-canvas: #05060f;
+  --color-page: transparent;
+  --color-panel: rgb(20 26 66 / 0.55);
+  --color-ink: #a3b3ff;
+  --color-soft: #4a5fc4;
+  --color-muted: #7d84a6;
+  --color-glass: rgb(8 10 28 / 0.72);
+  --color-hero: transparent;
+  --color-on-hero: #c9d2ff;
+  --color-hero-accent: #7f93f5;
+  --color-mark: #1b44ff;
+  --color-deep: rgb(14 18 48 / 0.6);
+  --color-on-deep: #c9d2ff;
+}
+
 @layer base {
   html {
-    background: var(--color-haze);
-    color: var(--color-blue);
+    background: var(--color-canvas);
+    color: var(--color-ink);
     -webkit-text-size-adjust: 100%;
   }
 
   body {
     font-family: var(--font-body);
-    background: var(--color-haze);
-    color: var(--color-blue);
+    color: var(--color-ink);
     font-synthesis: none;
     text-rendering: optimizeLegibility;
   }
@@ -52,6 +90,64 @@
   :focus-visible {
     outline: 2px solid currentColor;
     outline-offset: 3px;
+  }
+}
+
+/*
+ * Night: deep space behind every page. A faint nebula on the canvas, and three
+ * layers of stars that twinkle and drift very slowly. Fixed, so content
+ * floats over it as you scroll.
+ */
+html[data-theme="dark"] {
+  background:
+    radial-gradient(ellipse 70% 50% at 15% -5%, rgb(27 68 255 / 0.22), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 95% 55%, rgb(88 70 220 / 0.14), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 30% 110%, rgb(27 68 255 / 0.16), transparent 60%),
+    var(--color-night);
+  background-attachment: fixed;
+}
+[data-theme="dark"] body::before,
+[data-theme="dark"] body::after {
+  content: "";
+  position: fixed;
+  inset: -50%;
+  z-index: -1;
+  pointer-events: none;
+  background-repeat: repeat;
+}
+[data-theme="dark"] body::before {
+  background-image:
+    radial-gradient(1px 1px at 23px 41px, #fff 50%, transparent 52%),
+    radial-gradient(1px 1px at 141px 97px, #c9d2ff 50%, transparent 52%),
+    radial-gradient(1.5px 1.5px at 211px 183px, #fff 50%, transparent 52%),
+    radial-gradient(1px 1px at 87px 233px, #a7b6ff 50%, transparent 52%),
+    radial-gradient(1px 1px at 271px 19px, #fff 50%, transparent 52%);
+  background-size: 300px 260px;
+  opacity: 0.55;
+  animation: star-drift 240s linear infinite;
+}
+[data-theme="dark"] body::after {
+  background-image:
+    radial-gradient(2px 2px at 61px 137px, #fff 50%, transparent 52%),
+    radial-gradient(1.5px 1.5px at 379px 61px, #c9d2ff 50%, transparent 52%),
+    radial-gradient(2px 2px at 263px 341px, #a7b6ff 50%, transparent 52%),
+    radial-gradient(1.5px 1.5px at 431px 263px, #fff 50%, transparent 52%);
+  background-size: 520px 440px;
+  animation:
+    star-drift 420s linear infinite reverse,
+    twinkle 5s ease-in-out infinite alternate;
+}
+@keyframes star-drift {
+  to {
+    transform: translate3d(-300px, -260px, 0);
+  }
+}
+@keyframes twinkle {
+  from {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 0.9;
   }
 }
 
@@ -72,6 +168,15 @@
     text-transform: uppercase;
   }
 
+  /* Arabic: Plex Sans Arabic does the display work (Latin names are marked lang="en" and keep Gothic). */
+  .display:lang(ar) {
+    font-family: var(--font-plex-arabic), sans-serif;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.12;
+    text-transform: none;
+  }
+
   .eyebrow {
     font-family: var(--font-body);
     font-size: 0.75rem;
@@ -79,9 +184,53 @@
     letter-spacing: 0.14em;
     text-transform: uppercase;
   }
+  .eyebrow:lang(ar) {
+    font-family: var(--font-arabic);
+    font-weight: 600;
+    letter-spacing: 0;
+  }
 
   .marquee-track {
     animation: marquee 38s linear infinite;
+  }
+}
+
+/* The logo's eye at rest: a glance left, a glance right, a blink. */
+.logo-idle [data-pupil] {
+  animation: eye-look 9s var(--ease-float) infinite;
+}
+.logo-idle [data-lid] {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: eye-blink 9s ease-in-out infinite;
+}
+@keyframes eye-look {
+  0%,
+  30% {
+    transform: translateX(0);
+  }
+  36%,
+  46% {
+    transform: translateX(-12px);
+  }
+  52%,
+  62% {
+    transform: translateX(12px);
+  }
+  68%,
+  100% {
+    transform: translateX(0);
+  }
+}
+@keyframes eye-blink {
+  0%,
+  85%,
+  91%,
+  100% {
+    transform: scaleY(1);
+  }
+  88% {
+    transform: scaleY(0.04);
   }
 }
 
