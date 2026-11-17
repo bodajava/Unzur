@@ -6,6 +6,11 @@ import { setSession } from "@/lib/api/session";
 import { qk } from "@/lib/api/hooks";
 import type { AuthResult, Paginated } from "@/lib/api/types";
 import type {
+  AdminBrand,
+  AdminCategory,
+  ShippingZone,
+  ShippingZoneInput,
+  StoreSetting,
   AdminProduct,
   AdminProductQuery,
   AdminOrder,
@@ -174,3 +179,59 @@ export const useUpdateVariant = (productId: string) =>
   useProductChange(({ id, v }: { id: string; v: Partial<VariantInput> }) => adminApi.updateVariant(id, v), productId);
 export const useDeleteVariant = (productId: string) =>
   useProductChange((id: string) => adminApi.deleteVariant(id), productId);
+
+// ───────────────────────── catalog & store ─────────────────────────
+
+export type Taxonomy = "categories" | "brands";
+
+export const catalogApi = {
+  list: <T,>(kind: Taxonomy) => api<T[]>(`/${kind}/admin/all`),
+  /** multipart: fields + optional image (`image` for categories, `logo` for brands). */
+  create: (kind: Taxonomy, form: FormData) => api<unknown>(`/${kind}`, { method: "POST", form }),
+  update: (kind: Taxonomy, id: string, form: FormData) => api<unknown>(`/${kind}/${enc(id)}`, { method: "PATCH", form }),
+  remove: (kind: Taxonomy, id: string) => api<unknown>(`/${kind}/${enc(id)}`, { method: "DELETE" }),
+  zones: () => api<ShippingZone[]>("/admin/shipping-zones"),
+  addZone: (z: ShippingZoneInput) => api<ShippingZone>("/admin/shipping-zones", { method: "POST", json: z }),
+  updateZone: (id: string, z: Partial<ShippingZoneInput>) => api<ShippingZone>(`/admin/shipping-zones/${enc(id)}`, { method: "PATCH", json: z }),
+  removeZone: (id: string) => api<unknown>(`/admin/shipping-zones/${enc(id)}`, { method: "DELETE" }),
+  settings: () => api<StoreSetting[]>("/admin/settings"),
+  saveSettings: (settings: { key: string; value: unknown; isPublic?: boolean }[]) =>
+    api<StoreSetting[]>("/admin/settings", { method: "PATCH", json: { settings } }),
+};
+
+export const useTaxonomy = <T extends AdminCategory | AdminBrand>(kind: Taxonomy) =>
+  useQuery({ queryKey: ["admin", kind], queryFn: () => catalogApi.list<T>(kind) });
+
+export function useTaxonomyChange<V>(kind: Taxonomy, fn: (v: V) => Promise<unknown>) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: fn,
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: ["admin", kind] });
+      void client.invalidateQueries({ queryKey: [kind] });
+      void client.invalidateQueries({ queryKey: ["admin", "products"] });
+      void refreshStore([kind, "products"]);
+    },
+  });
+}
+
+export const useZones = () => useQuery({ queryKey: ["admin", "zones"], queryFn: catalogApi.zones });
+
+export function useZoneChange<V>(fn: (v: V) => Promise<unknown>) {
+  const client = useQueryClient();
+  return useMutation({ mutationFn: fn, onSuccess: () => client.invalidateQueries({ queryKey: ["admin", "zones"] }) });
+}
+
+export const useStoreSettings = () => useQuery({ queryKey: ["admin", "settings"], queryFn: catalogApi.settings });
+
+export function useSaveSettings() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: catalogApi.saveSettings,
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: ["admin", "settings"] });
+      void client.invalidateQueries({ queryKey: ["settings"] });
+      void refreshStore(["settings"]);
+    },
+  });
+}

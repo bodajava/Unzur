@@ -216,3 +216,49 @@ export interface VariantInput {
 export const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 export const MAX_IMAGES = 10;
+
+// ───────────────────────── catalog & store ─────────────────────────
+
+export interface AdminCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  imageUrl: string | null;
+  parentId: string | null;
+  isActive: boolean;
+  productCount: number;
+}
+
+export interface AdminBrand {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  logoUrl: string | null;
+  isActive: boolean;
+  productCount: number;
+}
+
+export interface ShippingZone {
+  id: string;
+  governorate: string;
+  nameAr: string | null;
+  fee: number;
+  estimatedDays: string;
+  isActive: boolean;
+}
+
+export interface ShippingZoneInput {
+  governorate: string;
+  nameAr?: string | null;
+  fee: number;
+  estimatedDays: string;
+  isActive?: boolean;
+}
+
+export interface StoreSetting {
+  key: string;
+  value: unknown;
+  isPublic: boolean;
+}

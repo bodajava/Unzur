@@ -77,7 +77,7 @@ function ExistingRow({ productId, variant }: { productId: string; variant: Admin
   const dirty = JSON.stringify(row) !== JSON.stringify(fromVariant(variant));
   return (
     <li className="py-3">
-      <div className="grid grid-cols-2 items-center gap-2 sm:grid-cols-[1.4fr_1fr_0.8fr_0.8fr_0.6fr_auto_auto]">
+      <div className="grid grid-cols-2 items-center gap-2 sm:grid-cols-[1.4fr_1fr_0.8fr_0.8fr_0.6fr_3.5rem_9rem]">
         <Fields row={row} onChange={setRow} />
         <div className="col-span-2 flex justify-end gap-2 sm:col-span-1">
           <button
@@ -157,7 +157,7 @@ export function VariantsEditor({ productId, variants }: { productId: string; var
           );
         }}
       >
-        <div className="grid grid-cols-2 items-center gap-2 sm:grid-cols-[1.4fr_1fr_0.8fr_0.8fr_0.6fr_auto_auto]">
+        <div className="grid grid-cols-2 items-center gap-2 sm:grid-cols-[1.4fr_1fr_0.8fr_0.8fr_0.6fr_3.5rem_9rem]">
           <Fields row={draft} onChange={setDraft} />
           <button
             type="submit"
