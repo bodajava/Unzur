@@ -11,6 +11,7 @@ import type { CategoryNode } from "@/lib/api/types";
 import { lockScroll } from "@/lib/motion/scroll-state";
 import { Logo } from "@/components/brand/logo";
 import { LiquidGlass } from "@/components/ui/liquid-glass";
+import { useCartDrawer } from "@/components/cart/cart-drawer-context";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { useI18n } from "@/i18n/client";
 import { fmt, plural } from "@/i18n/format";
@@ -47,13 +48,20 @@ function Marquee() {
 }
 
 function CartLink() {
-  const { lang, t, href } = useI18n();
+  const { lang, t } = useI18n();
+  const { openCart } = useCartDrawer();
   const { data } = useCartSummary();
   const count = data?.itemCount ?? 0;
   return (
-    <Link href={href("/cart")} className="nav-link whitespace-nowrap tabular-nums" aria-label={plural(lang, t.nav.cartLabel, count)}>
+    <button
+      type="button"
+      onClick={openCart}
+      aria-haspopup="dialog"
+      className="nav-link whitespace-nowrap tabular-nums"
+      aria-label={plural(lang, t.nav.cartLabel, count)}
+    >
       {fmt(t.nav.cart, { count })}
-    </Link>
+    </button>
   );
 }
 

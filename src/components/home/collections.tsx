@@ -35,7 +35,9 @@ export async function Collections({ categories }: { categories: CategoryNode[] }
                   {c.name}
                 </span>
                 <span className="flex max-w-xs items-end gap-4 text-sm leading-relaxed text-on-deep/60 sm:pb-3">
-                  <span lang="en">{c.description}</span>
+                  <span lang="en" dir="auto" className="rtl:text-right">
+                    {c.description}
+                  </span>
                   <span
                     aria-hidden
                     className="grid size-11 shrink-0 place-items-center rounded-full border border-on-deep/30 text-lg transition-colors duration-500 group-hover:border-pale group-hover:bg-pale group-hover:text-graphite"

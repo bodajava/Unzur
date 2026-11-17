@@ -5,6 +5,8 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import { useEffect, useState, type ReactNode } from "react";
+import { CartDrawer } from "@/components/cart/cart-drawer";
+import { CartDrawerProvider } from "@/components/cart/cart-drawer-context";
 import { scrollState } from "@/lib/motion/scroll-state";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -41,7 +43,10 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={client}>
       <SmoothScroll />
-      {children}
+      <CartDrawerProvider>
+        {children}
+        <CartDrawer />
+      </CartDrawerProvider>
     </QueryClientProvider>
   );
 }

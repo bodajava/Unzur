@@ -331,6 +331,12 @@ html[data-theme="dark"]:has(#main > section:first-of-type[data-header-tone="blue
   }
 }
 
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
 @keyframes marquee {
   to {
     transform: translateX(-50%);

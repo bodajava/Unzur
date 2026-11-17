@@ -15,7 +15,15 @@ function initials(name: string) {
     .join("");
 }
 
-export function ProductCard({ product, priority = false }: { product: Product; priority?: boolean }) {
+export function ProductCard({
+  product,
+  priority = false,
+  sizes = "(min-width: 1024px) 26vw, 78vw",
+}: {
+  product: Product;
+  priority?: boolean;
+  sizes?: string;
+}) {
   const { lang, t, href } = useI18n();
   const price = product.salePrice ?? product.basePrice;
   return (
@@ -28,7 +36,7 @@ export function ProductCard({ product, priority = false }: { product: Product; p
               alt={product.primaryImage.altText ?? product.name}
               fill
               priority={priority}
-              sizes="(min-width: 1024px) 26vw, 78vw"
+              sizes={sizes}
               className="object-cover transition-transform duration-[1.2s] ease-float group-hover:scale-[1.04]"
             />
           ) : (

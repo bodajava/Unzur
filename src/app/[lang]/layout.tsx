@@ -13,6 +13,13 @@ import { site } from "@/lib/site";
 import { archivo, gothic, plexArabic } from "../fonts";
 import "../globals.css";
 
+/**
+ * Every page reads the language from the URL (/en, /ar) to set <html lang dir>,
+ * so no shell is shared across languages. Opt out of instant-navigation
+ * validation (dev-only insight); both languages are still fully prerendered.
+ */
+export const instant = false;
+
 export async function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
