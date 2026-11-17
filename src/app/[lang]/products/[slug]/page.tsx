@@ -123,11 +123,11 @@ async function ProductView({ lang, t, params }: { lang: Locale; t: Dictionary; p
       />
 
       <div className="mt-6 grid gap-10 lg:mt-10 lg:grid-cols-12 lg:gap-14">
-        <div className="lg:col-span-7">
+        <div className="lg:col-span-6">
           <Gallery name={product.name} images={product.images} />
         </div>
 
-        <div className="lg:sticky lg:top-32 lg:col-span-5 lg:self-start">
+        <div className="lg:sticky lg:top-32 lg:col-span-6 lg:self-start xl:ps-6">
           <Link
             href={localePath(lang, `/category/${product.category.slug}`)}
             lang="en"
@@ -188,8 +188,8 @@ async function ProductView({ lang, t, params }: { lang: Locale; t: Dictionary; p
 function ProductSkeleton() {
   return (
     <div className="grid gap-10 lg:grid-cols-12 lg:gap-14" aria-hidden>
-      <div className="aspect-[4/5] animate-pulse rounded-2xl bg-panel lg:col-span-7" />
-      <div className="space-y-4 lg:col-span-5">
+      <div className="mx-auto aspect-[4/5] w-full max-w-[min(100%,calc(58svh*0.8))] animate-pulse rounded-2xl bg-panel lg:col-span-6 lg:max-w-[min(100%,calc(74svh*0.8))]" />
+      <div className="space-y-4 lg:col-span-6">
         <div className="h-4 w-24 animate-pulse rounded bg-panel" />
         <div className="h-16 w-3/4 animate-pulse rounded bg-panel" />
         <div className="h-6 w-1/3 animate-pulse rounded bg-panel" />

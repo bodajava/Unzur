@@ -77,6 +77,16 @@ export interface ProductCard {
   category: CategoryRef;
   brand: BrandRef | null;
   primaryImage: ImageRef | null;
+  /** Active versions (empty when the product has none). */
+  variants: CardVariant[];
+}
+
+export interface CardVariant {
+  id: string;
+  name: string;
+  price: number;
+  salePrice: number | null;
+  stock: number;
 }
 
 export interface ProductImage extends ImageRef {
@@ -94,7 +104,7 @@ export interface ProductVariant {
   attributes: Record<string, unknown> | null;
 }
 
-export interface ProductDetail extends Omit<ProductCard, "primaryImage"> {
+export interface ProductDetail extends Omit<ProductCard, "primaryImage" | "variants"> {
   sku: string;
   description: string | null;
   categoryId: string;

@@ -63,6 +63,8 @@ export const en = {
     title: "Collections",
   },
   product: {
+    addNamed: "Add {name} to cart",
+    chooseFor: "Choose a version of {name}",
     was: "was",
   },
   search: {

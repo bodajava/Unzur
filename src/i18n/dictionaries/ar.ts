@@ -77,6 +77,8 @@ export const ar: Dictionary = {
     title: "المجموعات",
   },
   product: {
+    addNamed: "أضف {name} للسلة",
+    chooseFor: "اختر نوع {name}",
     was: "بدلًا من",
   },
   search: {

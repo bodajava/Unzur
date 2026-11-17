@@ -26,8 +26,8 @@ export function Gallery({ name, images }: { name: string; images: ProductImage[]
 
   if (!images.length) {
     return (
-      <div className="relative grid aspect-[4/5] place-items-center overflow-hidden rounded-2xl bg-panel dark:ring-1 dark:ring-white/8">
-        <span aria-hidden lang="en" className="display text-[clamp(6rem,20vw,16rem)] text-soft">
+      <div className="relative mx-auto grid aspect-[4/5] w-full max-w-[min(100%,calc(58svh*0.8))] place-items-center overflow-hidden rounded-2xl bg-panel lg:max-w-[min(100%,calc(74svh*0.8))] dark:ring-1 dark:ring-white/8">
+        <span aria-hidden lang="en" className="display text-[clamp(5rem,14vw,12rem)] text-soft">
           {initials(name)}
         </span>
         <EyeMark idle className="absolute bottom-6 start-6 w-12 text-soft" />
@@ -41,7 +41,7 @@ export function Gallery({ name, images }: { name: string; images: ProductImage[]
       {/* Phones and tablets: swipeable strip */}
       <ul className="-mx-6 flex snap-x snap-mandatory scroll-px-6 gap-3 overflow-x-auto px-6 [scrollbar-width:none] sm:-mx-10 sm:scroll-px-10 sm:px-10 lg:hidden">
         {images.map((img, i) => (
-          <li key={img.id} className="relative aspect-[4/5] w-[86%] shrink-0 snap-start overflow-hidden rounded-2xl bg-panel sm:w-[70%]">
+          <li key={img.id} className="relative aspect-[4/5] w-[min(80%,calc(58svh*0.8))] shrink-0 snap-start overflow-hidden rounded-2xl bg-panel">
             <Image
               src={img.url}
               alt={img.altText ?? fmt(t.productPage.photo, { n: i + 1, total: images.length })}
@@ -55,7 +55,7 @@ export function Gallery({ name, images }: { name: string; images: ProductImage[]
       </ul>
 
       {/* Desktop: large photo + thumbnails */}
-      <div className="hidden lg:block">
+      <div className="mx-auto hidden w-full max-w-[min(100%,calc(74svh*0.8))] lg:block">
         <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-panel">
           <Image
             key={current.id}
@@ -63,7 +63,7 @@ export function Gallery({ name, images }: { name: string; images: ProductImage[]
             alt={current.altText ?? name}
             fill
             priority
-            sizes="(min-width: 1024px) 55vw, 100vw"
+            sizes="(min-width: 1024px) 45vw, 100vw"
             className="animate-[fade-in_0.6s_var(--ease-float)] object-cover"
           />
         </div>
