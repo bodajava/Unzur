@@ -10,4 +10,10 @@ async function bootstrap() {
   configureApp(app);
   await app.listen(process.env.PORT ?? 4000);
 }
-await bootstrap();
+
+// No top-level await: Hostinger's LiteSpeed runner loads this file with
+// require(), which refuses an ES module graph that awaits at the top level.
+bootstrap().catch((error: unknown) => {
+  console.error(error);
+  process.exit(1);
+});
