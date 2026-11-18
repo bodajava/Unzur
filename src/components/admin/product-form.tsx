@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { useI18n } from "@/i18n/client";
-import { fmt } from "@/i18n/format";
+import { fmt, localized } from "@/i18n/format";
 import { useCreateProduct, useDeleteProduct, useUpdateProduct } from "@/lib/admin/api";
 import { IMAGE_TYPES, MAX_IMAGE_BYTES, MAX_IMAGES, type AdminProduct } from "@/lib/admin/types";
 import { ApiError } from "@/lib/api/client";
@@ -17,6 +17,9 @@ import { VariantsEditor } from "./variants-editor";
 
 interface Fields {
   name: string;
+  nameAr: string;
+  shortDescriptionAr: string;
+  descriptionAr: string;
   slug: string;
   sku: string;
   shortDescription: string;
@@ -34,6 +37,9 @@ interface Fields {
 
 const fromProduct = (p?: AdminProduct): Fields => ({
   name: p?.name ?? "",
+  nameAr: p?.nameAr ?? "",
+  shortDescriptionAr: p?.shortDescriptionAr ?? "",
+  descriptionAr: p?.descriptionAr ?? "",
   slug: p?.slug ?? "",
   sku: p?.sku ?? "",
   shortDescription: p?.shortDescription ?? "",
@@ -209,6 +215,11 @@ export function ProductForm({
     optional("sku", f.sku);
     optional("shortDescription", f.shortDescription);
     put("description", f.description.trim());
+    // Arabic copy: empty clears it on edit (the store then shows the English text).
+    for (const k of ["nameAr", "shortDescriptionAr", "descriptionAr"] as const) {
+      if (f[k].trim()) put(k, f[k].trim());
+      else if (product) put(k, "");
+    }
     put("categoryId", f.categoryId);
     optional("brandId", f.brandId);
     put("basePrice", String(toPiasters(f.basePrice)));
@@ -251,7 +262,7 @@ export function ProductForm({
       </Link>
       <div className="mt-4 mb-8 flex flex-wrap items-end justify-between gap-4">
         <h1 lang={product ? "en" : undefined} className="display text-[clamp(2rem,5vw,3.6rem)]">
-          {product ? product.name : tp.newTitle}
+          {product ? localized(lang, product.name, product.nameAr) : tp.newTitle}
         </h1>
         {product && !product.deletedAt && (
           <Link href={href(`/products/${product.slug}`)} target="_blank" className="nav-link text-sm">
@@ -267,7 +278,7 @@ export function ProductForm({
             <Panel title={tp.basics}>
               <div className="grid gap-5 sm:grid-cols-2">
                 <Field id={id("name")} label={tp.name} error={errors.name} className="sm:col-span-2">
-                  <input id={id("name")} lang="en" value={f.name} onChange={set("name")} aria-invalid={!!errors.name} className={input} />
+                  <input id={id("name")} lang="en" dir="ltr" value={f.name} onChange={set("name")} aria-invalid={!!errors.name} className={input} />
                 </Field>
                 <Field id={id("slug")} label={tp.slug} hint={fmt(tp.slugHint, { slug: f.slug || "…" })}>
                   <input id={id("slug")} dir="ltr" value={f.slug} onChange={set("slug")} pattern="[a-z0-9-]*" className={`${input} rtl:text-right`} />
@@ -276,12 +287,13 @@ export function ProductForm({
                   <input id={id("sku")} dir="ltr" value={f.sku} onChange={set("sku")} className={`${input} rtl:text-right`} />
                 </Field>
                 <Field id={id("short")} label={tp.short} hint={tp.shortHint} className="sm:col-span-2">
-                  <input id={id("short")} lang="en" maxLength={500} value={f.shortDescription} onChange={set("shortDescription")} className={input} />
+                  <input id={id("short")} lang="en" dir="ltr" maxLength={500} value={f.shortDescription} onChange={set("shortDescription")} className={input} />
                 </Field>
                 <Field id={id("description")} label={tp.description} error={errors.description} className="sm:col-span-2">
                   <textarea
                     id={id("description")}
                     lang="en"
+                    dir="ltr"
                     rows={6}
                     value={f.description}
                     onChange={set("description")}
@@ -289,11 +301,26 @@ export function ProductForm({
                     className={`${input} resize-y`}
                   />
                 </Field>
+                <div className="sm:col-span-2 rounded-xl border border-ink/12 p-4">
+                  <p className="text-sm font-semibold">{tp.arabicTitle}</p>
+                  <p className="mt-0.5 text-xs text-muted">{tp.arabicHint}</p>
+                  <div className="mt-4 grid gap-5">
+                    <Field id={id("nameAr")} label={tp.nameAr}>
+                      <input id={id("nameAr")} lang="ar" dir="rtl" value={f.nameAr} onChange={set("nameAr")} className={input} />
+                    </Field>
+                    <Field id={id("shortAr")} label={tp.shortAr}>
+                      <input id={id("shortAr")} lang="ar" dir="rtl" maxLength={500} value={f.shortDescriptionAr} onChange={set("shortDescriptionAr")} className={input} />
+                    </Field>
+                    <Field id={id("descriptionAr")} label={tp.descriptionAr}>
+                      <textarea id={id("descriptionAr")} lang="ar" dir="rtl" rows={5} value={f.descriptionAr} onChange={set("descriptionAr")} className={`${input} resize-y`} />
+                    </Field>
+                  </div>
+                </div>
                 <Field id={id("categoryId")} label={tp.category} error={errors.categoryId}>
                   <select id={id("categoryId")} value={f.categoryId} onChange={set("categoryId")} aria-invalid={!!errors.categoryId} className={input}>
                     <option value="" disabled className="bg-canvas">{tp.chooseCategory}</option>
                     {flatCategories.map((c) => (
-                      <option key={c.id} value={c.id} className="bg-canvas">{c.name}</option>
+                      <option key={c.id} value={c.id} className="bg-canvas">{localized(lang, c.name, c.nameAr)}</option>
                     ))}
                   </select>
                 </Field>

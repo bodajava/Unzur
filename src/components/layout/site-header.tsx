@@ -14,7 +14,7 @@ import { LiquidGlass } from "@/components/ui/liquid-glass";
 import { useCartDrawer } from "@/components/cart/cart-drawer-context";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { useI18n } from "@/i18n/client";
-import { fmt, plural } from "@/i18n/format";
+import { fmt, isFallback, localized, plural } from "@/i18n/format";
 import { LanguageSwitch } from "./language-switch";
 import { MobileMenu } from "./mobile-menu";
 import { SearchPanel } from "./search-panel";
@@ -66,7 +66,7 @@ function CartLink() {
 }
 
 export function SiteHeader({ categories }: { categories: CategoryNode[] }) {
-  const { t, href } = useI18n();
+  const { lang, t, href } = useI18n();
   const ref = useRef<HTMLElement>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -149,8 +149,8 @@ export function SiteHeader({ categories }: { categories: CategoryNode[] }) {
                 {t.nav.bestSellers}
               </Link>
               {topCategories.map((c) => (
-                <Link key={c.id} href={href(`/category/${c.slug}`)} lang="en" className="nav-link hidden lg:inline">
-                  {c.name}
+                <Link key={c.id} href={href(`/category/${c.slug}`)} lang={isFallback(lang, c.nameAr) ? "en" : undefined} className="nav-link hidden lg:inline">
+                  {localized(lang, c.name, c.nameAr)}
                 </Link>
               ))}
             </div>

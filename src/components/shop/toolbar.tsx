@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useId } from "react";
 import { useI18n } from "@/i18n/client";
-import { plural } from "@/i18n/format";
+import { isFallback, localized, plural } from "@/i18n/format";
 import { useListingNavigate } from "./listing-shell";
 import { listingQuery, SORTS, type ListingParams, type SortKey } from "./query";
 
@@ -11,7 +11,7 @@ interface Props {
   basePath: string;
   params: ListingParams;
   total: number;
-  categories: { slug: string; name: string }[];
+  categories: { slug: string; name: string; nameAr?: string | null }[];
   /** Slug of the category being shown (undefined on /shop and /search). */
   activeCategory?: string;
   /** Hide the category chips (search). */
@@ -43,11 +43,11 @@ export function ListingToolbar({ basePath, params, total, categories, activeCate
             <Link
               key={c.slug}
               href={`${href(`/category/${c.slug}`)}${keep}`}
-              lang="en"
+              lang={isFallback(lang, c.nameAr) ? "en" : undefined}
               className={`shrink-0 ${chip(activeCategory === c.slug)}`}
               aria-current={activeCategory === c.slug ? "page" : undefined}
             >
-              {c.name}
+              {localized(lang, c.name, c.nameAr)}
             </Link>
           ))}
         </nav>

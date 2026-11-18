@@ -3,7 +3,7 @@
 import { useId, useState } from "react";
 import { useCartDrawer } from "@/components/cart/cart-drawer-context";
 import { useI18n } from "@/i18n/client";
-import { fmt, formatPrice } from "@/i18n/format";
+import { fmt, formatPrice, isFallback, localized } from "@/i18n/format";
 import { errorMessage } from "@/lib/api/errors";
 import { useAddToCart, useNotifyMe } from "@/lib/api/hooks";
 import type { ProductDetail } from "@/lib/api/types";
@@ -109,13 +109,13 @@ export function PurchasePanel({ product }: { product: ProductDetail }) {
                   type="button"
                   role="radio"
                   aria-checked={selected}
-                  lang="en"
+                  lang={isFallback(lang, v.nameAr) ? "en" : undefined}
                   onClick={() => choose(v.id)}
                   className={`rounded-full border px-5 py-2 text-sm transition-colors ${
                     selected ? "border-ink bg-ink text-canvas" : "border-ink/25 hover:border-ink"
                   } ${v.stock <= 0 ? "line-through decoration-1" : ""}`}
                 >
-                  {v.name}
+                  {localized(lang, v.name, v.nameAr)}
                 </button>
               );
             })}

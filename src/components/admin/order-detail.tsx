@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useId, useState } from "react";
 import { useI18n } from "@/i18n/client";
-import { fmt, formatDateTime, formatPrice } from "@/i18n/format";
+import { fmt, formatDateTime, formatPrice, localized } from "@/i18n/format";
 import { useAdminOrder, useRefundOrder, useSetOrderStatus } from "@/lib/admin/api";
 import { ORDER_TRANSITIONS, REFUNDABLE } from "@/lib/admin/types";
 import { errorMessage } from "@/lib/api/errors";
+import type { OrderStatus } from "@/lib/api/types";
 import { useDownloadInvoice } from "@/lib/api/hooks";
 import { governorateLabel } from "@/lib/governorates";
 import { OrderStatusBadge, PaymentStatusText } from "./status-badge";
@@ -77,6 +78,8 @@ export function OrderDetail({ id }: { id: string }) {
         <p className="w-full text-sm text-muted">{fmt(to.placed, { date: formatDateTime(order.createdAt, lang) })}</p>
       </div>
 
+      <OrderProgress status={order.status} history={order.statusHistory} />
+
       <div className="grid gap-6 xl:grid-cols-[1fr_24rem]">
         <div className="space-y-6">
           <Panel title={to.items}>
@@ -84,8 +87,8 @@ export function OrderDetail({ id }: { id: string }) {
               {order.items.map((item) => (
                 <li key={item.id} className="flex items-center justify-between gap-4 py-3 text-sm">
                   <span>
-                    <span lang="en" className="font-semibold">{item.productName}</span>
-                    {item.variantName && <span lang="en" className="text-muted"> · {item.variantName}</span>}
+                    <span className="font-semibold">{localized(lang, item.productName, item.productNameAr)}</span>
+                    {item.variantName && <span className="text-muted"> · {localized(lang, item.variantName, item.variantNameAr)}</span>}
                     <span className="text-muted"> × {item.quantity}</span>
                     <span className="block text-xs text-muted tabular-nums">{formatPrice(item.priceAtPurchase, lang)}</span>
                   </span>
@@ -107,7 +110,12 @@ export function OrderDetail({ id }: { id: string }) {
 
           <div className="grid gap-6 md:grid-cols-2">
             <Panel title={to.customer}>
-              <p className="font-semibold">{order.customerName}</p>
+              <Link
+                href={href(`/admin/customers/${encodeURIComponent(order.userId ?? order.customerEmail.toLowerCase())}`)}
+                className="font-semibold hover:underline"
+              >
+                {order.customerName} {t.common.arrow}
+              </Link>
               <p dir="ltr" className="mt-1 flex items-center gap-2 text-sm rtl:justify-end">
                 <a href={`mailto:${order.customerEmail}`} className="hover:underline">{order.customerEmail}</a>
               </p>
@@ -286,5 +294,41 @@ export function OrderDetail({ id }: { id: string }) {
         </div>
       </div>
     </div>
+  );
+}
+
+const STEPS: OrderStatus[] = ["CONFIRMED", "PREPARING", "SHIPPED", "DELIVERED"];
+
+/**
+ * Where the order is, at a glance: four steps from confirmed to delivered,
+ * with the time each one happened. Cancelled and refunded orders say so instead.
+ */
+function OrderProgress({ status, history }: { status: OrderStatus; history: { toStatus: OrderStatus; createdAt: string }[] }) {
+  const { lang, t } = useI18n();
+  const when = (s: OrderStatus) => history.filter((h) => h.toStatus === s).at(-1)?.createdAt;
+  if (status === "CANCELLED" || status === "REFUNDED") {
+    const at = when(status);
+    return (
+      <p className="mb-8 rounded-2xl bg-[#d1342f]/8 px-5 py-4 text-sm font-semibold text-[#b02a26] dark:text-[#ff8f8a]">
+        {t.orderStatus[status]}
+        {at && <span className="ms-2 font-normal opacity-80">· {formatDateTime(at, lang)}</span>}
+      </p>
+    );
+  }
+  const reached = status === "PENDING_PAYMENT" ? -1 : STEPS.indexOf(status);
+  return (
+    <ol className="mb-8 grid grid-cols-4 gap-2" aria-label={t.admin.order.progress}>
+      {STEPS.map((s, i) => {
+        const done = i <= reached;
+        const at = when(s);
+        return (
+          <li key={s} aria-current={i === reached ? "step" : undefined}>
+            <div className={`h-1.5 rounded-full ${done ? "bg-blue" : "bg-ink/12"}`} />
+            <p className={`mt-2 text-xs font-semibold sm:text-sm ${done ? "" : "text-muted"}`}>{t.orderStatus[s]}</p>
+            <p className="text-[0.7rem] text-muted tabular-nums">{done && at ? formatDateTime(at, lang) : "\u00a0"}</p>
+          </li>
+        );
+      })}
+    </ol>
   );
 }

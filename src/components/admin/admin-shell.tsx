@@ -1,12 +1,15 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useSyncExternalStore, type ReactNode } from "react";
 import { EyeMark } from "@/components/brand/logo";
 import { useI18n } from "@/i18n/client";
 import { useLogout, useSession } from "@/lib/api/hooks";
 import { STAFF_ROLES } from "@/lib/admin/types";
 import { AdminHeader } from "./admin-header";
+import { PushToast } from "./push-toast";
+
+const noop = () => () => {};
 
 function Centered({ children }: { children: ReactNode }) {
   return (
@@ -31,12 +34,16 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const logout = useLogout();
   const onLogin = pathname.endsWith("/admin/login");
   const allowed = !!user && STAFF_ROLES.includes(user.role);
+  // The session flag is only readable after hydration; until then everyone looks like a guest.
+  const hydrated = useSyncExternalStore(noop, () => true, () => false);
 
   useEffect(() => {
-    if (!onLogin && status === "guest") {
-      router.replace(`${href("/admin/login")}?next=${encodeURIComponent(pathname)}`);
+    if (hydrated && !onLogin && status === "guest") {
+      // Keep the whole address (filters in the query string) for the way back.
+      const back = `${pathname}${window.location.search}`;
+      router.replace(`${href("/admin/login")}?next=${encodeURIComponent(back)}`);
     }
-  }, [onLogin, status, router, href, pathname]);
+  }, [hydrated, onLogin, status, router, href, pathname]);
 
   const signOut = () => logout.mutate(undefined, { onSettled: () => router.replace(href("/admin/login")) });
 
@@ -58,6 +65,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
       <main id="main" className="min-h-svh px-4 pt-28 pb-20 sm:px-8 sm:pt-32 lg:px-12">
         <div className="mx-auto max-w-[90rem]">{children}</div>
       </main>
+      <PushToast />
     </>
   );
 }

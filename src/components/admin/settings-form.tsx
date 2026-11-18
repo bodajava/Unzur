@@ -9,11 +9,13 @@ import { errorMessage } from "@/lib/api/errors";
 import { MONEY, toEgp, toPiasters } from "./money";
 import { Panel, Skeleton } from "./ui";
 
-type Kind = "text" | "phone" | "email" | "currency" | "egp" | "int" | "bool";
+type Kind = "text" | "phone" | "email" | "url" | "currency" | "egp" | "int" | "bool";
 /** The store's known settings, how to edit each one, and whether the store front may read it. */
 const FIELDS: { key: string; kind: Kind; public: boolean; fallback?: number }[] = [
   { key: "store_name", kind: "text", public: true },
+  { key: "contact_email", kind: "email", public: true },
   { key: "whatsapp_number", kind: "phone", public: true },
+  { key: "instagram_url", kind: "url", public: true },
   { key: "currency", kind: "currency", public: true },
   { key: "free_shipping_threshold", kind: "egp", public: true },
   { key: "admin_email", kind: "email", public: false },
@@ -60,7 +62,9 @@ function Form({ saved }: { saved: StoreSetting[] }) {
         value = Number(v);
       } else {
         if (String(v).trim() === "") continue; // leave unset text settings alone
-        value = f.kind === "currency" ? String(v).trim().toUpperCase() : String(v).trim();
+        const text = String(v).trim();
+        // Shared links carry tracking (?igsh=…, ?evlk=…): keep just the profile address.
+        value = f.kind === "currency" ? text.toUpperCase() : f.kind === "url" ? text.replace(/[?#].*$/, "") : text;
       }
       // Skip what didn't change.
       if (JSON.stringify(value) === JSON.stringify(current(f.key) ?? (f.kind === "egp" ? null : f.fallback))) continue;
@@ -95,7 +99,7 @@ function Form({ saved }: { saved: StoreSetting[] }) {
               <input
                 value={String(values[f.key])}
                 onChange={(e) => setValues({ ...values, [f.key]: e.target.value })}
-                type={f.kind === "email" ? "email" : f.kind === "int" ? "number" : "text"}
+                type={f.kind === "email" ? "email" : f.kind === "url" ? "url" : f.kind === "int" ? "number" : "text"}
                 inputMode={f.kind === "egp" ? "decimal" : f.kind === "phone" ? "tel" : undefined}
                 dir={f.kind === "text" ? undefined : "ltr"}
                 className={`${field} ${f.kind === "text" ? "" : "rtl:text-right"}`}

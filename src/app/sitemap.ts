@@ -16,6 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const pages: Entry[] = [
     { path: "/", changeFrequency: "daily", priority: 1 },
     { path: "/shop", changeFrequency: "daily", priority: 0.9 },
+    { path: "/contact", changeFrequency: "weekly", priority: 0.5 },
     { path: "/track", changeFrequency: "weekly", priority: 0.3 },
     ...categories
       .flatMap((c) => [c, ...c.children])

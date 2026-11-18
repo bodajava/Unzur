@@ -260,9 +260,7 @@ export function Hero({ words }: { words: string[] }) {
       <div className="absolute inset-x-6 bottom-7 sm:inset-x-10 lg:inset-x-14" data-depart>
         <div className="flex justify-between text-[0.7rem] tracking-[0.12em] uppercase text-hero-accent sm:text-xs">
           <span>{t.hero.rulerStart}</span>
-          <span lang="ar" className="tracking-normal">
-            انظر أو كُفّ عن النظر
-          </span>
+          <span className="tracking-normal">{t.common.tagline}</span>
           <span>{t.hero.rulerEnd}</span>
         </div>
         <div className="mt-2 flex h-4 items-end justify-between border-b-2 border-on-hero">

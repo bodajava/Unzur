@@ -1,3 +1,4 @@
+import { isFallback, localized } from "@/i18n/format";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -29,25 +30,42 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   const [{ slug }, lang] = await Promise.all([props.params, getLang()]);
   const product = await getProduct(slug);
   if (!product) return {};
-  const description = product.shortDescription ?? product.description?.slice(0, 160) ?? undefined;
-  const images = product.images.map((img) => ({ url: img.url, alt: img.altText ?? product.name }));
+  const c = copyOf(product, lang);
+  const description = c.short ?? c.description?.slice(0, 160) ?? undefined;
+  const images = product.images.map((img) => ({ url: img.url, alt: img.altText ?? c.name }));
   return {
-    title: product.name,
+    title: c.name,
     description,
     alternates: alternatesFor(lang, `/products/${slug}`),
     openGraph: {
       type: "website",
-      title: product.name,
+      title: c.name,
       description,
       url: localePath(lang, `/products/${slug}`),
       ...(images.length ? { images } : {}),
     },
-    twitter: { card: "summary_large_image", title: product.name, description },
+    twitter: { card: "summary_large_image", title: c.name, description },
+  };
+}
+
+/** The product's copy in the page language (Arabic fields fall back to English). */
+function copyOf(product: ProductDetail, lang: Locale) {
+  const en = (ar?: string | null) => (isFallback(lang, ar) ? "en" : undefined);
+  return {
+    name: localized(lang, product.name, product.nameAr),
+    nameLang: en(product.nameAr),
+    short: localized(lang, product.shortDescription, product.shortDescriptionAr),
+    shortLang: en(product.shortDescriptionAr),
+    description: localized(lang, product.description, product.descriptionAr),
+    descriptionLang: en(product.descriptionAr),
+    category: localized(lang, product.category.name, product.category.nameAr),
+    categoryLang: en(product.category.nameAr),
   };
 }
 
 /** schema.org Product: price, availability, brand and rating for rich results. */
-function productJsonLd(product: ProductDetail, reviews: ReviewPage | null, url: string) {
+function productJsonLd(product: ProductDetail, reviews: ReviewPage | null, url: string, lang: Locale) {
+  const c = copyOf(product, lang);
   const egp = (piasters: number) => (piasters / 100).toFixed(2);
   const inStock = product.variants.length ? product.variants.some((v) => v.stock > 0) : product.stock > 0;
   const availability = `https://schema.org/${inStock ? "InStock" : "OutOfStock"}`;
@@ -58,12 +76,12 @@ function productJsonLd(product: ProductDetail, reviews: ReviewPage | null, url: 
   return {
     "@context": "https://schema.org",
     "@type": "Product",
-    name: product.name,
-    description: product.description ?? product.shortDescription ?? undefined,
+    name: c.name,
+    description: c.description ?? c.short ?? undefined,
     sku: product.sku,
     url,
     image: product.images.map((i) => i.url),
-    category: product.category.name,
+    category: c.category,
     ...(product.brand ? { brand: { "@type": "Brand", name: product.brand.name } } : {}),
     offers:
       prices.length > 1
@@ -88,9 +106,9 @@ function productJsonLd(product: ProductDetail, reviews: ReviewPage | null, url: 
   };
 }
 
-function Paragraphs({ text }: { text: string }) {
+function Paragraphs({ text, lang }: { text: string; lang?: string }) {
   return (
-    <div lang="en" dir="auto" className="space-y-4 leading-relaxed text-ink/85 rtl:text-right">
+    <div lang={lang} dir="auto" className="space-y-4 leading-relaxed text-ink/85 rtl:text-right">
       {text
         .split(/\n{2,}/)
         .filter(Boolean)
@@ -108,39 +126,40 @@ async function ProductView({ lang, t, params }: { lang: Locale; t: Dictionary; p
   const reviews = await getProductReviews(product.id);
   const url = `${site.url}${localePath(lang, `/products/${slug}`)}`;
   const related = product.relatedProducts.slice(0, 4);
+  const c = copyOf(product, lang);
 
   return (
     <>
-      <JsonLd data={productJsonLd(product, reviews, url)} />
+      <JsonLd data={productJsonLd(product, reviews, url, lang)} />
       <TrackView slug={slug} />
       <Breadcrumbs
         label={t.shop.breadcrumb}
         items={[
           { label: t.common.home, href: localePath(lang) },
-          { label: product.category.name, href: localePath(lang, `/category/${product.category.slug}`), lang: "en" },
-          { label: product.name, lang: "en" },
+          { label: c.category, href: localePath(lang, `/category/${product.category.slug}`), lang: c.categoryLang },
+          { label: c.name, lang: c.nameLang },
         ]}
       />
 
       <div className="mt-6 grid gap-10 lg:mt-10 lg:grid-cols-12 lg:gap-14">
         <div className="lg:col-span-6">
-          <Gallery name={product.name} images={product.images} />
+          <Gallery name={c.name} images={product.images} />
         </div>
 
         <div className="lg:sticky lg:top-32 lg:col-span-6 lg:self-start xl:ps-6">
           <Link
             href={localePath(lang, `/category/${product.category.slug}`)}
-            lang="en"
+            lang={c.categoryLang}
             className="eyebrow text-muted hover:text-ink"
           >
-            {product.category.name}
+            {c.category}
           </Link>
-          <h1 lang="en" className="display mt-3 text-[clamp(2.6rem,6vw,5rem)]">
-            {product.name}
+          <h1 lang={c.nameLang} className="display mt-3 text-[clamp(2.6rem,6vw,5rem)]">
+            {c.name}
           </h1>
-          {product.shortDescription && (
-            <p lang="en" dir="auto" className="mt-4 max-w-md text-lg leading-snug text-ink/80 rtl:text-right">
-              {product.shortDescription}
+          {c.short && (
+            <p lang={c.shortLang} dir="auto" className="mt-4 max-w-md text-lg leading-snug text-ink/80 rtl:text-right">
+              {c.short}
             </p>
           )}
 
@@ -150,9 +169,9 @@ async function ProductView({ lang, t, params }: { lang: Locale; t: Dictionary; p
 
           <div className="mt-10 border-t border-ink/15 pt-8">
             <h2 className="eyebrow text-muted">{t.productPage.details}</h2>
-            {product.description && (
+            {c.description && (
               <div className="mt-4">
-                <Paragraphs text={product.description} />
+                <Paragraphs text={c.description} lang={c.descriptionLang} />
               </div>
             )}
             <dl className="mt-6 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
@@ -161,7 +180,7 @@ async function ProductView({ lang, t, params }: { lang: Locale; t: Dictionary; p
                 {product.sku}
               </dd>
               <dt className="text-muted">{t.productPage.category}</dt>
-              <dd lang="en">{product.category.name}</dd>
+              <dd lang={c.categoryLang}>{c.category}</dd>
             </dl>
           </div>
         </div>

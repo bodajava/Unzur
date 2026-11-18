@@ -19,8 +19,10 @@ export function AdminHeader({ user, onSignOut }: { user: User; onSignOut: () => 
   const links = [
     { href: href("/admin"), label: t.admin.nav.overview, exact: true },
     { href: href("/admin/orders"), label: t.admin.nav.orders },
+    { href: href("/admin/analytics"), label: t.admin.nav.analytics },
     { href: href("/admin/products"), label: t.admin.nav.products },
     { href: href("/admin/customers"), label: t.admin.nav.customers },
+    { href: href("/admin/messages"), label: t.admin.nav.messages },
     { href: href("/admin/marketing"), label: t.admin.nav.marketing },
     { href: href("/admin/catalog"), label: t.admin.nav.catalog },
     { href: href("/admin/store"), label: t.admin.nav.store },
@@ -50,7 +52,8 @@ export function AdminHeader({ user, onSignOut }: { user: User; onSignOut: () => 
         <nav aria-label={t.admin.nav.main} className="flex h-16 items-center gap-3 px-4 sm:px-6">
           <Link href={href("/admin")} className="flex shrink-0 items-center gap-3">
             <Logo title="UNZUR" className="block h-6 w-auto sm:h-7" />
-            <span className="eyebrow hidden opacity-70 sm:inline">{t.admin.title}</span>
+            {/* Hidden where the inline links need the room (xl), back on very wide screens. */}
+            <span className="eyebrow hidden opacity-70 sm:inline xl:hidden 2xl:inline">{t.admin.title}</span>
           </Link>
 
           <div className="ms-4 hidden items-center gap-0.5 xl:flex">{links.map((l) => navLink(l))}</div>

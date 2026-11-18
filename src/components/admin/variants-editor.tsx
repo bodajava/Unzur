@@ -10,6 +10,7 @@ import { Panel } from "./ui";
 
 interface Row {
   name: string;
+  nameAr: string;
   sku: string;
   price: string;
   sale: string;
@@ -19,13 +20,14 @@ interface Row {
 
 const fromVariant = (v: AdminVariant): Row => ({
   name: v.name,
+  nameAr: v.nameAr ?? "",
   sku: v.sku,
   price: toEgp(v.price),
   sale: toEgp(v.salePrice),
   stock: String(v.stock),
   isActive: v.isActive,
 });
-const EMPTY: Row = { name: "", sku: "", price: "", sale: "", stock: "0", isActive: true };
+const EMPTY: Row = { name: "", nameAr: "", sku: "", price: "", sale: "", stock: "0", isActive: true };
 
 const cell =
   "w-full rounded-lg border border-ink/20 bg-transparent px-2.5 py-2 text-sm focus:border-ink focus:outline-none aria-[invalid=true]:border-[#d1342f]";
@@ -48,7 +50,11 @@ function Fields({ row, onChange }: { row: Row; onChange: (r: Row) => void }) {
   const bad = (ok: boolean) => (ok ? undefined : true);
   return (
     <>
-      <input aria-label={tp.variantName} value={row.name} onChange={set("name")} lang="en" className={cell} />
+      {/* English name + Arabic name, stacked in one column */}
+      <div className="grid gap-1">
+        <input aria-label={tp.variantName} placeholder="EN" value={row.name} onChange={set("name")} lang="en" dir="ltr" className={cell} />
+        <input aria-label={tp.variantNameAr} placeholder="عربي" value={row.nameAr} onChange={set("nameAr")} lang="ar" dir="rtl" className={cell} />
+      </div>
       <input aria-label={tp.variantSku} value={row.sku} onChange={set("sku")} dir="ltr" className={cell} />
       <input aria-label={tp.variantPrice} value={row.price} onChange={set("price")} inputMode="decimal" dir="ltr" aria-invalid={bad(!row.price || MONEY.test(row.price))} className={cell} />
       <input
@@ -88,6 +94,7 @@ function ExistingRow({ productId, variant }: { productId: string; variant: Admin
                 id: variant.id,
                 v: {
                   name: row.name.trim(),
+                  nameAr: row.nameAr.trim() || null,
                   sku: row.sku.trim(),
                   price: toPiasters(row.price),
                   salePrice: row.sale ? toPiasters(row.sale) : null,
@@ -136,7 +143,7 @@ export function VariantsEditor({ productId, variants }: { productId: string; var
       {variants.length === 0 && <p className="py-3 text-sm text-muted">{tp.noVariants}</p>}
       <ul className="divide-y divide-ink/10">
         {variants.map((v) => (
-          <ExistingRow key={`${v.id}-${v.price}-${v.stock}-${v.isActive}-${v.name}-${v.sku}-${v.salePrice}`} productId={productId} variant={v} />
+          <ExistingRow key={`${v.id}-${v.price}-${v.stock}-${v.isActive}-${v.name}-${v.nameAr}-${v.sku}-${v.salePrice}`} productId={productId} variant={v} />
         ))}
       </ul>
       <form
@@ -147,6 +154,7 @@ export function VariantsEditor({ productId, variants }: { productId: string; var
           add.mutate(
             {
               name: draft.name.trim(),
+              nameAr: draft.nameAr.trim() || null,
               sku: draft.sku.trim(),
               price: toPiasters(draft.price),
               salePrice: draft.sale ? toPiasters(draft.sale) : undefined,

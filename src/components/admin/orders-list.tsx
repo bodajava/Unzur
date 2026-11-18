@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useState, useTransition } from "react";
 import { useI18n } from "@/i18n/client";
 import { formatDateTime, formatPrice, plural } from "@/i18n/format";
-import { useAdminOrders } from "@/lib/admin/api";
+import { useAdminOrders, useOrderCounts } from "@/lib/admin/api";
 import type { OrderListQuery } from "@/lib/admin/types";
 import { errorMessage } from "@/lib/api/errors";
 import type { OrderStatus, PaymentMethod, PaymentStatus } from "@/lib/api/types";
@@ -38,6 +38,7 @@ function readQuery(sp: URLSearchParams): OrderListQuery {
     paymentMethod: pick("method", METHODS),
     fromDate: day("from"),
     toDate: day("to", true),
+    customer: sp.get("customer")?.trim() || undefined,
   };
 }
 
@@ -48,6 +49,7 @@ export function OrdersList() {
   const sp = useSearchParams();
   const query = readQuery(new URLSearchParams(sp?.toString()));
   const orders = useAdminOrders(query);
+  const counts = useOrderCounts(STATUSES, query.customer);
   const [pending, start] = useTransition();
   const [search, setSearch] = useState(sp?.get("q") ?? "");
   const uid = useId();
@@ -76,7 +78,10 @@ export function OrdersList() {
   const select =
     "rounded-full border border-ink/20 bg-transparent py-2 ps-3.5 pe-8 text-sm hover:border-ink/50 focus:border-ink focus:outline-none";
   const data = orders.data;
-  const filtered = !!(query.search || query.status || query.paymentStatus || query.paymentMethod || query.fromDate || query.toDate);
+  const filtered = !!(query.search || query.status || query.paymentStatus || query.paymentMethod || query.fromDate || query.toDate || query.customer);
+  /** The customer page key: their account, or the email on a guest order. */
+  const customerKey = (o: { userId: string | null; customerEmail: string }) => o.userId ?? o.customerEmail.toLowerCase();
+  const customerName = query.customer && data?.items[0]?.customerName;
 
   return (
     <div>
@@ -96,9 +101,23 @@ export function OrdersList() {
             }`}
           >
             {s ? t.orderStatus[s] : to.allStatuses}
+            {counts[s ?? "all"] !== undefined && (
+              <span className={`ms-2 rounded-full px-1.5 text-xs tabular-nums ${query.status === s ? "bg-canvas/20" : "bg-ink/8"}`}>{counts[s ?? "all"]}</span>
+            )}
           </button>
         ))}
       </div>
+
+      {query.customer && (
+        <p className="mb-4 inline-flex items-center gap-3 rounded-full bg-blue/10 px-4 py-2 text-sm">
+          <span>
+            {to.customerFilter}: <b dir="auto">{customerName || query.customer}</b>
+          </span>
+          <button type="button" onClick={() => set({ customer: undefined })} aria-label={to.clear} className="font-semibold">
+            ✕
+          </button>
+        </p>
+      )}
 
       {/* Search + filters */}
       <div className="mb-6 flex flex-wrap items-center gap-3">
@@ -182,7 +201,13 @@ export function OrdersList() {
                       </td>
                       <td className="px-5 py-3.5 whitespace-nowrap text-muted">{formatDateTime(o.createdAt, lang)}</td>
                       <td className="max-w-[16rem] px-5 py-3.5">
-                        <span className="block truncate font-semibold">{o.customerName}</span>
+                        <Link
+                          href={href(`/admin/customers/${encodeURIComponent(customerKey(o))}`)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="block truncate font-semibold hover:underline"
+                        >
+                          {o.customerName}
+                        </Link>
                         <span dir="ltr" className="block truncate text-xs text-muted rtl:text-right">
                           {o.customerEmail}
                         </span>

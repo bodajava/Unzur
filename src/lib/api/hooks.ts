@@ -289,6 +289,10 @@ export function useShippingRate(governorate: string | undefined, cartSubtotal?: 
   });
 }
 
+export function usePaymentMethods() {
+  return useQuery({ queryKey: ["payment-methods"], queryFn: checkoutApi.paymentMethods, staleTime: 10 * 60_000 });
+}
+
 export function useStoreSettings() {
   return useQuery({ queryKey: qk.settings, queryFn: checkoutApi.settings, staleTime: 10 * 60_000 });
 }

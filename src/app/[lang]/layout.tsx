@@ -69,7 +69,9 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
       <head>
         <InlineScript html={themeScript} />
       </head>
-      <body className="min-h-dvh antialiased">
+      {/* Browser extensions (ColorZilla, Grammarly…) add attributes to <body> before
+          React loads. This only ignores attribute differences on <body> itself. */}
+      <body className="min-h-dvh antialiased" suppressHydrationWarning>
         <JsonLd
           data={[
             {

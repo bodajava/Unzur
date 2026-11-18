@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { OrderLookup } from "@/components/checkout/order-lookup";
+import { Suspense } from "react";
+import { TrackView } from "@/components/checkout/track-view";
 import { alternatesFor } from "@/i18n/config";
 import { getDictionary, getLang } from "@/i18n/server";
 
@@ -13,7 +14,9 @@ export default function TrackPage() {
   return (
     <section className="bg-page px-6 pt-32 pb-28 sm:px-10 sm:pt-40 lg:px-14">
       <div className="mx-auto max-w-6xl">
-        <OrderLookup />
+        <Suspense fallback={<div className="h-80 animate-pulse rounded-2xl bg-panel" />}>
+          <TrackView />
+        </Suspense>
       </div>
     </section>
   );

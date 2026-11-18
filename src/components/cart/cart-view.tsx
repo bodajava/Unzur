@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useI18n } from "@/i18n/client";
-import { fmt, formatPrice, plural } from "@/i18n/format";
+import { fmt, formatPrice, isFallback, localized, plural } from "@/i18n/format";
 import { errorMessage } from "@/lib/api/errors";
 import { useApplyCoupon, useCart, useRemoveCartItem, useRemoveCoupon, useUpdateCartItem } from "@/lib/api/hooks";
 import type { CartLine } from "@/lib/api/types";
@@ -29,6 +29,7 @@ function Line({ line, onNavigate }: { line: CartLine; onNavigate?: () => void })
       ? fmt(t.cart.stockLeft, { count: line.availableStock })
       : null;
   const error = update.error ?? remove.error;
+  const name = localized(lang, line.product.name, line.product.nameAr);
 
   return (
     <li className={`flex gap-4 py-5 transition-opacity ${busy ? "opacity-50" : ""}`}>
@@ -51,14 +52,14 @@ function Line({ line, onNavigate }: { line: CartLine; onNavigate?: () => void })
             <Link
               href={href(`/products/${line.product.slug}`)}
               onClick={onNavigate}
-              lang="en"
+              lang={isFallback(lang, line.product.nameAr) ? "en" : undefined}
               className="display block truncate text-lg hover:opacity-70"
             >
-              {line.product.name}
+              {name}
             </Link>
             {line.variant && (
-              <p lang="en" className="mt-0.5 text-sm text-muted">
-                {line.variant.name}
+              <p lang={isFallback(lang, line.variant.nameAr) ? "en" : undefined} className="mt-0.5 text-sm text-muted">
+                {localized(lang, line.variant.name, line.variant.nameAr)}
               </p>
             )}
           </div>
@@ -66,7 +67,7 @@ function Line({ line, onNavigate }: { line: CartLine; onNavigate?: () => void })
         </div>
         {problem && <p className="mt-1 text-xs font-semibold text-[#d1342f]">{problem}</p>}
         <div className="mt-auto flex items-center justify-between gap-3 pt-3">
-          <div className="inline-flex items-center rounded-full border border-ink/25" role="group" aria-label={fmt(t.cart.quantityLabel, { name: line.product.name })}>
+          <div className="inline-flex items-center rounded-full border border-ink/25" role="group" aria-label={fmt(t.cart.quantityLabel, { name })}>
             <button
               type="button"
               aria-label={t.productPage.less}
@@ -93,7 +94,7 @@ function Line({ line, onNavigate }: { line: CartLine; onNavigate?: () => void })
             type="button"
             disabled={busy}
             onClick={() => remove.mutate(line.id)}
-            aria-label={fmt(t.cart.removeLabel, { name: line.product.name })}
+            aria-label={fmt(t.cart.removeLabel, { name })}
             className="nav-link text-sm text-muted"
           >
             {t.cart.remove}

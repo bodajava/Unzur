@@ -1,6 +1,6 @@
 "use client";
 
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, qs } from "@/lib/api/client";
 import { setSession } from "@/lib/api/session";
 import { qk } from "@/lib/api/hooks";
@@ -11,6 +11,8 @@ import type {
   CouponInput,
   CouponTarget,
   CustomerEntry,
+  CustomerDetail,
+  ContactMessage,
   AdminBrand,
   AdminCategory,
   ShippingZone,
@@ -21,8 +23,11 @@ import type {
   AdminOrder,
   VariantInput,
   AdminOrderRow,
+  Breakdown,
+  CustomerAnalytics,
   DateRange,
   Granularity,
+  PerformanceSort,
   Insight,
   LowStockItem,
   OrderListQuery,
@@ -47,6 +52,8 @@ export const adminApi = {
   productsPerformance: (q: DateRange & { sortBy?: string; order?: "asc" | "desc"; limit?: number }) =>
     api<ProductPerformance[]>(`/admin/analytics/products-performance${qs({ ...q })}`),
   insights: () => api<Insight[]>("/admin/analytics/insights"),
+  breakdown: (range: DateRange) => api<Breakdown>(`/admin/analytics/breakdown${qs({ ...range })}`),
+  customerAnalytics: (range: DateRange) => api<CustomerAnalytics>(`/admin/analytics/customers${qs({ ...range })}`),
   lowStock: () => api<LowStockItem[]>("/admin/inventory/low-stock"),
 
   orders: (q: OrderListQuery) => api<Paginated<AdminOrderRow>>(`/orders${qs({ ...q })}`),
@@ -90,6 +97,9 @@ export const akq = {
   overview: (r: DateRange) => ["admin", "overview", r] as const,
   trend: (r: DateRange, g: Granularity) => ["admin", "trend", r, g] as const,
   performance: (r: DateRange) => ["admin", "performance", r] as const,
+  performanceBy: (r: DateRange, sort: PerformanceSort, order: "asc" | "desc") => ["admin", "performance", r, sort, order] as const,
+  breakdown: (r: DateRange) => ["admin", "breakdown", r] as const,
+  customers: (r: DateRange) => ["admin", "customer-analytics", r] as const,
   insights: ["admin", "insights"] as const,
   lowStock: ["admin", "low-stock"] as const,
   orders: (q: OrderListQuery) => ["admin", "orders", q] as const,
@@ -120,6 +130,32 @@ export const useTopProducts = (range: DateRange) =>
     queryFn: () => adminApi.productsPerformance({ ...range, sortBy: "revenue", order: "desc", limit: 6 }),
     placeholderData: keepPreviousData,
   });
+
+export const useProductPerformance = (range: DateRange, sortBy: PerformanceSort, order: "asc" | "desc") =>
+  useQuery({
+    queryKey: akq.performanceBy(range, sortBy, order),
+    queryFn: () => adminApi.productsPerformance({ ...range, sortBy, order, limit: 50 }),
+    placeholderData: keepPreviousData,
+  });
+
+export const useBreakdown = (range: DateRange) =>
+  useQuery({ queryKey: akq.breakdown(range), queryFn: () => adminApi.breakdown(range), placeholderData: keepPreviousData });
+
+export const useCustomerAnalytics = (range: DateRange) =>
+  useQuery({ queryKey: akq.customers(range), queryFn: () => adminApi.customerAnalytics(range), placeholderData: keepPreviousData });
+
+/** Moves any order one step (used by the overview queue). */
+export function useQuickStatus() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: OrderStatus }) => adminApi.setStatus(id, status),
+    onSuccess: (order) => {
+      client.setQueryData(akq.order(order.id), order);
+      void client.invalidateQueries({ queryKey: ["admin", "orders"] });
+      void client.invalidateQueries({ queryKey: ["admin", "overview"] });
+    },
+  });
+}
 
 export const useInsights = () => useQuery({ queryKey: akq.insights, queryFn: adminApi.insights, staleTime: 5 * 60_000 });
 export const useLowStock = () => useQuery({ queryKey: akq.lowStock, queryFn: adminApi.lowStock });
@@ -245,6 +281,11 @@ export function useSaveSettings() {
 
 export const marketingApi = {
   customers: (q: PageQuery) => api<Paginated<CustomerEntry>>(`/admin/customers${qs({ ...q })}`),
+  customer: (identifier: string) => api<CustomerDetail>(`/admin/customers/${enc(identifier)}`),
+  messages: (q: PageQuery & { isRead?: boolean }) => api<Paginated<ContactMessage>>(`/contact/messages${qs({ ...q })}`),
+  updateMessage: (id: string, body: { isRead?: boolean; replied?: boolean }) =>
+    api<ContactMessage>(`/contact/messages/${enc(id)}`, { method: "PATCH", json: body }),
+  deleteMessage: (id: string) => api<unknown>(`/contact/messages/${enc(id)}`, { method: "DELETE" }),
   coupons: (q: PageQuery & { status?: string }) => api<Paginated<Coupon>>(`/coupons${qs({ ...q })}`),
   createCoupon: (c: CouponInput) => api<Coupon>("/coupons", { method: "POST", json: c }),
   updateCoupon: (id: string, c: Partial<CouponInput>) => api<Coupon>(`/coupons/${enc(id)}`, { method: "PATCH", json: c }),
@@ -271,4 +312,27 @@ export const useGiftCards = (q: PageQuery & { isActive?: boolean }) =>
 export function useMarketingChange<V, R>(area: "coupons" | "gift-cards", fn: (v: V) => Promise<R>) {
   const client = useQueryClient();
   return useMutation({ mutationFn: fn, onSuccess: () => client.invalidateQueries({ queryKey: ["admin", area] }) });
+}
+
+export const useCustomer = (identifier: string) =>
+  useQuery({ queryKey: ["admin", "customer", identifier], queryFn: () => marketingApi.customer(identifier), retry: false });
+
+export const useMessages = (q: PageQuery & { isRead?: boolean }) =>
+  useQuery({ queryKey: ["admin", "messages", q], queryFn: () => marketingApi.messages(q), placeholderData: keepPreviousData });
+
+export function useMessageChange<V>(fn: (v: V) => Promise<unknown>) {
+  const client = useQueryClient();
+  return useMutation({ mutationFn: fn, onSuccess: () => client.invalidateQueries({ queryKey: ["admin", "messages"] }) });
+}
+
+/** How many orders sit in each status right now (for the tabs). One tiny request per status. */
+export function useOrderCounts(statuses: readonly OrderStatus[], customer?: string) {
+  const results = useQueries({
+    queries: [undefined, ...statuses].map((status) => ({
+      queryKey: akq.orders({ status, customer, limit: 1, page: 1 }),
+      queryFn: () => adminApi.orders({ status, customer, limit: 1, page: 1 }),
+      staleTime: 30_000,
+    })),
+  });
+  return Object.fromEntries([undefined, ...statuses].map((s, i) => [s ?? "all", results[i].data?.meta.total])) as Record<string, number | undefined>;
 }

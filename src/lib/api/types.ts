@@ -61,14 +61,19 @@ export interface BrandRef {
 export interface CategoryRef {
   id: string;
   name: string;
+  /** Arabic name (optional): pages in Arabic use it, falling back to `name`. */
+  nameAr?: string | null;
   slug: string;
 }
 
 export interface ProductCard {
   id: string;
   name: string;
+  /** Arabic name (optional): pages in Arabic use it, falling back to `name`. */
+  nameAr?: string | null;
   slug: string;
   shortDescription: string | null;
+  shortDescriptionAr?: string | null;
   basePrice: number;
   salePrice: number | null;
   stock: number;
@@ -84,6 +89,8 @@ export interface ProductCard {
 export interface CardVariant {
   id: string;
   name: string;
+  /** Arabic name (optional): pages in Arabic use it, falling back to `name`. */
+  nameAr?: string | null;
   price: number;
   salePrice: number | null;
   stock: number;
@@ -97,6 +104,8 @@ export interface ProductImage extends ImageRef {
 export interface ProductVariant {
   id: string;
   name: string;
+  /** Arabic name (optional): pages in Arabic use it, falling back to `name`. */
+  nameAr?: string | null;
   sku: string;
   price: number;
   salePrice: number | null;
@@ -107,6 +116,7 @@ export interface ProductVariant {
 export interface ProductDetail extends Omit<ProductCard, "primaryImage" | "variants"> {
   sku: string;
   description: string | null;
+  descriptionAr?: string | null;
   categoryId: string;
   brandId: string | null;
   updatedAt: string;
@@ -134,8 +144,11 @@ export interface ProductQuery extends PageQuery {
 export interface CategoryNode {
   id: string;
   name: string;
+  /** Arabic name (optional): pages in Arabic use it, falling back to `name`. */
+  nameAr?: string | null;
   slug: string;
   description: string | null;
+  descriptionAr?: string | null;
   imageUrl: string | null;
   parentId: string | null;
   children: CategoryNode[];
@@ -148,6 +161,8 @@ export interface Brand extends BrandRef {
 export interface Suggestion {
   id: string;
   name: string;
+  /** Arabic name (optional): pages in Arabic use it, falling back to `name`. */
+  nameAr?: string | null;
   slug: string;
   basePrice: number;
   salePrice: number | null;
@@ -188,8 +203,8 @@ export interface CartLine {
   productId: string;
   variantId: string | null;
   quantity: number;
-  product: { id: string; name: string; slug: string; primaryImage: ImageRef | null };
-  variant: { id: string; name: string; sku: string; attributes: unknown } | null;
+  product: { id: string; name: string; nameAr?: string | null; slug: string; primaryImage: ImageRef | null };
+  variant: { id: string; name: string; nameAr?: string | null; sku: string; attributes: unknown } | null;
   unitPrice: number;
   originalUnitPrice: number;
   lineTotal: number;
@@ -294,6 +309,8 @@ export interface OrderItem {
   variantId: string | null;
   productName: string;
   variantName: string | null;
+  productNameAr?: string | null;
+  variantNameAr?: string | null;
   priceAtPurchase: number;
   imageUrl: string | null;
   quantity: number;
@@ -428,8 +445,9 @@ export interface GuestSession {
 export interface RegisterInput {
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
+  /** Optional: the API derives a name from the email. */
+  firstName?: string;
+  lastName?: string;
   phone?: string;
   referralCode?: string;
 }
@@ -567,7 +585,8 @@ export interface SubscribeResult {
 }
 
 export interface ContactInput {
-  name: string;
+  /** Optional: the API uses the email's name part. */
+  name?: string;
   email: string;
   phone?: string;
   subject?: string;

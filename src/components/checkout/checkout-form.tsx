@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useState, type ReactNode } from "react";
 import { useI18n } from "@/i18n/client";
-import { fmt, formatPrice } from "@/i18n/format";
+import { fmt, formatPrice, isFallback, localized } from "@/i18n/format";
 import { ApiError } from "@/lib/api/client";
 import { errorMessage } from "@/lib/api/errors";
-import { useCart, useGiftCardBalance, usePlaceOrder, useSession, useShippingRate } from "@/lib/api/hooks";
+import { useCart, useGiftCardBalance, usePlaceOrder, useSession, useShippingRate, usePaymentMethods } from "@/lib/api/hooks";
 import type { CheckoutInput, PaymentMethod } from "@/lib/api/types";
 import { GOVERNORATES } from "@/lib/governorates";
 import { rememberOrder } from "./last-order";
@@ -75,6 +75,7 @@ const inputClass = (invalid: boolean) =>
 
 export function CheckoutForm() {
   const { lang, t, href } = useI18n();
+  const available = usePaymentMethods();
   const router = useRouter();
   const uid = useId();
   const id = (name: string) => `${uid}-${name}`;
@@ -182,11 +183,13 @@ export function CheckoutForm() {
 
   const describedBy = (name: keyof FieldError, hint = false) =>
     errors[name] ? `${id(name)}-error` : hint ? `${id(name)}-hint` : undefined;
-  const methods: { key: PaymentMethod; label: string; hint: string }[] = [
-    { key: "COD", label: t.checkout.cod, hint: t.checkout.codHint },
-    { key: "PAYMOB_CARD", label: t.checkout.card, hint: t.checkout.cardHint },
-    { key: "PAYMOB_WALLET", label: t.checkout.wallet, hint: t.checkout.walletHint },
-  ];
+  const methods = (
+    [
+      { key: "COD", label: t.checkout.cod, hint: t.checkout.codHint },
+      { key: "PAYMOB_CARD", label: t.checkout.card, hint: t.checkout.cardHint },
+      { key: "PAYMOB_WALLET", label: t.checkout.wallet, hint: t.checkout.walletHint },
+    ] satisfies { key: PaymentMethod; label: string; hint: string }[]
+  ).filter((m) => (available.data ? available.data.methods.includes(m.key) : m.key === "COD")); // only what's set up
   const busy = place.isPending || redirecting;
   const serverErrors = place.error instanceof ApiError && Array.isArray(place.error.errors) ? (place.error.errors as string[]) : [];
 
@@ -377,11 +380,11 @@ export function CheckoutForm() {
                 )}
               </div>
               <div className="min-w-0 flex-1 text-sm">
-                <p lang="en" className="truncate font-semibold">
-                  {line.product.name}
+                <p lang={isFallback(lang, line.product.nameAr) ? "en" : undefined} className="truncate font-semibold">
+                  {localized(lang, line.product.name, line.product.nameAr)}
                 </p>
                 <p className="text-muted">
-                  {line.variant && <span lang="en">{line.variant.name} · </span>}× {line.quantity}
+                  {line.variant && <span lang={isFallback(lang, line.variant.nameAr) ? "en" : undefined}>{localized(lang, line.variant.name, line.variant.nameAr)} · </span>}× {line.quantity}
                 </p>
               </div>
               <p className="text-sm tabular-nums">{formatPrice(line.lineTotal, lang)}</p>
@@ -461,8 +464,8 @@ export function CheckoutForm() {
         <div role="alert" className="mt-3 text-sm text-[#d1342f]">
           {Object.values(errors).some(Boolean) && <p>{t.checkout.fixFields}</p>}
           {place.isError &&
-            (serverErrors.length ? (
-              <ul className="list-disc space-y-1 ps-5" lang="en">
+            (serverErrors.length && lang === "en" ? (
+              <ul className="list-disc space-y-1 ps-5">
                 {serverErrors.map((msg) => (
                   <li key={msg}>{msg}</li>
                 ))}

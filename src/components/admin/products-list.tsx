@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useState, useTransition } from "react";
 import { useI18n } from "@/i18n/client";
-import { formatPrice, plural } from "@/i18n/format";
+import { formatPrice, localized, plural } from "@/i18n/format";
 import { useAdminProducts } from "@/lib/admin/api";
 import type { AdminProduct, AdminProductQuery } from "@/lib/admin/types";
 import { errorMessage } from "@/lib/api/errors";
@@ -162,7 +162,7 @@ export function ProductsList() {
         >
           <option value="" className="bg-canvas">{tp.anyCategory}</option>
           {flatCategories.map((c) => (
-            <option key={c.id} value={c.slug} className="bg-canvas">{c.name}</option>
+            <option key={c.id} value={c.slug} className="bg-canvas">{localized(lang, c.name, c.nameAr)}</option>
           ))}
         </select>
         {data && <span className="eyebrow ms-auto text-muted">{plural(lang, tp.count, show === "deleted" ? items.length : data.meta.total)}</span>}
@@ -195,14 +195,14 @@ export function ProductsList() {
                         <div className="flex items-center gap-3">
                           <Thumb p={p} />
                           <div className="min-w-0">
-                            <Link href={href(`/admin/products/${p.id}`)} lang="en" className="block truncate font-semibold hover:underline" onClick={(e) => e.stopPropagation()}>
-                              {p.name}
+                            <Link href={href(`/admin/products/${p.id}`)} className="block truncate font-semibold hover:underline" onClick={(e) => e.stopPropagation()}>
+                              {localized(lang, p.name, p.nameAr)}
                             </Link>
                             <span dir="ltr" className="text-xs text-muted">{p.sku ?? "—"}</span>
                           </div>
                         </div>
                       </td>
-                      <td lang="en" className="px-5 py-3 text-muted">{p.category.name}</td>
+                      <td className="px-5 py-3 text-muted">{localized(lang, p.category.name, p.category.nameAr)}</td>
                       <td className="px-5 py-3 text-end whitespace-nowrap tabular-nums">
                         {priceText(p)}
                         {p.salePrice !== null && <span className="block text-xs text-muted line-through">{formatPrice(p.basePrice, lang)}</span>}
@@ -220,7 +220,7 @@ export function ProductsList() {
                   <Link href={href(`/admin/products/${p.id}`)} className="flex items-center gap-3 rounded-2xl bg-panel p-3 dark:ring-1 dark:ring-white/8">
                     <Thumb p={p} />
                     <div className="min-w-0 flex-1">
-                      <p lang="en" className="truncate font-semibold">{p.name}</p>
+                      <p className="truncate font-semibold">{localized(lang, p.name, p.nameAr)}</p>
                       <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2 text-xs text-muted">
                         <span className="tabular-nums">{priceText(p)}</span>
                         <StockCell p={p} />

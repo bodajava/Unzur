@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Reveal } from "@/components/ui/reveal";
 import { localePath } from "@/i18n/config";
+import { isFallback, localized } from "@/i18n/format";
 import { getDictionary, getLang } from "@/i18n/server";
 import type { CategoryNode } from "@/lib/api/types";
 
@@ -29,14 +30,14 @@ export async function Collections({ categories }: { categories: CategoryNode[] }
                 className="group flex flex-col gap-4 py-8 sm:flex-row sm:items-end sm:justify-between lg:py-10"
               >
                 <span
-                  lang="en"
+                  lang={isFallback(lang, c.nameAr) ? "en" : undefined}
                   className="display text-[clamp(2.6rem,9vw,8.5rem)] transition-[color,transform] duration-700 ease-float group-hover:translate-x-3 group-hover:text-pale rtl:group-hover:-translate-x-3"
                 >
-                  {c.name}
+                  {localized(lang, c.name, c.nameAr)}
                 </span>
                 <span className="flex max-w-xs items-end gap-4 text-sm leading-relaxed text-on-deep/60 sm:pb-3">
-                  <span lang="en" dir="auto" className="rtl:text-right">
-                    {c.description}
+                  <span lang={isFallback(lang, c.descriptionAr) ? "en" : undefined} dir="auto" className="rtl:text-right">
+                    {localized(lang, c.description, c.descriptionAr)}
                   </span>
                   <span
                     aria-hidden

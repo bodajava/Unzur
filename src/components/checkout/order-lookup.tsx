@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
+import { PushToggle } from "@/components/notifications/push-toggle";
 import { useI18n } from "@/i18n/client";
-import { formatDate, formatPrice } from "@/i18n/format";
+import { formatDate, formatPrice, isFallback, localized } from "@/i18n/format";
 import { errorMessage } from "@/lib/api/errors";
 import { useCancelOrder, useDownloadInvoice, usePaymentStatus, useStartPayment, useTrackOrder } from "@/lib/api/hooks";
 import type { Order } from "@/lib/api/types";
@@ -102,6 +103,11 @@ function OrderDetails({ order, contact, justPlaced, paymobSuccess }: { order: Or
         </div>
       )}
 
+      {/* Updates on this device as the order moves (only while it's still moving). */}
+      {!["DELIVERED", "CANCELLED", "REFUNDED"].includes(status) && (
+        <PushToggle audience="customer" className="mt-8 max-w-2xl rounded-2xl border border-ink/10 px-5 py-4" />
+      )}
+
       <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_24rem]">
         <div>
           <dl className="grid grid-cols-2 gap-6 sm:grid-cols-4">
@@ -125,10 +131,14 @@ function OrderDetails({ order, contact, justPlaced, paymobSuccess }: { order: Or
             {order.items.map((item) => (
               <li key={item.id} className="flex items-center justify-between gap-4 py-3 text-sm">
                 <span>
-                  <span lang="en" className="font-semibold">
-                    {item.productName}
+                  <span lang={isFallback(lang, item.productNameAr) ? "en" : undefined} className="font-semibold">
+                    {localized(lang, item.productName, item.productNameAr)}
                   </span>
-                  {item.variantName && <span lang="en" className="text-muted"> · {item.variantName}</span>}
+                  {item.variantName && (
+                    <span lang={isFallback(lang, item.variantNameAr) ? "en" : undefined} className="text-muted">
+                      {" "}· {localized(lang, item.variantName, item.variantNameAr)}
+                    </span>
+                  )}
                   <span className="text-muted"> × {item.quantity}</span>
                 </span>
                 <span className="tabular-nums">{formatPrice(item.priceAtPurchase * item.quantity, lang)}</span>

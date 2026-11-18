@@ -6,6 +6,7 @@ import type { CategoryNode } from "@/lib/api/types";
 import { Logo } from "@/components/brand/logo";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { useI18n } from "@/i18n/client";
+import { localized } from "@/i18n/format";
 import { LanguageSwitch } from "./language-switch";
 
 export function MobileMenu({
@@ -17,7 +18,7 @@ export function MobileMenu({
   onClose: () => void;
   categories: CategoryNode[];
 }) {
-  const { t, href } = useI18n();
+  const { lang, t, href } = useI18n();
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -28,7 +29,7 @@ export function MobileMenu({
   if (!open) return null;
   const links = [
     { href: href("/#pieces"), label: t.nav.bestSellers },
-    ...categories.map((c) => ({ href: href(`/category/${c.slug}`), label: c.name })),
+    ...categories.map((c) => ({ href: href(`/category/${c.slug}`), label: localized(lang, c.name, c.nameAr) })),
     { href: href("/account"), label: t.nav.account },
   ];
 
@@ -65,9 +66,7 @@ export function MobileMenu({
           <LanguageSwitch onNavigate={onClose} />
           <ThemeToggle />
         </div>
-        <p lang="ar" className="mt-6 text-pale/80">
-          انظر أو كُفّ عن النظر
-        </p>
+        <p className="mt-6 text-pale/80">{t.common.tagline}</p>
       </nav>
     </div>
   );

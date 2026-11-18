@@ -27,7 +27,7 @@ export function CustomersList() {
   }, [search]);
 
   const data = customers.data;
-  const ordersLink = (email: string) => `${href("/admin/orders")}?q=${encodeURIComponent(email)}`;
+  const pageOf = (identifier: string) => href(`/admin/customers/${encodeURIComponent(identifier)}`);
 
   return (
     <div>
@@ -62,7 +62,9 @@ export function CustomersList() {
                   {data.items.map((c) => (
                     <tr key={c.identifier}>
                       <td className="px-5 py-3">
-                        <span className="font-semibold">{c.name}</span>
+                        <Link href={pageOf(c.identifier)} className="font-semibold hover:underline">
+                          {c.name}
+                        </Link>
                         <span className={`ms-2 rounded-full px-2 py-0.5 text-[0.65rem] ${c.isRegistered ? "bg-blue/10 text-blue dark:text-[#a3b3ff]" : "bg-ink/8 text-muted"}`}>
                           {c.isRegistered ? tc.registered : tc.guest}
                         </span>
@@ -79,7 +81,7 @@ export function CustomersList() {
                       </td>
                       <td className="px-5 py-3 tabular-nums">{c.isRegistered ? c.loyaltyPoints : "—"}</td>
                       <td className="px-5 py-3 text-end">
-                        <Link href={ordersLink(c.email)} className="nav-link text-sm">{tc.viewOrders}</Link>
+                        <Link href={pageOf(c.identifier)} className="nav-link text-sm">{tc.viewOrders}</Link>
                       </td>
                     </tr>
                   ))}
@@ -88,7 +90,8 @@ export function CustomersList() {
             </div>
             <ul className="space-y-3 md:hidden">
               {data.items.map((c) => (
-                <li key={c.identifier} className="rounded-2xl bg-panel p-4 dark:ring-1 dark:ring-white/8">
+                <li key={c.identifier}>
+                  <Link href={pageOf(c.identifier)} className="block rounded-2xl bg-panel p-4 dark:ring-1 dark:ring-white/8">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-semibold">{c.name}</p>
@@ -98,8 +101,9 @@ export function CustomersList() {
                   </div>
                   <div className="mt-2 flex items-center justify-between text-xs text-muted">
                     <span>{c.isRegistered ? tc.registered : tc.guest} · {c.ordersCount} {tc.col.orders}</span>
-                    <Link href={ordersLink(c.email)} className="nav-link">{tc.viewOrders}</Link>
+                    <span className="nav-link">{tc.viewOrders}</span>
                   </div>
+                  </Link>
                 </li>
               ))}
             </ul>

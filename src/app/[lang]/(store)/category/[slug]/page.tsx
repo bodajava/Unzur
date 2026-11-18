@@ -1,3 +1,4 @@
+import { isFallback, localized } from "@/i18n/format";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -21,11 +22,12 @@ export async function generateMetadata(props: PageProps<"/[lang]/category/[slug]
   const category = await getCategory(slug);
   if (!category) return {};
   const t = await getDictionary(lang);
+  const name = localized(lang, category.name, category.nameAr);
   return {
-    title: category.name,
-    description: category.description ?? `${category.name} · ${t.meta.description}`,
+    title: name,
+    description: localized(lang, category.description, category.descriptionAr) ?? `${name} · ${t.meta.description}`,
     alternates: alternatesFor(lang, `/category/${slug}`),
-    openGraph: { title: category.name, url: localePath(lang, `/category/${slug}`) },
+    openGraph: { title: name, url: localePath(lang, `/category/${slug}`) },
   };
 }
 
@@ -43,6 +45,9 @@ async function CategoryView({
   const { slug } = await params;
   const category = await getCategory(slug);
   if (!category) notFound();
+  const name = localized(lang, category.name, category.nameAr);
+  const nameLang = isFallback(lang, category.nameAr) ? "en" : undefined;
+  const description = localized(lang, category.description, category.descriptionAr);
   return (
     <>
       <Breadcrumbs
@@ -50,18 +55,18 @@ async function CategoryView({
         items={[
           { label: t.common.home, href: localePath(lang) },
           { label: t.shop.title, href: localePath(lang, "/shop") },
-          { label: category.name, lang: "en" },
+          { label: name, lang: nameLang },
         ]}
       />
-      <h1 lang="en" className="display mt-6 text-[clamp(3rem,9vw,8rem)]">
-        {category.name}
+      <h1 lang={nameLang} className="display mt-6 text-[clamp(3rem,9vw,8rem)]">
+        {name}
       </h1>
-      {category.description && (
-        <p lang="en" dir="auto" className="mt-4 mb-10 max-w-md text-muted rtl:text-right">
-          {category.description}
+      {description && (
+        <p lang={isFallback(lang, category.descriptionAr) ? "en" : undefined} dir="auto" className="mt-4 mb-10 max-w-md text-muted rtl:text-right">
+          {description}
         </p>
       )}
-      <div className={category.description ? "" : "mt-10"}>
+      <div className={description ? "" : "mt-10"}>
         <Suspense fallback={<GridSkeleton label={t.shop.loading} />}>
           <ProductListing
             lang={lang}

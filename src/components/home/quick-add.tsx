@@ -1,20 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useCartDrawer } from "@/components/cart/cart-drawer-context";
 import { useI18n } from "@/i18n/client";
-import { fmt } from "@/i18n/format";
+import { fmt, isFallback, localized } from "@/i18n/format";
 import { errorMessage } from "@/lib/api/errors";
 import { useAddToCart } from "@/lib/api/hooks";
 import type { ProductCard } from "@/lib/api/types";
 
 /**
- * "Add to cart" on a product card. One tap for simple products; products with
- * versions open a small chooser on the card first. Always visible over the
- * bottom of the photo, so nobody has to open the product to buy it.
+ * The card's footer: a hairline, then the price on one side and
+ * "+ Add to cart" on the other. Simple products go straight to the cart;
+ * products with versions open a row of versions under it first.
  */
-export function QuickAdd({ product }: { product: ProductCard }) {
-  const { t } = useI18n();
+export function QuickAdd({ product, price }: { product: ProductCard; price: ReactNode }) {
+  const { lang, t } = useI18n();
+  const name = localized(lang, product.name, product.nameAr);
   const { openCart } = useCartDrawer();
   const add = useAddToCart();
   const [choosing, setChoosing] = useState(false);
@@ -32,65 +33,47 @@ export function QuickAdd({ product }: { product: ProductCard }) {
       },
     );
 
-  if (soldOut) return null;
+  const action =
+    "eyebrow relative shrink-0 whitespace-nowrap py-1 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-[var(--o)] after:scale-x-0 after:bg-current after:transition-transform after:duration-500 after:ease-float [--o:right] hover:after:origin-[var(--o)] hover:after:scale-x-100 focus-visible:after:scale-x-100 rtl:[--o:left] disabled:opacity-50";
 
   return (
-    <div className="absolute inset-x-3 bottom-3 z-10">
-      {choosing ? (
-        <div
-          role="group"
-          aria-label={fmt(t.product.chooseFor, { name: product.name })}
-          className="rounded-2xl bg-canvas/90 p-2.5 shadow-[0_10px_30px_-12px_rgba(10,20,90,0.45)] backdrop-blur-md dark:ring-1 dark:ring-white/10"
-        >
-          <div className="flex flex-wrap gap-1.5">
-            {versions.map((v) => (
-              <button
-                key={v.id}
-                type="button"
-                lang="en"
-                disabled={v.stock <= 0 || add.isPending}
-                onClick={() => addLine(v.id)}
-                className="rounded-full border border-ink/25 px-3 py-1.5 text-xs transition-colors hover:border-ink hover:bg-ink hover:text-canvas disabled:pointer-events-none disabled:line-through disabled:opacity-40"
-              >
-                {v.name}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={() => {
-                setChoosing(false);
-                add.reset();
-              }}
-              aria-label={t.common.close}
-              className="ms-auto grid size-7 place-items-center rounded-full text-sm hover:bg-ink/10"
-            >
-              ×
-            </button>
-          </div>
-          {add.isError && <p className="mt-1.5 text-[0.7rem] text-[#d1342f]">{errorMessage(add.error, t)}</p>}
-        </div>
-      ) : (
-        <>
+    <div className="@container mt-3 border-t border-ink/15 pt-3">
+      {/* Side by side on a roomy card; price over the action on a narrow one (two-up on phones). */}
+      <div className="flex flex-col items-start gap-1 @[15rem]:flex-row @[15rem]:items-center @[15rem]:justify-between @[15rem]:gap-3">
+        {price}
+        {soldOut ? (
+          <span className="eyebrow shrink-0 text-muted">{t.productPage.outOfStock}</span>
+        ) : (
           <button
             type="button"
             disabled={add.isPending}
-            onClick={() => (versions.length ? setChoosing(true) : addLine())}
-            aria-label={versions.length ? fmt(t.product.chooseFor, { name: product.name }) : fmt(t.product.addNamed, { name: product.name })}
+            onClick={() => (versions.length ? setChoosing((v) => !v) : addLine())}
+            aria-label={versions.length ? fmt(t.product.chooseFor, { name }) : fmt(t.product.addNamed, { name })}
             aria-expanded={versions.length ? choosing : undefined}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-canvas/85 py-2.5 text-sm font-semibold text-ink shadow-[0_10px_30px_-12px_rgba(10,20,90,0.45)] backdrop-blur-md transition-colors hover:bg-blue hover:text-haze disabled:opacity-60 dark:ring-1 dark:ring-white/10"
+            className={action}
           >
-            <span aria-hidden className="text-base leading-none">
-              +
-            </span>
-            {add.isPending ? t.productPage.adding : t.productPage.addToCart}
+            {add.isPending ? t.productPage.adding : `+ ${t.productPage.addToCart}`}
           </button>
-          {add.isError && (
-            <p className="mt-1.5 rounded-full bg-canvas/90 px-3 py-1 text-center text-[0.7rem] text-[#d1342f]">
-              {errorMessage(add.error, t)}
-            </p>
-          )}
-        </>
+        )}
+      </div>
+
+      {choosing && (
+        <div role="group" aria-label={fmt(t.product.chooseFor, { name })} className="mt-3 flex flex-wrap gap-1.5">
+          {versions.map((v) => (
+            <button
+              key={v.id}
+              type="button"
+              lang={isFallback(lang, v.nameAr) ? "en" : undefined}
+              disabled={v.stock <= 0 || add.isPending}
+              onClick={() => addLine(v.id)}
+              className="rounded-full border border-ink/25 px-3 py-1.5 text-xs transition-colors hover:border-ink hover:bg-ink hover:text-canvas disabled:pointer-events-none disabled:line-through disabled:opacity-40"
+            >
+              {localized(lang, v.name, v.nameAr)}
+            </button>
+          ))}
+        </div>
       )}
+      {add.isError && <p className="mt-2 text-xs text-[#d1342f]">{errorMessage(add.error, t)}</p>}
     </div>
   );
 }

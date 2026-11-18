@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useId, useState } from "react";
 import { useI18n } from "@/i18n/client";
-import { fmt, plural } from "@/i18n/format";
+import { fmt, localized, plural } from "@/i18n/format";
 import { catalogApi, useTaxonomy, useTaxonomyChange, type Taxonomy } from "@/lib/admin/api";
 import { IMAGE_TYPES, MAX_IMAGE_BYTES, type AdminBrand, type AdminCategory } from "@/lib/admin/types";
 import { errorMessage } from "@/lib/api/errors";
@@ -14,6 +14,8 @@ const imageOf = (item: Item) => ("imageUrl" in item ? item.imageUrl : item.logoU
 
 interface Draft {
   name: string;
+  nameAr: string;
+  descriptionAr: string;
   slug: string;
   description: string;
   parentId: string;
@@ -35,11 +37,13 @@ function Editor({
   parents: AdminCategory[];
   onDone: () => void;
 }) {
-  const { t } = useI18n();
+  const { lang, t } = useI18n();
   const tc = t.admin.catalog;
   const uid = useId();
   const [d, setD] = useState<Draft>({
     name: item?.name ?? "",
+    nameAr: (item && "nameAr" in item ? item.nameAr : null) ?? "",
+    descriptionAr: (item && "descriptionAr" in item ? item.descriptionAr : null) ?? "",
     slug: item?.slug ?? "",
     description: item?.description ?? "",
     parentId: (item && "parentId" in item ? item.parentId : null) ?? "",
@@ -60,6 +64,9 @@ function Editor({
     if (d.description.trim()) form.append("description", d.description.trim());
     else if (item) form.append("description", "null");
     if (kind === "categories") {
+      // Arabic copy (categories only); empty clears it on edit.
+      if (d.nameAr.trim() || item) form.append("nameAr", d.nameAr.trim());
+      if (d.descriptionAr.trim() || item) form.append("descriptionAr", d.descriptionAr.trim());
       if (d.parentId) form.append("parentId", d.parentId);
       else if (item) form.append("parentId", "null");
     }
@@ -74,7 +81,7 @@ function Editor({
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="text-sm font-semibold">
           {tc.name}
-          <input value={d.name} onChange={(e) => setD({ ...d, name: e.target.value })} lang="en" aria-invalid={!!problem} className={input} />
+          <input value={d.name} onChange={(e) => setD({ ...d, name: e.target.value })} lang="en" dir="ltr" aria-invalid={!!problem} className={input} />
         </label>
         <label className="text-sm font-semibold">
           {tc.slug}
@@ -82,8 +89,20 @@ function Editor({
         </label>
         <label className="text-sm font-semibold sm:col-span-2">
           {tc.description}
-          <textarea rows={2} value={d.description} onChange={(e) => setD({ ...d, description: e.target.value })} lang="en" className={`${input} resize-y`} />
+          <textarea rows={2} value={d.description} onChange={(e) => setD({ ...d, description: e.target.value })} lang="en" dir="ltr" className={`${input} resize-y`} />
         </label>
+        {kind === "categories" && (
+          <>
+            <label className="text-sm font-semibold">
+              {tc.nameAr}
+              <input value={d.nameAr} onChange={(e) => setD({ ...d, nameAr: e.target.value })} lang="ar" dir="rtl" className={input} />
+            </label>
+            <label className="text-sm font-semibold sm:col-span-2">
+              {tc.descriptionAr}
+              <textarea rows={2} value={d.descriptionAr} onChange={(e) => setD({ ...d, descriptionAr: e.target.value })} lang="ar" dir="rtl" className={`${input} resize-y`} />
+            </label>
+          </>
+        )}
         {kind === "categories" && (
           <label className="text-sm font-semibold">
             {tc.parent}
@@ -92,7 +111,7 @@ function Editor({
               {parents
                 .filter((p) => p.id !== item?.id)
                 .map((p) => (
-                  <option key={p.id} value={p.id} className="bg-canvas">{p.name}</option>
+                  <option key={p.id} value={p.id} className="bg-canvas">{localized(lang, p.name, "nameAr" in p ? p.nameAr : null)}</option>
                 ))}
             </select>
           </label>
@@ -200,9 +219,9 @@ export function TaxonomyManager({ kind }: { kind: Taxonomy }) {
                       {img ? <Image src={img} alt="" fill sizes="40px" className="object-cover" /> : <span lang="en" className="display text-[0.6rem] text-soft">{item.name.slice(0, 2)}</span>}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p lang="en" className="truncate font-semibold">
+                      <p className="truncate font-semibold">
                         {child && <span className="text-muted">↳ </span>}
-                        {item.name}
+                        {localized(lang, item.name, "nameAr" in item ? item.nameAr : null)}
                         {!item.isActive && <span className="ms-2 rounded-full bg-ink/8 px-2 py-0.5 text-xs font-normal text-muted">{tc.hidden}</span>}
                       </p>
                       <p className="text-xs text-muted">

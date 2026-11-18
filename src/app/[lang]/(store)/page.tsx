@@ -1,3 +1,4 @@
+import { localized } from "@/i18n/format";
 import { Collections } from "@/components/home/collections";
 import { Concept } from "@/components/home/concept";
 import { Hero } from "@/components/home/hero";
@@ -11,7 +12,7 @@ import { site } from "@/lib/site";
 export default async function HomePage() {
   const lang = await getLang();
   const [t, products, categories] = await Promise.all([getDictionary(lang), getBestSellers(8), getCategories()]);
-  const words = categories.length ? [...categories.map((c) => c.name), t.pieces.title] : [];
+  const words = categories.length ? [...categories.map((c) => localized(lang, c.name, c.nameAr)), t.pieces.title] : [];
 
   return (
     <>
@@ -25,7 +26,7 @@ export default async function HomePage() {
             "@type": "ListItem",
             position: i + 1,
             url: `${site.url}${localePath(lang, `/products/${p.slug}`)}`,
-            name: p.name,
+            name: localized(lang, p.name, p.nameAr),
           })),
         }}
       />

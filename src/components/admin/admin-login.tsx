@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { useI18n } from "@/i18n/client";
 import { useAdminLogin } from "@/lib/admin/api";
 import { STAFF_ROLES } from "@/lib/admin/types";
+import { ApiError } from "@/lib/api/client";
 import { errorMessage } from "@/lib/api/errors";
 import { useSession } from "@/lib/api/hooks";
 
@@ -96,7 +97,10 @@ export function AdminLogin() {
             {login.isPending ? t.admin.login.submitting : t.admin.login.submit}
           </button>
           <p role="alert" className="mt-3 min-h-5 text-sm text-[#d1342f]">
-            {login.isError && errorMessage(login.error, t)}
+            {login.isError &&
+              (login.error instanceof ApiError && login.error.status === 401
+                ? t.admin.login.wrong
+                : errorMessage(login.error, t))}
           </p>
         </form>
       </div>

@@ -36,6 +36,7 @@ import type {
   ProductCard,
   ProductDetail,
   ProductQuery,
+  PaymentMethod,
   PublicSettings,
   Recommendation,
   ReferralApplied,
@@ -188,6 +189,8 @@ export const cartApi = {
 // ───────────────────────── 4 · 5 · 6 · 15 · 18 · checkout ─────────────────────────
 
 export const checkoutApi = {
+  /** Which payment methods the store accepts right now. */
+  paymentMethods: () => api<{ methods: PaymentMethod[] }>("/payments/methods", { anonymous: true }),
   /** 15.1 Delivery fee for a governorate (free above the store threshold). */
   shippingRate: (governorate: string, cartSubtotal?: number) =>
     api<ShippingRate>(`/shipping/rates${qs({ governorate, cartSubtotal })}`),

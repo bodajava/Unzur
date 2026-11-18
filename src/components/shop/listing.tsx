@@ -46,7 +46,7 @@ export async function ProductListing({ lang, t, searchParams, basePath, category
           basePath={basePath}
           params={params}
           total={result.meta.total}
-          categories={categories.map((c) => ({ slug: c.slug, name: c.name }))}
+          categories={categories.map((c) => ({ slug: c.slug, name: c.name, nameAr: c.nameAr }))}
           activeCategory={category}
           hideCategories={search}
         />

@@ -1,24 +1,17 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useI18n } from "@/i18n/client";
-import { fmt, formatPrice } from "@/i18n/format";
+import { fmt, formatPrice, localized } from "@/i18n/format";
 import { useInsights, useLowStock, useOverview, useSalesTrend, useTopProducts } from "@/lib/admin/api";
-import type { DateRange, Granularity } from "@/lib/admin/types";
 import { errorMessage } from "@/lib/api/errors";
+import { PushToggle } from "@/components/notifications/push-toggle";
+import { OrderQueue } from "./order-queue";
+import { granularityFor, RangePicker, rangeOf, type RangeDays } from "./range";
 import { TrendChart } from "./trend-chart";
 import { PageTitle, Panel, Skeleton } from "./ui";
 
-const RANGES = [7, 30, 90] as const;
-
-function rangeOf(days: number): DateRange {
-  const to = new Date();
-  const from = new Date(to.getTime() - days * 86_400_000);
-  // Round to the minute so the query key is stable between renders.
-  const iso = (d: Date) => new Date(Math.floor(d.getTime() / 60_000) * 60_000).toISOString();
-  return { fromDate: iso(from), toDate: iso(to) };
-}
+const RANGES = [7, 30, 90] as const satisfies readonly RangeDays[];
 
 function Delta({ value }: { value: number | null }) {
   if (value === null) return null;
@@ -44,10 +37,10 @@ function Kpi({ label, value, sub, delta }: { label: string; value: string; sub?:
 }
 
 export function OverviewView() {
-  const { lang, t, href } = useI18n();
-  const [days, setDays] = useState<(typeof RANGES)[number]>(30);
+  const { lang, t } = useI18n();
+  const [days, setDays] = useState<RangeDays>(30);
   const range = useMemo(() => rangeOf(days), [days]);
-  const granularity: Granularity = days > 31 ? "week" : "day";
+  const granularity = granularityFor(days);
   const overview = useOverview(range);
   const trend = useSalesTrend(range, granularity);
   const top = useTopProducts(range);
@@ -59,40 +52,18 @@ export function OverviewView() {
   return (
     <div>
       <PageTitle
-        aside={
-          <div role="radiogroup" aria-label={t.admin.range.label} className="inline-flex rounded-full border border-ink/20 p-1">
-            {RANGES.map((d) => (
-              <button
-                key={d}
-                type="button"
-                role="radio"
-                aria-checked={days === d}
-                onClick={() => setDays(d)}
-                className={`rounded-full px-4 py-1.5 text-sm transition-colors ${days === d ? "bg-ink text-canvas" : "hover:bg-ink/8"}`}
-              >
-                {t.admin.range[`d${d}`]}
-              </button>
-            ))}
-          </div>
-        }
+        aside={<RangePicker value={days} onChange={setDays} options={RANGES} />}
       >
         {tt.title}
       </PageTitle>
 
       {overview.isError && <p className="mb-6 text-sm text-[#d1342f]">{errorMessage(overview.error, t)}</p>}
 
-      {/* Waiting orders: the first thing to act on. */}
-      <Link
-        href={`${href("/admin/orders")}?status=CONFIRMED`}
-        className="mb-6 flex items-center justify-between gap-4 rounded-2xl bg-blue px-5 py-4 text-haze transition-colors hover:bg-blue-deep"
-      >
-        <span className="font-semibold">
-          {o ? (o.pendingOrdersCount ? fmt(tt.pending, { count: o.pendingOrdersCount }) : tt.pendingNone) : "…"}
-        </span>
-        <span className="text-sm">
-          {tt.pendingCta} {t.common.arrow}
-        </span>
-      </Link>
+      {/* Orders waiting on the team: the first thing to act on. */}
+      <OrderQueue />
+
+      {/* Alerts on this device for new orders, messages and low stock. */}
+      <PushToggle audience="staff" className="mb-6 rounded-2xl border border-ink/10 px-5 py-4" />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-5">
         {o ? (
@@ -106,7 +77,7 @@ export function OverviewView() {
               delta={o.deltas.customers}
               sub={fmt(tt.newReturning, { new: o.newCustomers, returning: o.returningCustomers })}
             />
-            <Kpi label={tt.conversion} value={`${o.conversionRate.toFixed(1)}%`} sub={fmt(tt.visitors, { count: o.visitors })} />
+            <Kpi label={tt.conversion} value={`${(o.conversionRate * 100).toFixed(1)}%` /* API sends a 0–1 ratio */} sub={fmt(tt.visitors, { count: o.visitors })} />
           </>
         ) : (
           Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-32" />)
@@ -138,10 +109,10 @@ export function OverviewView() {
                   >
                     {tt.severity[i.severity]}
                   </span>
-                  <p lang="en" className="mt-1.5 text-sm font-semibold">
+                  <p lang="en" dir="ltr" className="mt-1.5 text-sm font-semibold rtl:text-right">
                     {i.title}
                   </p>
-                  <p lang="en" className="text-xs text-muted">
+                  <p lang="en" dir="ltr" className="text-xs text-muted rtl:text-right">
                     {i.description}
                   </p>
                 </li>
@@ -163,8 +134,8 @@ export function OverviewView() {
                   .map((p, i) => (
                     <li key={p.productId} className="flex items-center gap-4 py-3 text-sm">
                       <span className="w-5 text-muted tabular-nums">{i + 1}</span>
-                      <span lang="en" className="min-w-0 flex-1 truncate font-semibold">
-                        {p.name}
+                      <span className="min-w-0 flex-1 truncate font-semibold">
+                        {localized(lang, p.name, p.nameAr)}
                       </span>
                       <span className="text-muted">{fmt(tt.sold, { count: p.unitsSold })}</span>
                       <span className="w-28 text-end tabular-nums">{formatPrice(p.revenue, lang)}</span>
@@ -187,8 +158,8 @@ export function OverviewView() {
                   <li key={`${item.productId}-${item.variantId}`} className="flex items-center justify-between gap-3 py-2.5 text-sm">
                     <span className="min-w-0">
                       <span lang="en" className="block truncate font-semibold">
-                        {item.name}
-                        {item.variantName && <span className="font-normal text-muted"> · {item.variantName}</span>}
+                        {localized(lang, item.name, item.nameAr)}
+                        {item.variantName && <span className="font-normal text-muted"> · {localized(lang, item.variantName, item.variantNameAr)}</span>}
                       </span>
                       <span lang="en" className="text-xs text-muted">
                         {item.sku}

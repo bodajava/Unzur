@@ -3,14 +3,14 @@
 import { useId } from "react";
 import type { Locale } from "@/i18n/config";
 import { formatPrice } from "@/i18n/format";
-import type { TrendPoint } from "@/lib/admin/types";
+import type { Granularity, TrendPoint } from "@/lib/admin/types";
 
 /**
  * Revenue per period as bars (SVG, no library). Each bar has a tooltip; the
  * same numbers are in a hidden table for screen readers. Time runs left to
  * right in both languages, like a calendar.
  */
-export function TrendChart({ points, lang, label }: { points: TrendPoint[]; lang: Locale; label: string }) {
+export function TrendChart({ points, lang, label, granularity = "day" }: { points: TrendPoint[]; lang: Locale; label: string; granularity?: Granularity }) {
   const id = useId();
   const W = 720;
   const H = 220;
@@ -19,7 +19,10 @@ export function TrendChart({ points, lang, label }: { points: TrendPoint[]; lang
   const slot = W / Math.max(points.length, 1);
   const bar = Math.max(2, Math.min(28, slot * 0.62));
   const day = (period: string) =>
-    new Intl.DateTimeFormat(lang === "ar" ? "ar-EG-u-nu-latn" : "en-EG", { day: "numeric", month: "short" }).format(new Date(period));
+    new Intl.DateTimeFormat(
+      lang === "ar" ? "ar-EG-u-nu-latn" : "en-EG",
+      granularity === "month" ? { month: "short", year: "numeric", timeZone: "UTC" } : { day: "numeric", month: "short", timeZone: "UTC" },
+    ).format(new Date(period));
   const ticks = points.length ? [0, Math.floor((points.length - 1) / 2), points.length - 1] : [];
 
   return (
@@ -63,17 +66,19 @@ export function TrendChart({ points, lang, label }: { points: TrendPoint[]; lang
           <span key={i}>{day(points[i].period)}</span>
         ))}
       </div>
-      <table className="sr-only">
-        <tbody>
-          {points.map((p) => (
-            <tr key={p.period}>
-              <th scope="row">{day(p.period)}</th>
-              <td>{formatPrice(p.revenue, lang)}</td>
-              <td>{p.ordersCount}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="sr-only">
+        <table>
+          <tbody>
+            {points.map((p) => (
+              <tr key={p.period}>
+                <th scope="row">{day(p.period)}</th>
+                <td>{formatPrice(p.revenue, lang)}</td>
+                <td>{p.ordersCount}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </figure>
   );
 }

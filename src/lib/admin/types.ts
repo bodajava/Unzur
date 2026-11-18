@@ -39,6 +39,7 @@ export interface TrendPoint {
 export interface ProductPerformance {
   productId: string;
   name: string;
+  nameAr: string | null;
   slug: string;
   isActive: boolean;
   viewsCount: number;
@@ -56,6 +57,43 @@ export interface ProductPerformance {
   lowStockThreshold: number;
 }
 
+/** One slice of the breakdown (money in piasters). `units` is only filled for categories. */
+export interface BreakdownRow {
+  key: string;
+  orders: number;
+  units: number;
+  revenue: number;
+}
+
+export interface Breakdown {
+  /** Every order in the period, any status (keys are OrderStatus). */
+  byStatus: BreakdownRow[];
+  /** Sales only from here on. Keys: PaymentMethod / governorate (English) / category name / weekday 0-6, Sunday = 0. */
+  byPaymentMethod: BreakdownRow[];
+  byGovernorate: BreakdownRow[];
+  byCategory: BreakdownRow[];
+  byWeekday: BreakdownRow[];
+}
+
+export interface TopCustomer {
+  identifier: string;
+  name: string;
+  email: string;
+  isRegistered: boolean;
+  ordersCount: number;
+  totalSpent: number;
+  lastOrderAt: string;
+}
+
+export interface CustomerAnalytics {
+  newVsReturning: { newCount: number; returningCount: number };
+  /** 0–1 */
+  repeatPurchaseRate: number;
+  topCustomers: TopCustomer[];
+}
+
+export type PerformanceSort = "revenue" | "unitsSold" | "conversionRate" | "views" | "refunds";
+
 export interface Insight {
   severity: "HIGH" | "MEDIUM" | "INFO";
   category: string;
@@ -70,6 +108,8 @@ export interface LowStockItem {
   productId: string;
   variantId: string | null;
   name: string;
+  nameAr: string | null;
+  variantNameAr: string | null;
   variantName: string | null;
   sku: string;
   slug: string;
@@ -127,6 +167,8 @@ export interface AdminOrder extends AdminOrderRow {
 
 export interface OrderListQuery extends PageQuery, DateRange {
   status?: OrderStatus;
+  /** One customer's orders: user id, or a guest's email. */
+  customer?: string;
   paymentStatus?: PaymentStatus;
   paymentMethod?: PaymentMethod;
 }
@@ -156,6 +198,7 @@ export interface AdminImage {
 export interface AdminVariant {
   id: string;
   name: string;
+  nameAr: string | null;
   sku: string;
   price: number;
   salePrice: number | null;
@@ -167,10 +210,13 @@ export interface AdminVariant {
 export interface AdminProduct {
   id: string;
   name: string;
+  nameAr: string | null;
   slug: string;
   sku: string | null;
   description: string;
   shortDescription: string | null;
+  shortDescriptionAr: string | null;
+  descriptionAr: string | null;
   basePrice: number;
   salePrice: number | null;
   costPrice: number | null;
@@ -183,7 +229,7 @@ export interface AdminProduct {
   deletedAt: string | null;
   createdAt: string;
   updatedAt: string;
-  category: { id: string; name: string; slug: string };
+  category: { id: string; name: string; nameAr?: string | null; slug: string };
   brand: { id: string; name: string; slug: string; logoUrl: string | null } | null;
   images: AdminImage[];
   variants: AdminVariant[];
@@ -206,6 +252,7 @@ export interface AdminProductQuery extends PageQuery {
 
 export interface VariantInput {
   name: string;
+  nameAr?: string | null;
   sku: string;
   price: number;
   salePrice?: number | null;
@@ -222,8 +269,10 @@ export const MAX_IMAGES = 10;
 export interface AdminCategory {
   id: string;
   name: string;
+  nameAr: string | null;
   slug: string;
   description: string | null;
+  descriptionAr: string | null;
   imageUrl: string | null;
   parentId: string | null;
   isActive: boolean;
@@ -277,6 +326,34 @@ export interface CustomerEntry {
   totalSpent: number;
   lastOrderAt: string | null;
   firstSeenAt: string;
+}
+
+export interface CustomerDetail extends CustomerEntry {
+  addresses: {
+    id: string;
+    label: string;
+    fullName: string;
+    phone: string;
+    governorate: string;
+    city: string;
+    street: string;
+    building: string | null;
+    floor: string | null;
+    apartment: string | null;
+    isDefault: boolean;
+  }[];
+}
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  subject: string | null;
+  message: string;
+  isRead: boolean;
+  repliedAt: string | null;
+  createdAt: string;
 }
 
 export type CouponStatus = "ACTIVE" | "SCHEDULED" | "EXPIRED" | "INACTIVE" | "EXHAUSTED";

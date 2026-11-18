@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { useSearchSuggest } from "@/lib/api/hooks";
 import { useI18n } from "@/i18n/client";
-import { fmt, formatPrice } from "@/i18n/format";
+import { fmt, formatPrice, localized } from "@/i18n/format";
 
 /** Search-as-you-type over the catalog (API 16.1). */
 export function SearchPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -87,7 +87,7 @@ export function SearchPanel({ open, onClose }: { open: boolean; onClose: () => v
                   className="group flex items-baseline justify-between gap-6 py-4"
                 >
                   <span className="display text-xl transition-transform duration-500 ease-float group-hover:translate-x-2 sm:text-2xl rtl:group-hover:-translate-x-2">
-                    {p.name}
+                    {localized(lang, p.name, p.nameAr)}
                   </span>
                   <span className="shrink-0 text-sm tabular-nums text-muted">
                     {formatPrice(p.salePrice ?? p.basePrice, lang)}

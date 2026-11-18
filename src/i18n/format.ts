@@ -46,3 +46,16 @@ export function formatDateTime(iso: string, lang: Locale = "en"): string {
     timeZone: "Africa/Cairo",
   }).format(new Date(iso));
 }
+
+/**
+ * Catalog copy in the page's language: the Arabic field on Arabic pages when
+ * staff filled it in, otherwise the English one.
+ */
+export function localized(lang: Locale, en: string, ar?: string | null): string;
+export function localized(lang: Locale, en: string | null, ar?: string | null): string | null;
+export function localized(lang: Locale, en: string | null, ar?: string | null): string | null {
+  return lang === "ar" && ar?.trim() ? ar : en;
+}
+
+/** True when `localized` fell back to English on an Arabic page (mark it lang="en"). */
+export const isFallback = (lang: Locale, ar?: string | null) => lang === "ar" && !ar?.trim();
