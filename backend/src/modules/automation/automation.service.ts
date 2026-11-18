@@ -22,6 +22,9 @@ export const REMINDER_TTL_SEC = 7 * 24 * 60 * 60;
  * server instance does the work per tick. DISABLE_CRON=true turns the
  * schedules off (tests call the process* methods directly).
  */
+export const AUTOMATION_JOBS = ['expire-unpaid', 'back-in-stock', 'abandoned-carts'] as const;
+export type AutomationJob = (typeof AUTOMATION_JOBS)[number];
+
 @Injectable()
 export class AutomationService {
   private readonly logger = new Logger(AutomationService.name);
@@ -148,20 +151,41 @@ export class AutomationService {
     return this.settings.getInt(key, SETTING_DEFAULTS[key]);
   }
 
+  /**
+   * Runs one job now, for an external scheduler (Hostinger cron hitting
+   * POST /automation/run/:job). Same Redis lock as the in-process schedule, so
+   * the two never overlap; DISABLE_CRON only turns off the in-process timers.
+   */
+  async runNow(job: AutomationJob): Promise<{ job: AutomationJob; ran: boolean }> {
+    const jobs: Record<AutomationJob, [number, () => Promise<unknown>]> = {
+      'expire-unpaid': [9 * 60, () => this.processExpiredUnpaidOrders()],
+      'back-in-stock': [14 * 60, () => this.processBackInStockNotifications()],
+      'abandoned-carts': [50 * 60, () => this.processAbandonedCarts()],
+    };
+    const [ttl, work] = jobs[job];
+    return { job, ran: await this.withLock(job, ttl, work) };
+  }
+
   /** Runs `job` only if this instance gets the lock (lock:cron:<name>, expires on its own). */
   private async locked(name: string, ttlSeconds: number, job: () => Promise<unknown>): Promise<void> {
     if (this.disabled) return;
+    await this.withLock(name, ttlSeconds, job);
+  }
+
+  private async withLock(name: string, ttlSeconds: number, job: () => Promise<unknown>): Promise<boolean> {
     try {
-      if (!(await this.redis.setIfAbsent(`lock:cron:${name}`, 1, ttlSeconds))) return;
+      if (!(await this.redis.setIfAbsent(`lock:cron:${name}`, 1, ttlSeconds))) return false;
     } catch (error) {
       // No Redis, no lock: skip rather than risk double processing.
       this.logger.warn(`Skipping ${name}: lock unavailable (${(error as Error).message})`);
-      return;
+      return false;
     }
     try {
       await job();
+      return true;
     } catch (error) {
       this.logger.error(`Job ${name} failed: ${(error as Error).message}`);
+      return false;
     }
   }
 }

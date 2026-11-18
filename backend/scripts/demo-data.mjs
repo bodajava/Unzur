@@ -110,11 +110,13 @@ async function flushApiCache() {
 
 async function clean(db) {
   const like = `%@${DOMAIN}`;
-  const demoOrders = `SELECT id FROM orders WHERE customer_email LIKE $1`;
+  // Demo customers' orders, plus any order (e.g. a manual test) that contains a demo product.
+  const demoOrders = `SELECT id FROM orders WHERE customer_email LIKE $1
+    OR id IN (SELECT oi.order_id FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE p.slug LIKE 'demo-%')`;
   const steps = [
     [`DELETE FROM payments WHERE order_id IN (${demoOrders})`, [like]],
     [`DELETE FROM payments WHERE gift_card_id IN (SELECT id FROM gift_cards WHERE code LIKE 'DEMO-%')`, []],
-    [`DELETE FROM orders WHERE customer_email LIKE $1`, [like]],
+    [`DELETE FROM orders WHERE id IN (${demoOrders})`, [like]],
     [`DELETE FROM product_views WHERE guest_id LIKE 'demo\\_%' OR user_id IN (SELECT id FROM users WHERE email LIKE $1)`, [like]],
     [`DELETE FROM recently_viewed WHERE guest_id LIKE 'demo\\_%'`, []],
     [`DELETE FROM users WHERE email LIKE $1 AND role = 'CUSTOMER'`, [like]],
