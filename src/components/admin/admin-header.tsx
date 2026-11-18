@@ -20,6 +20,8 @@ export function AdminHeader({ user, onSignOut }: { user: User; onSignOut: () => 
     { href: href("/admin"), label: t.admin.nav.overview, exact: true },
     { href: href("/admin/orders"), label: t.admin.nav.orders },
     { href: href("/admin/products"), label: t.admin.nav.products },
+    { href: href("/admin/customers"), label: t.admin.nav.customers },
+    { href: href("/admin/marketing"), label: t.admin.nav.marketing },
     { href: href("/admin/catalog"), label: t.admin.nav.catalog },
     { href: href("/admin/store"), label: t.admin.nav.store },
   ];
@@ -51,12 +53,12 @@ export function AdminHeader({ user, onSignOut }: { user: User; onSignOut: () => 
             <span className="eyebrow hidden opacity-70 sm:inline">{t.admin.title}</span>
           </Link>
 
-          <div className="ms-4 hidden items-center gap-1 lg:flex">{links.map((l) => navLink(l))}</div>
+          <div className="ms-4 hidden items-center gap-0.5 xl:flex">{links.map((l) => navLink(l))}</div>
 
           <div className="ms-auto flex items-center gap-4 sm:gap-5">
             <LanguageSwitch className="nav-link hidden text-sm md:inline" />
             <ThemeToggle className="nav-link hidden text-sm md:inline-flex" />
-            <Link href={href("/")} className="nav-link hidden text-sm xl:inline">
+            <Link href={href("/")} className="nav-link hidden text-sm 2xl:inline">
               {t.admin.nav.viewStore}
             </Link>
             <div className="hidden text-end leading-tight md:block">
@@ -70,7 +72,7 @@ export function AdminHeader({ user, onSignOut }: { user: User; onSignOut: () => 
             </button>
             <button
               type="button"
-              className="nav-link text-sm lg:hidden"
+              className="nav-link text-sm xl:hidden"
               aria-expanded={open}
               aria-controls="admin-menu"
               onClick={() => setOpen((v) => !v)}
@@ -81,7 +83,7 @@ export function AdminHeader({ user, onSignOut }: { user: User; onSignOut: () => 
         </nav>
 
         {open && (
-          <div id="admin-menu" className="border-t border-current/10 px-3 pt-2 pb-4 lg:hidden">
+          <div id="admin-menu" className="border-t border-current/10 px-3 pt-2 pb-4 xl:hidden">
             {links.map((l) => navLink(l, true))}
             <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-current/10 px-3 pt-4 text-sm">
               <span className="font-semibold">

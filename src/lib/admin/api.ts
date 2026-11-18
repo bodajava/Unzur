@@ -4,8 +4,13 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 import { api, qs } from "@/lib/api/client";
 import { setSession } from "@/lib/api/session";
 import { qk } from "@/lib/api/hooks";
-import type { AuthResult, Paginated } from "@/lib/api/types";
+import type { AuthResult, PageQuery, Paginated } from "@/lib/api/types";
 import type {
+  AdminGiftCard,
+  Coupon,
+  CouponInput,
+  CouponTarget,
+  CustomerEntry,
   AdminBrand,
   AdminCategory,
   ShippingZone,
@@ -234,4 +239,36 @@ export function useSaveSettings() {
       void refreshStore(["settings"]);
     },
   });
+}
+
+// ───────────────────────── customers & marketing ─────────────────────────
+
+export const marketingApi = {
+  customers: (q: PageQuery) => api<Paginated<CustomerEntry>>(`/admin/customers${qs({ ...q })}`),
+  coupons: (q: PageQuery & { status?: string }) => api<Paginated<Coupon>>(`/coupons${qs({ ...q })}`),
+  createCoupon: (c: CouponInput) => api<Coupon>("/coupons", { method: "POST", json: c }),
+  updateCoupon: (id: string, c: Partial<CouponInput>) => api<Coupon>(`/coupons/${enc(id)}`, { method: "PATCH", json: c }),
+  removeCoupon: (id: string) =>
+    api<{ id: string; deleted: boolean; deactivated: boolean; reason: string | null }>(`/coupons/${enc(id)}`, { method: "DELETE" }),
+  sendCoupon: (body: { couponId: string; target: CouponTarget; emails?: string[]; message?: string }) =>
+    api<{ code: string; target: string; recipients: number; queued: boolean }>("/coupons/send-to-buyers", { method: "POST", json: body }),
+  giftCards: (q: PageQuery & { isActive?: boolean }) => api<Paginated<AdminGiftCard>>(`/admin/gift-cards${qs({ ...q })}`),
+  issueGiftCard: (body: { amountPiasters: number; recipientEmail?: string; message?: string; expiresAt?: string }) =>
+    api<AdminGiftCard>("/admin/gift-cards", { method: "POST", json: body }),
+  updateGiftCard: (id: string, body: { isActive?: boolean; expiresAt?: string }) =>
+    api<AdminGiftCard>(`/admin/gift-cards/${enc(id)}`, { method: "PATCH", json: body }),
+};
+
+export const useCustomers = (q: PageQuery) =>
+  useQuery({ queryKey: ["admin", "customers", q], queryFn: () => marketingApi.customers(q), placeholderData: keepPreviousData });
+
+export const useCoupons = (q: PageQuery & { status?: string }) =>
+  useQuery({ queryKey: ["admin", "coupons", q], queryFn: () => marketingApi.coupons(q), placeholderData: keepPreviousData });
+
+export const useGiftCards = (q: PageQuery & { isActive?: boolean }) =>
+  useQuery({ queryKey: ["admin", "gift-cards", q], queryFn: () => marketingApi.giftCards(q), placeholderData: keepPreviousData });
+
+export function useMarketingChange<V, R>(area: "coupons" | "gift-cards", fn: (v: V) => Promise<R>) {
+  const client = useQueryClient();
+  return useMutation({ mutationFn: fn, onSuccess: () => client.invalidateQueries({ queryKey: ["admin", area] }) });
 }

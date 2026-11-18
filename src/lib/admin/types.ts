@@ -262,3 +262,73 @@ export interface StoreSetting {
   value: unknown;
   isPublic: boolean;
 }
+
+// ───────────────────────── customers & marketing ─────────────────────────
+
+export interface CustomerEntry {
+  /** User id, or the email for guest buyers. */
+  identifier: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  isRegistered: boolean;
+  loyaltyPoints: number;
+  ordersCount: number;
+  totalSpent: number;
+  lastOrderAt: string | null;
+  firstSeenAt: string;
+}
+
+export type CouponStatus = "ACTIVE" | "SCHEDULED" | "EXPIRED" | "INACTIVE" | "EXHAUSTED";
+
+export interface Coupon {
+  id: string;
+  code: string;
+  description: string | null;
+  discountType: "PERCENTAGE" | "FIXED_AMOUNT";
+  /** 1-100 for PERCENTAGE, piasters for FIXED_AMOUNT. */
+  discountValue: number;
+  minOrderAmount: number;
+  maxDiscountAmount: number | null;
+  usageLimit: number | null;
+  perUserLimit: number;
+  usedCount: number;
+  startsAt: string;
+  expiresAt: string;
+  isActive: boolean;
+  status: CouponStatus;
+  createdAt: string;
+}
+
+export interface CouponInput {
+  code: string;
+  description?: string | null;
+  discountType: Coupon["discountType"];
+  discountValue: number;
+  minOrderAmount?: number | null;
+  maxDiscountAmount?: number | null;
+  usageLimit?: number | null;
+  perUserLimit?: number;
+  startsAt: string;
+  expiresAt: string;
+  isActive?: boolean;
+}
+
+export type CouponTarget = "ALL_CUSTOMERS" | "SUBSCRIBERS" | "SPECIFIC_EMAILS";
+
+export interface AdminGiftCard {
+  id: string;
+  code: string | null;
+  initialBalance: number;
+  currentBalance: number;
+  usedPiasters: number;
+  recipientEmail: string | null;
+  message: string | null;
+  expiresAt: string | null;
+  isActive: boolean;
+  source: "PURCHASE" | "ADMIN";
+  paymentStatus: string | null;
+  ordersCount: number;
+  createdAt: string;
+  purchasedBy: { id: string; email: string; firstName: string; lastName: string } | null;
+}
