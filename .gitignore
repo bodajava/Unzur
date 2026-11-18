@@ -1,0 +1,4 @@
+# Each app keeps its own .gitignore (backend/, frontend/).
+.DS_Store
+.claude/
+.old-git/
