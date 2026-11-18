@@ -22,6 +22,8 @@ export interface SendEmailInput {
   text?: string;
   /** e.g. List-Unsubscribe for newsletters */
   headers?: Record<string, string>;
+  /** Where "Reply" goes (the customer, for contact-form notifications). */
+  replyTo?: string;
 }
 
 /** RFC 8058 one-click unsubscribe headers. */
@@ -107,7 +109,7 @@ export class EmailService {
   }
 
   async sendContactNotification(to: string, message: Parameters<typeof contactNotificationEmail>[1]): Promise<void> {
-    await this.send({ to, ...contactNotificationEmail(this.brandName, message) });
+    await this.send({ to, replyTo: message.email, ...contactNotificationEmail(this.brandName, message) });
   }
 
   async sendGiftCardEmail(to: string, card: Parameters<typeof giftCardEmail>[1]): Promise<void> {

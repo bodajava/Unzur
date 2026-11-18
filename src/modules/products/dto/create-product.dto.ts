@@ -14,8 +14,7 @@ import {
   IsLessThanField,
   ToBoolean,
   ToInt,
-  Trim,
-} from '../../../common/decorators/index.js';
+  Trim, ToNullableString } from '../../../common/decorators/index.js';
 import { Regex } from '../../../common/utilities/regex/regex.js';
 
 /** Upper bound for money values in piasters (20,000,000 EGP; fits in a 32-bit Int). */
@@ -55,6 +54,27 @@ export class CreateProductDto {
   @IsString()
   @MaxLength(500)
   shortDescription?: string;
+
+  /** Arabic (optional; the English field is the fallback). Send "" to clear. */
+  @IsOptional()
+  @ToNullableString()
+  @IsString()
+  @MaxLength(200)
+  nameAr?: string | null;
+
+  /** Arabic (optional; the English field is the fallback). Send "" to clear. */
+  @IsOptional()
+  @ToNullableString()
+  @IsString()
+  @MaxLength(500)
+  shortDescriptionAr?: string | null;
+
+  /** Arabic (optional; the English field is the fallback). Send "" to clear. */
+  @IsOptional()
+  @ToNullableString()
+  @IsString()
+  @MaxLength(20000)
+  descriptionAr?: string | null;
 
   @ToInt()
   @IsInt()

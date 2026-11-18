@@ -14,8 +14,10 @@ export const PUBLIC_CATEGORY_WHERE = {
 export const CATEGORY_PUBLIC_SELECT = {
   id: true,
   name: true,
+  nameAr: true,
   slug: true,
   description: true,
+  descriptionAr: true,
   imageUrl: true,
   parentId: true,
   createdAt: true,

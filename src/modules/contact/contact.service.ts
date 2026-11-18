@@ -1,3 +1,4 @@
+import { nameFromEmail } from '../auth/auth.service.js';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AppEvents, ContactMessageReceivedEvent } from '../../common/events/index.js';
@@ -21,7 +22,7 @@ export class ContactService {
   /** 7.4 Saved, then the admin is emailed in the background. */
   async create(dto: CreateContactMessageDto): Promise<ContactMessageReceiptModel> {
     const message = await this.messages.create({
-      name: dto.name,
+      name: dto.name || nameFromEmail(dto.email),
       email: dto.email,
       phone: dto.phone ? normalizePhone(dto.phone) : null,
       subject: dto.subject ?? null,

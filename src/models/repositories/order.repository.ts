@@ -177,6 +177,47 @@ export class OrderRepository extends BaseRepository<
     return rows.map((r) => ({ period: String(r.period), revenue: num(r.revenue), ordersCount: num(r.orders) }));
   }
 
+  /**
+   * Orders in [from, to) split five ways. byStatus counts every order (all
+   * statuses, total amounts); the rest count sales only. Weekday 0 = Sunday,
+   * Cairo time. Category revenue = sum of line prices (before shipping/discounts).
+   */
+  async breakdown(from: Date, to: Date) {
+    const tz = Prisma.raw(`'${STORE_TZ}'`);
+    const range = Prisma.sql`o.created_at >= ${from} AND o.created_at < ${to}`;
+    const rows = (sql: Prisma.Sql) =>
+      this.db.$queryRaw<Record<string, unknown>[]>(sql).then((r) =>
+        r.map((x) => ({ key: String(x.key), orders: num(x.orders), units: num(x.units), revenue: num(x.revenue) })),
+      );
+    const [byStatus, byPaymentMethod, byGovernorate, byCategory, byWeekday] = await Promise.all([
+      rows(Prisma.sql`
+        SELECT o.status::text AS key, COUNT(*) AS orders, 0 AS units, COALESCE(SUM(o.total_amount), 0) AS revenue
+        FROM orders o WHERE ${range} GROUP BY 1 ORDER BY orders DESC`),
+      rows(Prisma.sql`
+        SELECT o.payment_method::text AS key, COUNT(*) AS orders, 0 AS units, COALESCE(SUM(o.total_amount), 0) AS revenue
+        FROM orders o WHERE ${range} AND o.status IN ${SOLD_SQL} GROUP BY 1 ORDER BY revenue DESC`),
+      rows(Prisma.sql`
+        SELECT COALESCE(NULLIF(o.shipping_address->>'governorate', ''), 'Unknown') AS key,
+               COUNT(*) AS orders, 0 AS units, COALESCE(SUM(o.total_amount), 0) AS revenue
+        FROM orders o WHERE ${range} AND o.status IN ${SOLD_SQL} GROUP BY 1 ORDER BY revenue DESC LIMIT 12`),
+      rows(Prisma.sql`
+        SELECT c.name AS key, COUNT(DISTINCT o.id) AS orders, SUM(oi.quantity) AS units,
+               SUM(oi.price_at_purchase * oi.quantity) AS revenue
+        FROM order_items oi
+        JOIN orders o ON o.id = oi.order_id
+        JOIN products p ON p.id = oi.product_id
+        JOIN categories c ON c.id = p.category_id
+        WHERE ${range} AND o.status IN ${SOLD_SQL} GROUP BY c.id, c.name ORDER BY revenue DESC`),
+      rows(Prisma.sql`
+        SELECT d.dow::text AS key, COUNT(o.id) AS orders, 0 AS units, COALESCE(SUM(o.total_amount), 0) AS revenue
+        FROM generate_series(0, 6) AS d(dow)
+        LEFT JOIN orders o ON EXTRACT(DOW FROM o.created_at AT TIME ZONE ${tz}) = d.dow
+         AND ${range} AND o.status IN ${SOLD_SQL}
+        GROUP BY d.dow ORDER BY d.dow`),
+    ]);
+    return { byStatus, byPaymentMethod, byGovernorate, byCategory, byWeekday };
+  }
+
   /** Share of customers (all time) with 2+ purchases. */
   async repeatCustomers() {
     const [row] = await this.db.$queryRaw<Record<string, unknown>[]>`
@@ -276,7 +317,7 @@ export class OrderRepository extends BaseRepository<
    * 19.4 Customer directory: registered customers (with or without orders)
    * plus guest emails that never registered. Sales only for spend/counts.
    */
-  async customerDirectory(opts: { search?: string; sort: string; desc: boolean; page: number; limit: number }) {
+  async customerDirectory(opts: { search?: string; identifier?: string; sort: string; desc: boolean; page: number; limit: number }) {
     const sortColumn = Prisma.raw(
       { totalSpent: 'total_spent', ordersCount: 'orders_count', lastOrderAt: 'last_order_at', name: 'name' }[opts.sort] ??
         'total_spent',
@@ -307,7 +348,8 @@ export class OrderRepository extends BaseRepository<
       ),
       everyone AS (SELECT * FROM registered UNION ALL SELECT * FROM guests)
       SELECT * FROM everyone
-      WHERE ${like}::text IS NULL OR name ILIKE ${like} OR email ILIKE ${like} OR phone ILIKE ${like}`;
+      WHERE (${like}::text IS NULL OR name ILIKE ${like} OR email ILIKE ${like} OR phone ILIKE ${like})
+        AND (${opts.identifier ?? null}::text IS NULL OR identifier = ${opts.identifier ?? null})`;
     const [rows, [count]] = await Promise.all([
       this.db.$queryRaw<Record<string, unknown>[]>`${base}
         ORDER BY ${sortColumn} ${direction}, identifier

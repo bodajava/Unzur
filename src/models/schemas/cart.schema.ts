@@ -21,6 +21,7 @@ export const CART_DETAIL_INCLUDE = {
         select: {
           id: true,
           name: true,
+          nameAr: true,
           slug: true,
           basePrice: true,
           salePrice: true,
@@ -38,6 +39,7 @@ export const CART_DETAIL_INCLUDE = {
         select: {
           id: true,
           name: true,
+          nameAr: true,
           sku: true,
           price: true,
           salePrice: true,

@@ -27,6 +27,20 @@ export class UpdateCategoryDto {
   @MaxLength(2000)
   description?: string | null;
 
+  /** Arabic (optional; the English field is the fallback). Send "" to clear. */
+  @IsOptional()
+  @ToNullableString()
+  @IsString()
+  @MaxLength(120)
+  nameAr?: string | null;
+
+  /** Arabic (optional; the English field is the fallback). Send "" to clear. */
+  @IsOptional()
+  @ToNullableString()
+  @IsString()
+  @MaxLength(2000)
+  descriptionAr?: string | null;
+
   @IsOptional()
   @ToNullableString()
   @IsUUID('4')

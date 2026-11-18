@@ -251,6 +251,8 @@ export class CheckoutService {
           variantId: line.variantId,
           productName: line.product.name,
           variantName: line.variant?.name ?? null,
+          productNameAr: line.product.nameAr ?? null,
+          variantNameAr: line.variant?.nameAr ?? null,
           priceAtPurchase: line.unitPrice,
           imageUrl: line.product.primaryImage?.url ?? null,
           quantity: line.quantity,

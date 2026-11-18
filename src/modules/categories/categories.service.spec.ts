@@ -5,8 +5,10 @@ import { buildCategoryTree } from './entities/category.entity.js';
 const row = (id: string, parentId: string | null = null) => ({
   id,
   name: id,
+  nameAr: null,
   slug: id,
   description: null,
+  descriptionAr: null,
   imageUrl: null,
   parentId,
   createdAt: new Date(),

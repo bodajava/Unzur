@@ -90,7 +90,8 @@ describe('Account, reviews, newsletter, loyalty, gift cards (e2e)', () => {
   let bob: { id: string; email: string; token: string; referralCode: string };
   let categoryId: string;
   let productId: string;
-  const settingKeys = ['auto_approve_reviews', 'admin_email'];
+  // Backed up and restored around the run (contact_email would win over admin_email).
+  const settingKeys = ['auto_approve_reviews', 'admin_email', 'contact_email'];
   const settingsBefore: unknown[] = [];
 
   const auth = (token: string) => ({ Authorization: `Bearer ${token}` });

@@ -292,7 +292,7 @@ export class ProductRepository extends BaseRepository<
       ), var AS (
         SELECT product_id, SUM(stock) FILTER (WHERE is_active) AS variant_stock FROM product_variants GROUP BY product_id
       )
-      SELECT p.id, p.name, p.slug, p.is_active, p.stock + COALESCE(var.variant_stock, 0) AS stock,
+      SELECT p.id, p.name, p.name_ar, p.slug, p.is_active, p.stock + COALESCE(var.variant_stock, 0) AS stock,
              p.low_stock_threshold, p.base_price, p.sale_price, p.cost_price,
              COALESCE(v.views, 0) AS views, COALESCE(s.units, 0) AS units, COALESCE(s.revenue, 0) AS revenue,
              COALESCE(r.refunds, 0) AS refunds, COALESCE(r.cancellations, 0) AS cancellations,
@@ -314,6 +314,7 @@ export class ProductRepository extends BaseRepository<
       return {
         productId: String(r.id),
         name: String(r.name),
+        nameAr: (r.name_ar as string | null) ?? null,
         slug: String(r.slug),
         isActive: Boolean(r.is_active),
         viewsCount: num(r.views),
@@ -341,12 +342,12 @@ export class ProductRepository extends BaseRepository<
     const rows = await this.db.$queryRaw<Record<string, unknown>[]>`
       SELECT * FROM (
         SELECT 'PRODUCT' AS type, p.id AS product_id, NULL::uuid AS variant_id, p.name, NULL AS variant_name,
-               p.sku, p.slug, p.stock, p.low_stock_threshold AS threshold
+               p.name_ar, NULL AS variant_name_ar, p.sku, p.slug, p.stock, p.low_stock_threshold AS threshold
         FROM products p
         WHERE p.deleted_at IS NULL AND p.is_active AND p.stock <= p.low_stock_threshold
           AND NOT EXISTS (SELECT 1 FROM product_variants v WHERE v.product_id = p.id AND v.is_active)
         UNION ALL
-        SELECT 'VARIANT', p.id, v.id, p.name, v.name, v.sku, p.slug, v.stock, p.low_stock_threshold
+        SELECT 'VARIANT', p.id, v.id, p.name, v.name, p.name_ar, v.name_ar, v.sku, p.slug, v.stock, p.low_stock_threshold
         FROM product_variants v JOIN products p ON p.id = v.product_id
         WHERE p.deleted_at IS NULL AND p.is_active AND v.is_active AND v.stock <= p.low_stock_threshold
       ) t
@@ -358,6 +359,8 @@ export class ProductRepository extends BaseRepository<
       variantId: (r.variant_id as string | null) ?? null,
       name: String(r.name),
       variantName: (r.variant_name as string | null) ?? null,
+      nameAr: (r.name_ar as string | null) ?? null,
+      variantNameAr: (r.variant_name_ar as string | null) ?? null,
       sku: (r.sku as string | null) ?? null,
       slug: String(r.slug),
       stock: num(r.stock),

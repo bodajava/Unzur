@@ -6,13 +6,13 @@ import {
   IsString,
   Length,
   Max,
-  Min,
-} from 'class-validator';
+  Min, MaxLength } from 'class-validator';
 import {
   IsLessThanField,
   OptionalNotNull,
   ToBoolean,
   ToInt,
+  ToNullableString,
   Trim,
 } from '../../../common/decorators/index.js';
 import { MAX_PRICE, MAX_STOCK } from './create-product.dto.js';
@@ -23,6 +23,13 @@ export class CreateVariantDto {
   @IsString()
   @Length(1, 120)
   name: string;
+
+  /** Arabic (optional; the English field is the fallback). Send "" to clear. */
+  @IsOptional()
+  @ToNullableString()
+  @IsString()
+  @MaxLength(120)
+  nameAr?: string | null;
 
   @Trim()
   @IsString()
@@ -68,6 +75,13 @@ export class UpdateVariantDto {
   @IsString()
   @Length(1, 120)
   name?: string;
+
+  /** Arabic (optional; the English field is the fallback). Send "" to clear. */
+  @IsOptional()
+  @ToNullableString()
+  @IsString()
+  @MaxLength(120)
+  nameAr?: string | null;
 
   @OptionalNotNull()
   @Trim()

@@ -33,9 +33,11 @@ import {
   RecentlyViewedRepository,
   ReviewRepository,
   StockNotificationRepository,
+  PushDeviceRepository,
 } from './repositories/index.js';
 
 const REPOSITORIES = [
+  PushDeviceRepository,
   AuditLogRepository,
   BrandRepository,
   CartItemRepository,

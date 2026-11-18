@@ -43,6 +43,7 @@ export class VariantsService {
       const variant = await this.variants.withTx(tx).create({
         productId,
         name: dto.name,
+        nameAr: dto.nameAr || null,
         sku: dto.sku,
         price: dto.price,
         salePrice: dto.salePrice ?? null,
@@ -75,6 +76,7 @@ export class VariantsService {
     return this.tx.run(async (tx) => {
       const variant = await this.variants.withTx(tx).updateById(id, {
         name: dto.name,
+        nameAr: dto.nameAr === undefined ? undefined : dto.nameAr || null,
         sku: dto.sku,
         price: dto.price,
         salePrice: dto.salePrice,

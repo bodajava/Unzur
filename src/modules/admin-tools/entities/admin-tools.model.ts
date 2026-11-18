@@ -10,6 +10,8 @@ export class LowStockItemModel {
   @Field(() => ID, { nullable: true }) variantId: string | null;
   @Field() name: string;
   @Field(() => String, { nullable: true }) variantName: string | null;
+  @Field(() => String, { nullable: true }) nameAr: string | null;
+  @Field(() => String, { nullable: true }) variantNameAr: string | null;
   @Field(() => String, { nullable: true }) sku: string | null;
   @Field() slug: string;
   @Field(() => Int) stock: number;

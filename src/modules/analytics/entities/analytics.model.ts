@@ -42,6 +42,7 @@ export class SalesTrendPointModel {
 export class ProductPerformanceModel {
   @Field(() => ID) productId: string;
   @Field() name: string;
+  @Field(() => String, { nullable: true }) nameAr: string | null;
   @Field() slug: string;
   @Field() isActive: boolean;
   @Field(() => Int) viewsCount: number;
@@ -96,4 +97,25 @@ export class InsightModel {
   @Field() description: string;
   @Field(() => ID, { nullable: true }) productId: string | null;
   @Field(() => Float) metricValue: number;
+}
+
+@ObjectType('BreakdownRow')
+export class BreakdownRowModel {
+  /** status, payment method, governorate, category name, or weekday 0-6 (Sunday = 0) */
+  @Field() key: string;
+  @Field(() => Int) orders: number;
+  /** Units sold (category rows only; 0 elsewhere) */
+  @Field(() => Int) units: number;
+  @Field(() => Int) revenue: number;
+}
+
+@ObjectType('AnalyticsBreakdown')
+export class AnalyticsBreakdownModel {
+  /** Every order in the period, any status */
+  @Field(() => [BreakdownRowModel]) byStatus: BreakdownRowModel[];
+  /** Sales only, from here down */
+  @Field(() => [BreakdownRowModel]) byPaymentMethod: BreakdownRowModel[];
+  @Field(() => [BreakdownRowModel]) byGovernorate: BreakdownRowModel[];
+  @Field(() => [BreakdownRowModel]) byCategory: BreakdownRowModel[];
+  @Field(() => [BreakdownRowModel]) byWeekday: BreakdownRowModel[];
 }

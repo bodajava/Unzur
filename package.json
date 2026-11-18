@@ -24,7 +24,9 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "postinstall": "prisma generate",
-    "seed": "node dist/database/seeders/run-seeders.js"
+    "seed": "node dist/database/seeders/run-seeders.js",
+    "demo:seed": "node scripts/demo-data.mjs seed",
+    "demo:clean": "node scripts/demo-data.mjs clean"
   },
   "dependencies": {
     "@apollo/server": "^5.5.2",
@@ -49,6 +51,7 @@
     "cookie-parser": "^1.4.7",
     "dejavu-fonts-ttf": "^2.37.3",
     "dotenv": "^17.2.0",
+    "firebase-admin": "^13.10.0",
     "graphql": "^16.15.0",
     "helmet": "^8.3.0",
     "nodemailer": "^10.6.0",

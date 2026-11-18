@@ -6,7 +6,8 @@ import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto.js'
 /** 7.4 POST /contact */
 @InputType('ContactMessageInput')
 export class CreateContactMessageDto {
-  @Field() @Trim() @IsString() @Length(2, 100) name: string;
+  /** Optional: the contact form asks only for email, phone and message. */
+  @Field({ nullable: true }) @IsOptional() @Trim() @IsString() @Length(2, 100) name?: string;
   @Field() @NormalizeEmail() @IsEmail() @MaxLength(254) email: string;
   @Field({ nullable: true }) @IsOptional() @Trim() @IsPhone() phone?: string;
   @Field({ nullable: true }) @IsOptional() @Trim() @IsString() @MaxLength(150) subject?: string;

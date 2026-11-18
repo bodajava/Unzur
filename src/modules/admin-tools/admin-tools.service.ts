@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { NotFoundException, Injectable } from '@nestjs/common';
 import { buildPaginationMeta, parseSortParam } from '../../common/dto/pagination-query.dto.js';
 import type { CsvValue } from '../../common/utilities/csv.js';
 import { csvStream } from '../../common/utilities/csv.js';
 import type { Prisma } from '../../generated/prisma/client.js';
 import { AuditLogRepository } from '../../models/repositories/audit-log.repository.js';
+import { AddressRepository } from '../../models/repositories/address.repository.js';
 import { OrderRepository } from '../../models/repositories/order.repository.js';
 import { ProductRepository } from '../../models/repositories/product.repository.js';
 import type { ShippingAddress } from '../../models/schemas/order.schema.js';
@@ -19,6 +20,7 @@ export class AdminToolsService {
     private readonly products: ProductRepository,
     private readonly orders: OrderRepository,
     private readonly audit: AuditLogRepository,
+    private readonly addresses: AddressRepository,
   ) {}
 
   /** 19.1 */
@@ -60,6 +62,16 @@ export class AdminToolsService {
       limit: query.limit,
     });
     return { items, meta: buildPaginationMeta(total, query.page, query.limit) };
+  }
+
+  /** One customer (user id, or a guest's email) with their saved addresses. */
+  async customer(identifier: string) {
+    const key = identifier.includes('@') ? identifier.trim().toLowerCase() : identifier.trim();
+    const { items } = await this.orders.customerDirectory({ identifier: key, sort: 'totalSpent', desc: true, page: 1, limit: 1 });
+    const entry = items[0];
+    if (!entry) throw new NotFoundException('Customer not found');
+    const addresses = entry.isRegistered ? await this.addresses.find({ userId: entry.identifier }, { orderBy: { isDefault: 'desc' } }) : [];
+    return { ...entry, addresses };
   }
 
   /** 19.3 CSV (UTF-8 BOM). Rows are read in batches while streaming. */

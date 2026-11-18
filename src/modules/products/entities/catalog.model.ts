@@ -11,6 +11,7 @@ import { CategoryRefModel } from '../../categories/entities/category.model.js';
 export class CardVariantModel {
   @Field(() => ID) id: string;
   @Field() name: string;
+  @Field(() => String, { nullable: true }) nameAr: string | null;
   @Field(() => Int) price: number;
   @Field(() => Int, { nullable: true }) salePrice: number | null;
   @Field(() => Int) stock: number;
@@ -20,8 +21,10 @@ export class CardVariantModel {
 export class ProductCardModel {
   @Field(() => ID) id: string;
   @Field() name: string;
+  @Field(() => String, { nullable: true }) nameAr: string | null;
   @Field() slug: string;
   @Field(() => String, { nullable: true }) shortDescription: string | null;
+  @Field(() => String, { nullable: true }) shortDescriptionAr: string | null;
   @Field(() => Int) basePrice: number;
   @Field(() => Int, { nullable: true }) salePrice: number | null;
   @Field(() => Int) stock: number;
@@ -46,6 +49,7 @@ export class ProductImageModel extends ImageRefModel {
 export class ProductVariantModel {
   @Field(() => ID) id: string;
   @Field() name: string;
+  @Field(() => String, { nullable: true }) nameAr: string | null;
   @Field() sku: string;
   @Field(() => Int) price: number;
   @Field(() => Int, { nullable: true }) salePrice: number | null;
@@ -57,10 +61,13 @@ export class ProductVariantModel {
 export class ProductDetailModel {
   @Field(() => ID) id: string;
   @Field() name: string;
+  @Field(() => String, { nullable: true }) nameAr: string | null;
   @Field() slug: string;
   @Field(() => String, { nullable: true }) sku: string | null;
   @Field() description: string;
+  @Field(() => String, { nullable: true }) descriptionAr: string | null;
   @Field(() => String, { nullable: true }) shortDescription: string | null;
+  @Field(() => String, { nullable: true }) shortDescriptionAr: string | null;
   @Field(() => Int) basePrice: number;
   @Field(() => Int, { nullable: true }) salePrice: number | null;
   @Field(() => Int) stock: number;
@@ -80,6 +87,7 @@ export class ProductDetailModel {
 export class ProductSuggestionModel {
   @Field(() => ID) id: string;
   @Field() name: string;
+  @Field(() => String, { nullable: true }) nameAr: string | null;
   @Field() slug: string;
   @Field(() => Int) basePrice: number;
   @Field(() => Int, { nullable: true }) salePrice: number | null;

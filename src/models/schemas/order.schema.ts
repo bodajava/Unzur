@@ -11,6 +11,8 @@ const ORDER_ITEM_SELECT = {
   variantId: true,
   productName: true,
   variantName: true,
+  productNameAr: true,
+  variantNameAr: true,
   priceAtPurchase: true,
   imageUrl: true,
   quantity: true,

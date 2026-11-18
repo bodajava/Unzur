@@ -40,6 +40,12 @@ import type {
 import type { AuthResult, AuthTokens, RegisterResult } from './entities/auth.entity.js';
 import { OtpService } from './otp.service.js';
 
+/** "mariam.ragab92@x.com" -> "Mariam": a friendly default until the customer sets a name. */
+export function nameFromEmail(email: string): string {
+  const word = email.split('@')[0].split(/[._+\-\d]+/).find(Boolean) ?? 'Customer';
+  return (word.charAt(0).toUpperCase() + word.slice(1)).slice(0, 60);
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -79,8 +85,8 @@ export class AuthService {
         email: dto.email,
         phone: dto.phone ? normalizePhone(dto.phone) : undefined,
         passwordHash,
-        firstName: dto.firstName,
-        lastName: dto.lastName,
+        firstName: dto.firstName || nameFromEmail(dto.email),
+        lastName: dto.lastName ?? '',
         role: UserRole.CUSTOMER,
         isEmailVerified: false,
         referralCode,

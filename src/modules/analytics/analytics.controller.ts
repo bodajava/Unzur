@@ -1,6 +1,8 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, Req } from '@nestjs/common';
 import { Roles } from '../../common/decorators/index.js';
 import { UserRole } from '../../common/enums/index.js';
+import type { AppRequest } from '../../common/interfaces/request.interface.js';
+import { requestMeta } from '../../common/utilities/request-meta.js';
 import { AnalyticsService } from './analytics.service.js';
 import { AnalyticsRangeDto, ProductsPerformanceDto, SalesTrendDto } from './dto/index.js';
 
@@ -27,6 +29,12 @@ export class AnalyticsController {
     return this.analytics.productsPerformance(dto);
   }
 
+  /** 8.3b: where the orders come from and how they're paid */
+  @Get('breakdown')
+  breakdown(@Query() range: AnalyticsRangeDto) {
+    return this.analytics.breakdown(range);
+  }
+
   /** 8.4 */
   @Get('customers')
   customers(@Query() range: AnalyticsRangeDto) {
@@ -35,7 +43,7 @@ export class AnalyticsController {
 
   /** 8.5 */
   @Get('insights')
-  insights(@Query() range: AnalyticsRangeDto) {
-    return this.analytics.insights(range);
+  insights(@Query() range: AnalyticsRangeDto, @Req() req: AppRequest) {
+    return this.analytics.insights(range, requestMeta(req).lang);
   }
 }

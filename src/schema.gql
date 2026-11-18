@@ -120,6 +120,14 @@ type AdvisorResult {
   source: String!
 }
 
+type AnalyticsBreakdown {
+  byCategory: [BreakdownRow!]!
+  byGovernorate: [BreakdownRow!]!
+  byPaymentMethod: [BreakdownRow!]!
+  byStatus: [BreakdownRow!]!
+  byWeekday: [BreakdownRow!]!
+}
+
 type AnalyticsDeltas {
   averageOrderValue: Float
   customers: Float
@@ -226,6 +234,13 @@ type BrandRef {
   slug: String!
 }
 
+type BreakdownRow {
+  key: String!
+  orders: Int!
+  revenue: Int!
+  units: Int!
+}
+
 input CancelOrderInput {
   contact: String
   reason: String
@@ -234,6 +249,7 @@ input CancelOrderInput {
 type CardVariant {
   id: ID!
   name: String!
+  nameAr: String
   price: Int!
   salePrice: Int
   stock: Int!
@@ -271,6 +287,7 @@ type CartLine {
 type CartLineProduct {
   id: ID!
   name: String!
+  nameAr: String
   primaryImage: ImageRef
   slug: String!
 }
@@ -279,15 +296,18 @@ type CartLineVariant {
   attributes: JSON
   id: ID!
   name: String!
+  nameAr: String
   sku: String!
 }
 
 type Category {
   createdAt: DateTime!
   description: String
+  descriptionAr: String
   id: ID!
   imageUrl: String
   name: String!
+  nameAr: String
   parentId: ID
   slug: String!
   updatedAt: DateTime!
@@ -297,9 +317,11 @@ type CategoryDetail {
   children: [Category!]!
   createdAt: DateTime!
   description: String
+  descriptionAr: String
   id: ID!
   imageUrl: String
   name: String!
+  nameAr: String
   parent: CategoryRef
   parentId: ID
   slug: String!
@@ -310,9 +332,11 @@ type CategoryNode {
   children: [CategoryNode!]!
   createdAt: DateTime!
   description: String
+  descriptionAr: String
   id: ID!
   imageUrl: String
   name: String!
+  nameAr: String
   parentId: ID
   slug: String!
   updatedAt: DateTime!
@@ -321,6 +345,7 @@ type CategoryNode {
 type CategoryRef {
   id: ID!
   name: String!
+  nameAr: String
   slug: String!
 }
 
@@ -361,7 +386,7 @@ type CitedMetric {
 input ContactMessageInput {
   email: String!
   message: String!
-  name: String!
+  name: String
   phone: String
   subject: String
 }
@@ -591,6 +616,7 @@ scalar JSON
 
 type LowStockItem {
   name: String!
+  nameAr: String
   productId: ID!
   sku: String
   slug: String!
@@ -599,6 +625,7 @@ type LowStockItem {
   type: String!
   variantId: ID
   variantName: String
+  variantNameAr: String
 }
 
 type LoyaltyEntry {
@@ -757,9 +784,11 @@ type OrderItem {
   priceAtPurchase: Int!
   productId: ID!
   productName: String!
+  productNameAr: String
   quantity: Int!
   variantId: ID
   variantName: String
+  variantNameAr: String
 }
 
 enum OrderStatus {
@@ -773,6 +802,7 @@ enum OrderStatus {
 }
 
 input OrdersFilter {
+  customer: String
   fromDate: DateTime
   limit: Int = 20
   page: Int = 1
@@ -836,9 +866,11 @@ type ProductCard {
   id: ID!
   isFeatured: Boolean!
   name: String!
+  nameAr: String
   primaryImage: ImageRef
   salePrice: Int
   shortDescription: String
+  shortDescriptionAr: String
   slug: String!
   stock: Int!
   variants: [CardVariant!]!
@@ -851,14 +883,17 @@ type ProductDetail {
   category: CategoryRef!
   createdAt: DateTime!
   description: String!
+  descriptionAr: String
   id: ID!
   images: [ProductImage!]!
   isFeatured: Boolean!
   name: String!
+  nameAr: String
   relatedProducts: [ProductCard!]!
   reviewCount: Int!
   salePrice: Int
   shortDescription: String
+  shortDescriptionAr: String
   sku: String
   slug: String!
   stock: Int!
@@ -889,6 +924,7 @@ type ProductPerformance {
   isActive: Boolean!
   lowStockThreshold: Int!
   name: String!
+  nameAr: String
   productId: ID!
   refundCount: Int!
   revenue: Int!
@@ -909,6 +945,7 @@ type ProductSuggestion {
   basePrice: Int!
   id: ID!
   name: String!
+  nameAr: String
   primaryImage: ImageRef
   salePrice: Int
   slug: String!
@@ -918,6 +955,7 @@ type ProductVariant {
   attributes: JSON
   id: ID!
   name: String!
+  nameAr: String
   price: Int!
   salePrice: Int
   sku: String!
@@ -969,6 +1007,9 @@ type Query {
 
   """15.4 Admin: all settings"""
   adminSettings: [StoreSetting!]!
+
+  """8.3b"""
+  analyticsBreakdown(range: AnalyticsRangeInput): AnalyticsBreakdown!
 
   """8.4"""
   analyticsCustomers(range: AnalyticsRangeInput): CustomerAnalytics!

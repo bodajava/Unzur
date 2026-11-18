@@ -34,11 +34,12 @@ export function priceCartLines(rows: CartDetailItemRow[]): {
       product: {
         id: product.id,
         name: product.name,
+        nameAr: product.nameAr,
         slug: product.slug,
         primaryImage: product.images[0] ?? null,
       },
       variant: variant
-        ? { id: variant.id, name: variant.name, sku: variant.sku, attributes: variant.attributes }
+        ? { id: variant.id, name: variant.name, nameAr: variant.nameAr, sku: variant.sku, attributes: variant.attributes }
         : null,
       unitPrice,
       originalUnitPrice,

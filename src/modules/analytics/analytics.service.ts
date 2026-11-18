@@ -1,9 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { Lang } from '../../common/enums/index.js';
 import { OrderRepository } from '../../models/repositories/order.repository.js';
 import { ProductViewRepository } from '../../models/repositories/product-view.repository.js';
 import { ProductRepository } from '../../models/repositories/product.repository.js';
 import type { AnalyticsRangeDto, ProductsPerformanceDto, SalesTrendDto } from './dto/index.js';
 import type {
+  AnalyticsBreakdownModel,
   AnalyticsOverviewModel,
   CustomerAnalyticsModel,
   InsightModel,
@@ -115,6 +117,12 @@ export class AnalyticsService {
     });
   }
 
+  /** Orders by status, payment method, governorate, category and weekday. */
+  breakdown(range?: AnalyticsRangeDto): Promise<AnalyticsBreakdownModel> {
+    const { from, to } = this.period(range);
+    return this.orders.breakdown(from, to);
+  }
+
   // ───────────── 8.4 ─────────────
 
   async customers(range?: AnalyticsRangeDto): Promise<CustomerAnalyticsModel> {
@@ -133,19 +141,26 @@ export class AnalyticsService {
 
   // ───────────── 8.5 ─────────────
 
-  async insights(range?: AnalyticsRangeDto): Promise<InsightModel[]> {
+  /** Insight cards in the reader's language (the dashboard sends Accept-Language). */
+  async insights(range?: AnalyticsRangeDto, lang: Lang = Lang.EN): Promise<InsightModel[]> {
     const period = this.period(range);
     const rows = await this.products.performance({ ...period, sortBy: 'views', desc: true, limit: 500 });
     const cards: InsightModel[] = [];
     const R = INSIGHT_RULES;
+    const ar = lang === Lang.AR;
+    const nameOf = (p: { name: string; nameAr: string | null }) => (ar && p.nameAr ? p.nameAr : p.name);
 
     for (const p of rows.filter((r) => r.isActive)) {
+      const name = nameOf(p);
       if (p.viewsCount >= R.lowConversionMinViews && p.conversionRate < R.lowConversionRate) {
+        const rate = (p.conversionRate * 100).toFixed(1);
         cards.push({
           severity: 'HIGH',
           category: 'LOW_CONVERSION',
-          title: `${p.name}: many views, few sales`,
-          description: `${p.viewsCount} views but ${p.unitsSold} sold (${(p.conversionRate * 100).toFixed(1)}% conversion). Check price, photos, description and stock.`,
+          title: ar ? `${name}: مشاهدات كتير ومبيعات قليلة` : `${name}: many views, few sales`,
+          description: ar
+            ? `${p.viewsCount} مشاهدة واتباع منها ${p.unitsSold} بس (تحويل ${rate}%). راجع السعر والصور والوصف والمخزون.`
+            : `${p.viewsCount} views but ${p.unitsSold} sold (${rate}% conversion). Check price, photos, description and stock.`,
           productId: p.productId,
           metricValue: p.conversionRate,
         });
@@ -156,8 +171,10 @@ export class AnalyticsService {
         cards.push({
           severity: 'HIGH',
           category: 'REFUNDS',
-          title: `${p.name}: frequent refunds/cancellations`,
-          description: `${p.refundCount} refunds and ${p.cancellationCount} cancellations${top ? `. Most common reason: "${top.reason}"` : ''}.`,
+          title: ar ? `${name}: مرتجعات وإلغاءات كتير` : `${name}: frequent refunds/cancellations`,
+          description: ar
+            ? `${p.refundCount} مرتجع و${p.cancellationCount} إلغاء${top ? `. أكتر سبب: "${top.reason}"` : ''}.`
+            : `${p.refundCount} refunds and ${p.cancellationCount} cancellations${top ? `. Most common reason: "${top.reason}"` : ''}.`,
           productId: p.productId,
           metricValue: issues,
         });
@@ -166,11 +183,14 @@ export class AnalyticsService {
         const perDay = p.unitsSold / period.days;
         const daysLeft = p.stock / perDay;
         if (daysLeft <= R.stockoutDays) {
+          const days = Math.floor(daysLeft);
           cards.push({
             severity: daysLeft <= R.stockoutCriticalDays ? 'HIGH' : 'MEDIUM',
             category: 'STOCKOUT_RISK',
-            title: `${p.name}: about ${Math.floor(daysLeft)} days of stock left`,
-            description: `Selling ~${perDay.toFixed(1)} per day with ${p.stock} in stock. Reorder soon.`,
+            title: ar ? `${name}: فاضل مخزون حوالي ${days} يوم` : `${name}: about ${days} days of stock left`,
+            description: ar
+              ? `بيتباع حوالي ${perDay.toFixed(1)} في اليوم والمخزون ${p.stock}. اطلب كمية جديدة قريب.`
+              : `Selling ~${perDay.toFixed(1)} per day with ${p.stock} in stock. Reorder soon.`,
             productId: p.productId,
             metricValue: round(daysLeft, 1),
           });
@@ -189,8 +209,10 @@ export class AnalyticsService {
         cards.push({
           severity: 'INFO',
           category: 'PROMOTE',
-          title: `${p.name}: profitable best seller`,
-          description: `${p.unitsSold} sold at a ${Math.round(margin * 100)}% margin. Feature it or bundle it.`,
+          title: ar ? `${nameOf(p)}: من الأكثر مبيعًا وبربح كويس` : `${nameOf(p)}: profitable best seller`,
+          description: ar
+            ? `اتباع منها ${p.unitsSold} بهامش ربح ${Math.round(margin * 100)}%. حطّها في الواجهة أو اعمل عليها عرض.`
+            : `${p.unitsSold} sold at a ${Math.round(margin * 100)}% margin. Feature it or bundle it.`,
           productId: p.productId,
           metricValue: round(margin),
         }),

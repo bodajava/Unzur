@@ -20,7 +20,7 @@ const PRIMARY_IMAGE = {
   take: 1,
 } as const;
 
-const CATEGORY_REF = { select: { id: true, name: true, slug: true } } as const;
+const CATEGORY_REF = { select: { id: true, name: true, nameAr: true, slug: true } } as const;
 const BRAND_REF = { select: { id: true, name: true, slug: true, logoUrl: true } } as const;
 
 /** Only active, non-deleted products are ever shown publicly. */
@@ -35,8 +35,10 @@ export const PUBLIC_PRODUCT_WHERE = {
 export const PRODUCT_CARD_SELECT = {
   id: true,
   name: true,
+  nameAr: true,
   slug: true,
   shortDescription: true,
+  shortDescriptionAr: true,
   basePrice: true,
   salePrice: true,
   stock: true,
@@ -48,7 +50,7 @@ export const PRODUCT_CARD_SELECT = {
   /** Active versions, so a list can add to cart (or ask which version) without opening the product. */
   variants: {
     where: { isActive: true },
-    select: { id: true, name: true, price: true, salePrice: true, stock: true },
+    select: { id: true, name: true, nameAr: true, price: true, salePrice: true, stock: true },
     orderBy: { price: 'asc' },
   },
 } as const satisfies Prisma.ProductSelect;
@@ -59,6 +61,7 @@ export type ProductCardRow = Prisma.ProductGetPayload<{ select: typeof PRODUCT_C
 export const PRODUCT_SUGGEST_SELECT = {
   id: true,
   name: true,
+  nameAr: true,
   slug: true,
   basePrice: true,
   salePrice: true,
@@ -71,10 +74,13 @@ export type ProductSuggestRow = Prisma.ProductGetPayload<{ select: typeof PRODUC
 export const PRODUCT_DETAIL_SELECT = {
   id: true,
   name: true,
+  nameAr: true,
   slug: true,
   sku: true,
   description: true,
+  descriptionAr: true,
   shortDescription: true,
+  shortDescriptionAr: true,
   basePrice: true,
   salePrice: true,
   stock: true,
@@ -94,6 +100,7 @@ export const PRODUCT_DETAIL_SELECT = {
     select: {
       id: true,
       name: true,
+      nameAr: true,
       sku: true,
       price: true,
       salePrice: true,
@@ -110,10 +117,13 @@ export type ProductDetailRow = Prisma.ProductGetPayload<{ select: typeof PRODUCT
 export const PRODUCT_ADMIN_SELECT = {
   id: true,
   name: true,
+  nameAr: true,
   slug: true,
   sku: true,
   description: true,
+  descriptionAr: true,
   shortDescription: true,
+  shortDescriptionAr: true,
   basePrice: true,
   salePrice: true,
   costPrice: true,
@@ -136,6 +146,7 @@ export const PRODUCT_ADMIN_SELECT = {
     select: {
       id: true,
       name: true,
+      nameAr: true,
       sku: true,
       price: true,
       salePrice: true,

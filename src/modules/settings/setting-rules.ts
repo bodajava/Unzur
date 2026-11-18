@@ -16,6 +16,10 @@ export const SettingKey = {
   REFERRAL_BONUS_POINTS: 'referral_bonus_points',
   /** Where contact-form notifications go (falls back to SMTP_USER) */
   ADMIN_EMAIL: 'admin_email',
+  /** Public contact address shown on the site (footer, contact page); contact-form messages go here first */
+  CONTACT_EMAIL: 'contact_email',
+  /** Public Instagram profile link (footer, contact page) */
+  INSTAGRAM_URL: 'instagram_url',
   /** 20.1 Hours a cart must sit untouched before a reminder (default 24) */
   ABANDONED_CART_HOURS: 'abandoned_cart_hours',
   /** 20.2 Minutes before an unpaid online order is cancelled (default 30) */
@@ -56,6 +60,12 @@ const RULES: Record<string, (value: unknown) => string | null> = {
     Number.isInteger(v) && (v as number) >= 0 && (v as number) <= 100_000 ? null : 'must be an integer >= 0',
   [SettingKey.ADMIN_EMAIL]: (v) =>
     typeof v === 'string' && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v) ? null : 'must be an email address',
+  [SettingKey.CONTACT_EMAIL]: (v) =>
+    typeof v === 'string' && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v) ? null : 'must be an email address',
+  [SettingKey.INSTAGRAM_URL]: (v) =>
+    typeof v === 'string' && /^https:\/\/(www\.)?instagram\.com\/[A-Za-z0-9._]+\/?$/.test(v)
+      ? null
+      : 'must be an Instagram profile link like https://www.instagram.com/unzur',
   [SettingKey.CURRENCY]: (v) => (typeof v === 'string' && /^[A-Z]{3}$/.test(v) ? null : 'must be a 3-letter code like EGP'),
 };
 

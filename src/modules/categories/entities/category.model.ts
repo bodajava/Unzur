@@ -4,8 +4,10 @@ import { Field, ID, ObjectType } from '@nestjs/graphql';
 export class CategoryModel {
   @Field(() => ID) id: string;
   @Field() name: string;
+  @Field(() => String, { nullable: true }) nameAr: string | null;
   @Field() slug: string;
   @Field(() => String, { nullable: true }) description: string | null;
+  @Field(() => String, { nullable: true }) descriptionAr: string | null;
   @Field(() => String, { nullable: true }) imageUrl: string | null;
   @Field(() => ID, { nullable: true }) parentId: string | null;
   @Field() createdAt: Date;
@@ -21,6 +23,7 @@ export class CategoryNodeModel extends CategoryModel {
 export class CategoryRefModel {
   @Field(() => ID) id: string;
   @Field() name: string;
+  @Field(() => String, { nullable: true }) nameAr: string | null;
   @Field() slug: string;
 }
 

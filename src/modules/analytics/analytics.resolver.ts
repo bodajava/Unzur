@@ -4,6 +4,7 @@ import { UserRole } from '../../common/enums/index.js';
 import { AnalyticsService } from './analytics.service.js';
 import { AnalyticsRangeDto, ProductsPerformanceDto, SalesTrendDto } from './dto/index.js';
 import {
+  AnalyticsBreakdownModel,
   AnalyticsOverviewModel,
   CustomerAnalyticsModel,
   InsightModel,
@@ -41,5 +42,10 @@ export class AnalyticsResolver {
   @Query(() => [InsightModel], { description: '8.5' })
   analyticsInsights(@Args('range', { type: () => AnalyticsRangeDto, nullable: true }) range?: AnalyticsRangeDto) {
     return this.analytics.insights(range);
+  }
+
+  @Query(() => AnalyticsBreakdownModel, { description: '8.3b' })
+  analyticsBreakdown(@Args('range', { type: () => AnalyticsRangeDto, nullable: true }) range?: AnalyticsRangeDto) {
+    return this.analytics.breakdown(range);
   }
 }

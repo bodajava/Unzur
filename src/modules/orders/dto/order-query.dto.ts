@@ -34,6 +34,14 @@ export class OrderQueryDto extends PaginationQueryDto {
   @Type(() => Date)
   @IsDate()
   toDate?: Date;
+
+  /** One customer's orders: their user id, or a guest buyer's email (the customer directory identifier). */
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @Trim()
+  @IsString()
+  @Length(3, 254)
+  customer?: string;
 }
 
 /** ?contact=<email|phone> proves a guest owns the order. */

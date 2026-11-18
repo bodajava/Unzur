@@ -18,7 +18,7 @@ import {
   ResponseMessage,
   Roles,
 } from '../../common/decorators/index.js';
-import { UserRole } from '../../common/enums/index.js';
+import { PaymentMethod, UserRole } from '../../common/enums/index.js';
 import type { AuditContext } from '../../common/interfaces/audit.interface.js';
 import type { AuthUser } from '../../common/interfaces/auth.interface.js';
 import { InitiatePaymentDto, OrderContactQueryDto, RefundPaymentDto } from './dto/index.js';
@@ -27,6 +27,18 @@ import { PaymentsService } from './payments.service.js';
 @Controller('payments')
 export class PaymentsController {
   constructor(private readonly payments: PaymentsService) {}
+
+  /** Payment methods the checkout can offer right now (online ones only when Paymob is set up for them). */
+  @Public()
+  @Get('methods')
+  methods() {
+    return {
+      methods: [
+        PaymentMethod.COD,
+        ...([PaymentMethod.PAYMOB_CARD, PaymentMethod.PAYMOB_WALLET] as const).filter((m) => this.payments.isOnlinePaymentAvailable(m)),
+      ],
+    };
+  }
 
   /** 5.1 Start (or retry) an online payment for a PENDING_PAYMENT order. */
   @Public()

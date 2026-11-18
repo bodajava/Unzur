@@ -60,6 +60,27 @@ export class UpdateProductDto {
   @MaxLength(500)
   shortDescription?: string | null;
 
+  /** Arabic (optional; the English field is the fallback). Send "" to clear. */
+  @IsOptional()
+  @ToNullableString()
+  @IsString()
+  @MaxLength(200)
+  nameAr?: string | null;
+
+  /** Arabic (optional; the English field is the fallback). Send "" to clear. */
+  @IsOptional()
+  @ToNullableString()
+  @IsString()
+  @MaxLength(500)
+  shortDescriptionAr?: string | null;
+
+  /** Arabic (optional; the English field is the fallback). Send "" to clear. */
+  @IsOptional()
+  @ToNullableString()
+  @IsString()
+  @MaxLength(20000)
+  descriptionAr?: string | null;
+
   @OptionalNotNull()
   @ToInt()
   @IsInt()

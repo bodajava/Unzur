@@ -2,7 +2,7 @@ import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { Lang, OtpType, UserRole } from '../../common/enums/index.js';
 import { AppEvents } from '../../common/events/index.js';
 import type { RequestMeta } from '../../common/interfaces/auth.interface.js';
-import { AuthService } from './auth.service.js';
+import { AuthService, nameFromEmail } from './auth.service.js';
 
 const meta: RequestMeta = { lang: Lang.EN };
 
@@ -104,5 +104,13 @@ describe('AuthService', () => {
     await expect(
       setup(makeUser({ role: UserRole.STAFF })).service.adminLogin({ email: 'a@b.com', password: 'p' }, meta),
     ).resolves.toMatchObject({ accessToken: 'at' });
+  });
+});
+
+describe('nameFromEmail', () => {
+  it('takes the first word of the email name, capitalised', () => {
+    expect(nameFromEmail('mariam.ragab92@example.com')).toBe('Mariam');
+    expect(nameFromEmail('omar_2@example.com')).toBe('Omar');
+    expect(nameFromEmail('123@example.com')).toBe('Customer');
   });
 });

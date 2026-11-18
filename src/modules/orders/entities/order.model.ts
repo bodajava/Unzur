@@ -13,6 +13,8 @@ export class OrderItemModel {
   @Field(() => ID, { nullable: true }) variantId: string | null;
   @Field() productName: string;
   @Field(() => String, { nullable: true }) variantName: string | null;
+  @Field(() => String, { nullable: true }) productNameAr: string | null;
+  @Field(() => String, { nullable: true }) variantNameAr: string | null;
   @Field(() => Int) priceAtPurchase: number;
   @Field(() => String, { nullable: true }) imageUrl: string | null;
   @Field(() => Int) quantity: number;

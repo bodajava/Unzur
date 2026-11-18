@@ -1,8 +1,9 @@
 import { BadRequestException } from '@nestjs/common';
+import { Lang } from '../../common/enums/index.js';
 import { AnalyticsService } from './analytics.service.js';
 
 const row = (o: Record<string, unknown>) => ({
-  productId: 'p', name: 'P', slug: 'p', isActive: true, viewsCount: 0, unitsSold: 0, conversionRate: 0, revenue: 0,
+  productId: 'p', name: 'P', nameAr: null, slug: 'p', isActive: true, viewsCount: 0, unitsSold: 0, conversionRate: 0, revenue: 0,
   costPrice: null, currentPrice: 10_000, estimatedProfit: null, averageRating: null, reviewCount: 0, refundCount: 0,
   cancellationCount: 0, stock: 100, lowStockThreshold: 5, ...o,
 });
@@ -32,6 +33,13 @@ describe('AnalyticsService', () => {
     ]);
     expect(cards[1].description).toContain('"Too small"');
     expect(cards[2].title).toContain('about 2 days');
+  });
+
+  it('writes the cards in Arabic for Arabic readers, with the Arabic product name', async () => {
+    const svc = setup([row({ productId: 'views', name: 'Views', nameAr: 'مشاهدات', viewsCount: 40, unitsSold: 0 })]);
+    const [card] = await svc.insights(range, Lang.AR);
+    expect(card.title).toBe('مشاهدات: مشاهدات كتير ومبيعات قليلة');
+    expect(card.description).toContain('40 مشاهدة');
   });
 
   it('validates the date range', () => {

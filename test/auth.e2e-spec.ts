@@ -179,6 +179,13 @@ describe('Auth (e2e)', () => {
 
   // ───────────────────────── 1.9 guest session ─────────────────────────
 
+  it('1.1 sign-up needs only email + password; the name defaults from the email', async () => {
+    const e = email('simple.signup');
+    await http.post('/api/v1/auth/register').send({ email: e, password: PASSWORD }).expect(201);
+    const res = await http.post('/api/v1/auth/verify-otp').send({ email: e, code: await mail.waitOtp(e, 'verify') }).expect(200);
+    expect(res.body.data.user).toMatchObject({ email: e, firstName: 'E', lastName: '' }); // e2e_… -> first word "e"
+  });
+
   it('1.9 creates a guest session in Redis and reuses an existing one', async () => {
     const res = await http.post('/api/v1/auth/guest/session').expect(200);
     const guestId: string = res.body.data.guestId;

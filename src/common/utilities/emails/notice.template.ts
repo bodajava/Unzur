@@ -47,7 +47,8 @@ export function contactNotificationEmail(
     .map(([k, v]) => `<tr><td style="padding:2px 8px 2px 0;color:#78716c">${k}</td><td>${escapeHtml(v)}</td></tr>`)
     .join('');
   return {
-    subject: `New contact message: ${m.subject ?? m.name}`,
+    // Reply goes to the customer (Reply-To is set by EmailService).
+    subject: `رسالة جديدة من الموقع · New message from ${m.email}${m.subject ? `: ${m.subject}` : ''}`,
     html: layoutTemplate({
       lang: Lang.EN,
       brandName,

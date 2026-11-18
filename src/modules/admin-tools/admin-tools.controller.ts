@@ -1,4 +1,4 @@
-import { Controller, Get, Query, StreamableFile } from '@nestjs/common';
+import { Controller, Get, Param, Query, StreamableFile } from '@nestjs/common';
 import { Roles } from '../../common/decorators/index.js';
 import { UserRole } from '../../common/enums/index.js';
 import { AdminToolsService } from './admin-tools.service.js';
@@ -40,5 +40,12 @@ export class AdminToolsController {
   @Get('customers')
   customers(@Query() query: CustomerDirectoryQueryDto) {
     return this.tools.customers(query);
+  }
+
+  /** One customer: user id, or a guest buyer's email. Their orders: GET /orders?customer=<identifier>. */
+  @Roles(...STAFF)
+  @Get('customers/:identifier')
+  customer(@Param('identifier') identifier: string) {
+    return this.tools.customer(identifier);
   }
 }

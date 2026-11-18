@@ -246,6 +246,30 @@ describe('Analytics, AI, admin tools, automation, WhatsApp, unsubscribe (e2e)', 
     await http.get(`${API}/admin/analytics/overview?fromDate=${W_TO}&toDate=${W_FROM}`).set(auth(staffToken)).expect(400);
   });
 
+  it('8.3b breakdown by status, payment, governorate, weekday and category', async () => {
+    await http.get(`${API}/admin/analytics/breakdown`).set(auth(customer.token)).expect(403);
+    const res = await http.get(`${API}/admin/analytics/breakdown?fromDate=${W_FROM}&toDate=${W_TO}`).set(auth(staffToken)).expect(200);
+    const b = res.body.data;
+    // Every order counts here, unpaid and cancelled included.
+    expect(Object.fromEntries(b.byStatus.map((r: { key: string; orders: number; revenue: number }) => [r.key, [r.orders, r.revenue]]))).toEqual({
+      DELIVERED: [1, 30_000], CONFIRMED: [1, 20_000], SHIPPED: [1, 10_000], PENDING_PAYMENT: [1, 99_999], CANCELLED: [1, 50_000],
+    });
+    // Sales only from here on.
+    expect(b.byPaymentMethod).toEqual([{ key: 'COD', orders: 3, units: 0, revenue: 60_000 }]);
+    expect(b.byGovernorate).toEqual([{ key: 'Cairo', orders: 3, units: 0, revenue: 60_000 }]);
+    expect(b.byWeekday).toHaveLength(7);
+    expect(b.byWeekday.reduce((s: number, r: { orders: number }) => s + r.orders, 0)).toBe(3);
+    // 2025-03-05 14:00 Cairo was a Wednesday (3).
+    expect(b.byWeekday.find((r: { key: string }) => r.key === '3')).toMatchObject({ orders: 1, revenue: 30_000 });
+    expect(b.byCategory).toEqual([]); // no lines in the window
+
+    const recent = await http.get(`${API}/admin/analytics/breakdown?fromDate=${ago(10).toISOString()}`).set(auth(staffToken)).expect(200);
+    // 3 × 10 beans + 1 delivered mug; the refunded mugs don't count.
+    expect(recent.body.data.byCategory.find((r: { key: string }) => r.key === `Insights ${RUN}`)).toEqual({
+      key: `Insights ${RUN}`, orders: 4, units: 31, revenue: 610_000,
+    });
+  });
+
   it('8.2 sales trend by day and month (empty buckets included)', async () => {
     const day = await http.get(`${API}/admin/analytics/sales-trend?granularity=day&fromDate=${W_FROM}&toDate=${W_TO}`).set(auth(staffToken)).expect(200);
     expect(day.body.data).toHaveLength(31);
@@ -409,6 +433,22 @@ describe('Analytics, AI, admin tools, automation, WhatsApp, unsubscribe (e2e)', 
     expect(gql.body.data.adminCustomers.items).toEqual([{ email: email('g1') }]);
   });
 
+  it('19.4b one customer page: details + exactly their orders (account or guest email)', async () => {
+    await http.get(`${API}/admin/customers/${customer.id}`).set(auth(customer.token)).expect(403);
+    const one = await http.get(`${API}/admin/customers/${customer.id}`).set(auth(staffToken)).expect(200);
+    expect(one.body.data).toMatchObject({ identifier: customer.id, isRegistered: true, ordersCount: 3, addresses: [] });
+    const guest = await http.get(`${API}/admin/customers/${encodeURIComponent(email('g1').toUpperCase())}`).set(auth(staffToken)).expect(200);
+    expect(guest.body.data).toMatchObject({ isRegistered: false, ordersCount: 2, totalSpent: 30_000 });
+    await http.get(`${API}/admin/customers/nobody_${RUN}@test.local`).set(auth(staffToken)).expect(404);
+
+    const mine = await http.get(`${API}/orders?customer=${customer.id}&limit=50`).set(auth(staffToken)).expect(200);
+    expect(mine.body.data.items.every((o: { userId: string }) => o.userId === customer.id)).toBe(true);
+    expect(mine.body.data.meta.total).toBeGreaterThanOrEqual(3);
+    // Guest orders by email, any case: the confirmed + shipped g1 orders.
+    const g1 = await http.get(`${API}/orders?customer=${encodeURIComponent(email('g1'))}`).set(auth(staffToken)).expect(200);
+    expect(g1.body.data.items.map((o: { status: string }) => o.status).sort()).toEqual(['CONFIRMED', 'SHIPPED']);
+  });
+
   // ───────────────────────── 20.x ─────────────────────────
 
   it('20.2 expires unpaid orders after 30 min (stock + gift card back) and removes unpaid gift card purchases', async () => {
@@ -493,6 +533,28 @@ describe('Analytics, AI, admin tools, automation, WhatsApp, unsubscribe (e2e)', 
     expect(ok.body.data).toEqual({ received: true, statuses: 1 });
     await http.post('/api/v1/webhooks/whatsapp').set('Content-Type', 'application/json').set('X-Hub-Signature-256', signature).send(body.replace('delivered', 'read')).expect(401);
     await http.post('/api/v1/webhooks/whatsapp').set('Content-Type', 'application/json').send(body).expect(401);
+  });
+
+  it('push devices: guests and customers register; store alerts are staff-only', async () => {
+    const token = (who: string) => `e2e_${RUN}_${who}_`.padEnd(40, 'x');
+    const guest = (await http.post(`${API}/auth/guest/session`).expect(200)).body.data.guestId as string;
+    guestIds.push(guest);
+    await http.post(`${API}/notifications/devices`).send({ token: token('anon') }).expect(400); // nobody to notify
+    const g = await http.post(`${API}/notifications/devices`).set('x-guest-id', guest).send({ token: token('guest'), lang: 'en' }).expect(200);
+    expect(g.body.data).toMatchObject({ registered: true, isStaff: false });
+    expect(await prisma.pushDevice.findUnique({ where: { token: token('guest') } })).toMatchObject({ guestId: guest, userId: null, lang: 'en' });
+
+    await http.post(`${API}/notifications/devices`).set(auth(customer.token)).send({ token: token('cust'), audience: 'staff' }).expect(400);
+    await http.post(`${API}/notifications/devices`).set(auth(customer.token)).send({ token: token('cust') }).expect(200);
+    const s = await http.post(`${API}/notifications/devices`).set(auth(staffToken)).send({ token: token('staff'), audience: 'staff' }).expect(200);
+    expect(s.body.data.isStaff).toBe(true);
+    // The same browser re-registering moves to whoever is signed in now.
+    await http.post(`${API}/notifications/devices`).set(auth(customer.token)).send({ token: token('guest') }).expect(200);
+    expect(await prisma.pushDevice.findUnique({ where: { token: token('guest') } })).toMatchObject({ userId: customer.id, guestId: null });
+
+    await http.delete(`${API}/notifications/devices`).send({ token: token('staff') }).expect(200);
+    expect(await prisma.pushDevice.count({ where: { token: { startsWith: `e2e_${RUN}_` } } })).toBe(2);
+    await prisma.pushDevice.deleteMany({ where: { token: { startsWith: `e2e_${RUN}_` } } });
   });
 
   it('newsletter: signed one-click unsubscribe via GET link and POST', async () => {

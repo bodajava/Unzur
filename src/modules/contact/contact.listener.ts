@@ -23,7 +23,11 @@ export class ContactListener {
   @OnEvent(AppEvents.CONTACT_MESSAGE_RECEIVED)
   onMessage(event: ContactMessageReceivedEvent): void {
     runInBackground('contact-notification', async () => {
-      const to = (await this.settings.getString(SettingKey.ADMIN_EMAIL)) ?? this.config.get<string>('SMTP_USER');
+      // The store's public contact inbox first (e.g. the Hostinger mailbox), then the admin address.
+      const to =
+        (await this.settings.getString(SettingKey.CONTACT_EMAIL)) ??
+        (await this.settings.getString(SettingKey.ADMIN_EMAIL)) ??
+        this.config.get<string>('SMTP_USER');
       if (!to) {
         this.logger.warn('No admin_email setting or SMTP_USER: contact notification not sent');
         return;

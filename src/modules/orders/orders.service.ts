@@ -59,6 +59,8 @@ interface Changer {
   audit?: AuditContext;
 }
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 @Injectable()
 export class OrdersService {
   constructor(
@@ -106,6 +108,14 @@ export class OrdersService {
     if (query.paymentMethod) and.push({ paymentMethod: query.paymentMethod });
     if (query.fromDate || query.toDate) {
       and.push({ createdAt: { gte: query.fromDate, lte: query.toDate } });
+    }
+    if (query.customer) {
+      // Same identity as the customer directory: the account, or a guest's email on guest orders.
+      and.push(
+        UUID.test(query.customer)
+          ? { userId: query.customer }
+          : { userId: null, customerEmail: { equals: query.customer, mode: 'insensitive' } },
+      );
     }
     const search = query.search?.trim();
     if (search) {

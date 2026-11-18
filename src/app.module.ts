@@ -26,6 +26,7 @@ import { AutomationModule } from './modules/automation/automation.module.js';
 import { WhatsAppModule } from './modules/whatsapp/whatsapp.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { ContactModule } from './modules/contact/contact.module.js';
+import { NotificationsModule } from './modules/notifications/notifications.module.js';
 import { LoyaltyModule } from './modules/loyalty/loyalty.module.js';
 import { NewsletterModule } from './modules/newsletter/newsletter.module.js';
 import { ReviewsModule } from './modules/reviews/reviews.module.js';
@@ -72,6 +73,7 @@ import { ShippingModule } from './modules/shipping/shipping.module.js';
     ReviewsModule,
     NewsletterModule,
     ContactModule,
+    NotificationsModule,
     LoyaltyModule,
     AnalyticsModule,
     AiModule,

@@ -59,7 +59,8 @@ export class OrdersListener {
         status: order.status,
         totalAmount: order.totalAmount,
         items: order.items,
-        trackUrl: `${this.frontendUrl}/orders/track?orderNumber=${encodeURIComponent(order.orderNumber)}`,
+        // The storefront's tracking page (/ar/track); it asks for the email or phone to show the order.
+        trackUrl: `${this.frontendUrl}/ar/track?orderNumber=${encodeURIComponent(order.orderNumber)}`,
         note: order.cancelOrRefundReason,
       });
     });

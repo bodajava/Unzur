@@ -119,6 +119,7 @@ model User {
   recentlyViewed      RecentlyViewed[]
   productViews        ProductView[]
   auditLogs           AuditLog[]
+  pushDevices         PushDevice[]
 
   @@index([referredById])
   @@index([role])
@@ -191,6 +192,9 @@ model Category {
   name        String
   slug        String    @unique
   description String?
+  /// Arabic name/description (optional; the storefront falls back to the English ones)
+  nameAr        String?   @map("name_ar")
+  descriptionAr String?   @map("description_ar")
   imageUrl    String?   @map("image_url")
   parentId    String?   @map("parent_id") @db.Uuid
   isActive    Boolean   @default(true) @map("is_active")
@@ -231,6 +235,10 @@ model Product {
   sku               String?                  @unique
   description       String
   shortDescription  String?                  @map("short_description")
+  /// Arabic copy (optional; the storefront falls back to the English fields)
+  nameAr             String?  @map("name_ar")
+  shortDescriptionAr String?  @map("short_description_ar")
+  descriptionAr      String?  @map("description_ar")
   basePrice         Int                      @map("base_price")
   salePrice         Int?                     @map("sale_price")
   costPrice         Int?                     @map("cost_price")
@@ -271,6 +279,7 @@ model ProductVariant {
   id         String   @id @default(uuid()) @db.Uuid
   productId  String   @map("product_id") @db.Uuid
   name       String
+  nameAr     String?  @map("name_ar")
   sku        String   @unique
   price      Int
   salePrice  Int?     @map("sale_price")
@@ -423,6 +432,9 @@ model OrderItem {
   variantId       String?  @map("variant_id") @db.Uuid
   productName     String   @map("product_name")
   variantName     String?  @map("variant_name")
+  /// Arabic names at purchase time, for the Arabic storefront and dashboard
+  productNameAr   String?  @map("product_name_ar")
+  variantNameAr   String?  @map("variant_name_ar")
   priceAtPurchase Int      @map("price_at_purchase")
   imageUrl        String?  @map("image_url")
   quantity        Int
@@ -736,4 +748,28 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Push notifications (Firebase Cloud Messaging)
+// ─────────────────────────────────────────────────────────────
+
+/// A browser that allowed notifications. Staff devices get store alerts; customer
+/// devices (signed in, or a guest by guest id) get updates on their own orders.
+model PushDevice {
+  id        String   @id @default(uuid()) @db.Uuid
+  token     String   @unique
+  userId    String?  @map("user_id") @db.Uuid
+  guestId   String?  @map("guest_id")
+  isStaff   Boolean  @default(false) @map("is_staff")
+  lang      String   @default("ar")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([guestId])
+  @@index([isStaff])
+  @@map("push_devices")
 }

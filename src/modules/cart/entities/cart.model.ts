@@ -9,6 +9,7 @@ import { JSONScalar } from '../../../graphql/scalars/json.scalar.js';
 export class CartLineProductModel {
   @Field(() => ID) id: string;
   @Field() name: string;
+  @Field(() => String, { nullable: true }) nameAr: string | null;
   @Field() slug: string;
   @Field(() => ImageRefModel, { nullable: true }) primaryImage: ImageRefModel | null;
 }
@@ -17,6 +18,7 @@ export class CartLineProductModel {
 export class CartLineVariantModel {
   @Field(() => ID) id: string;
   @Field() name: string;
+  @Field(() => String, { nullable: true }) nameAr: string | null;
   @Field() sku: string;
   @Field(() => JSONScalar, { nullable: true }) attributes: unknown;
 }

@@ -26,6 +26,7 @@ export * from './review.repository.js';
 export * from './shipping-zone.repository.js';
 export * from './stock-notification.repository.js';
 export * from './store-setting.repository.js';
+export * from './push-device.repository.js';
 export * from './subscriber.repository.js';
 export * from './system.repository.js';
 export * from './transaction.manager.js';

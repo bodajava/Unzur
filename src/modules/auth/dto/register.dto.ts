@@ -15,17 +15,19 @@ export class RegisterDto {
   @MaxLength(PASSWORD_MAX)
   password: string;
 
+  /** Optional: sign-up is email + password. Defaults to the email's name part; editable later. */
+  @IsOptional()
   @Trim()
   @IsString()
   @MinLength(1)
   @MaxLength(60)
-  firstName: string;
+  firstName?: string;
 
+  @IsOptional()
   @Trim()
   @IsString()
-  @MinLength(1)
   @MaxLength(60)
-  lastName: string;
+  lastName?: string;
 
   @IsOptional()
   @Trim()
