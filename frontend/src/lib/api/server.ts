@@ -22,6 +22,13 @@ const RETRY = { stale: 60, revalidate: 60, expire: 300 } as const;
 
 class NotFoundError extends Error {}
 
+/**
+ * True while `next build` prerenders pages. If the API can't be reached then
+ * (first deploy, DNS or TLS not ready yet), a single page must not fail the
+ * whole build: it is rendered empty and refreshed within a minute (RETRY).
+ */
+const building = process.env.NEXT_PHASE === "phase-production-build";
+
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${apiUrl}${path}`, { headers: { accept: "application/json" } });
   if (res.status === 404) throw new NotFoundError(path);
@@ -95,7 +102,7 @@ export async function getProduct(slug: string): Promise<ProductDetail | null> {
     return data;
   } catch (error) {
     cacheLife(RETRY);
-    if (error instanceof NotFoundError) return null;
+    if (error instanceof NotFoundError || building) return null;
     throw error;
   }
 }
@@ -128,7 +135,7 @@ export async function getCategory(slug: string): Promise<CategoryNode | null> {
     return data;
   } catch (error) {
     cacheLife(RETRY);
-    if (error instanceof NotFoundError) return null;
+    if (error instanceof NotFoundError || building) return null;
     throw error;
   }
 }
