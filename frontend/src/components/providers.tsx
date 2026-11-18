@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
+import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { CartDrawer } from "@/components/cart/cart-drawer";
 import { CartDrawerProvider } from "@/components/cart/cart-drawer-context";
@@ -36,6 +37,22 @@ function SmoothScroll() {
   return null;
 }
 
+/**
+ * On every page change, jump Lenis to the top at once. Next.js scrolls the
+ * window itself, but Lenis still holds the old page's position and would
+ * glide there first (the footer of a long page) before coming back up.
+ */
+function ResetScrollOnNavigate() {
+  const pathname = usePathname();
+  useEffect(() => {
+    const lenis = scrollState.lenis;
+    if (!lenis || window.location.hash) return;
+    lenis.scrollTo(0, { immediate: true, force: true });
+    lenis.resize();
+  }, [pathname]);
+  return null;
+}
+
 export function Providers({ children }: { children: ReactNode }) {
   const [client] = useState(
     () => new QueryClient({ defaultOptions: { queries: { refetchOnWindowFocus: false } } }),
@@ -43,6 +60,7 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={client}>
       <SmoothScroll />
+      <ResetScrollOnNavigate />
       <CartDrawerProvider>
         {children}
         <CartDrawer />

@@ -32,3 +32,13 @@ export const site = {
 } as const;
 
 export const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api/v1").replace(/\/+$/, "");
+
+/**
+ * Where the server itself reaches the API. In production the browser calls
+ * the API through this site (/api/v1 is proxied, see next.config.mjs) so the
+ * session cookies stay first-party; server code skips that hop and goes to
+ * API_ORIGIN directly. Without API_ORIGIN both use NEXT_PUBLIC_API_URL.
+ */
+export const serverApiUrl = process.env.API_ORIGIN
+  ? `${process.env.API_ORIGIN.replace(/\/+$/, "")}/api/v1`
+  : apiUrl;

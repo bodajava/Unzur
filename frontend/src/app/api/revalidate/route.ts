@@ -1,5 +1,5 @@
 import { revalidateTag } from "next/cache";
-import { apiUrl } from "@/lib/site";
+import { serverApiUrl as apiUrl } from "@/lib/site";
 
 const ALLOWED = /^(products|categories|brands|settings|reviews|product:[a-z0-9-]{1,120}|reviews:[0-9a-f-]{36})$/;
 const STAFF = new Set(["STAFF", "ADMIN", "SUPER_ADMIN"]);

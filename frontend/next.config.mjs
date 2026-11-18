@@ -1,7 +1,14 @@
 // Plain JavaScript on purpose: the Hostinger build server has an old glibc, so
 // Next falls back to the WASM compiler, which cannot load a TypeScript config.
 
-const api = new URL(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api/v1");
+/**
+ * API_ORIGIN (server-only) is where the NestJS API really runs. When it is set,
+ * the browser talks to the API through this site at /api/v1 (rewrite below):
+ * a different site's cookies are third-party, and Safari (and soon Chrome)
+ * drops them, which signed people out and lost their cart on every reload.
+ */
+const apiOrigin = process.env.API_ORIGIN?.replace(/\/+$/, "");
+const api = new URL(apiOrigin ? `${apiOrigin}/api/v1` : (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api/v1"));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -17,6 +24,9 @@ const nextConfig = {
     // The optimizer refuses local addresses (SSRF guard). Allow it only when the
     // API itself runs on this machine (development); production keeps the guard.
     dangerouslyAllowLocalIP: ["localhost", "127.0.0.1", "::1"].includes(api.hostname),
+  },
+  async rewrites() {
+    return apiOrigin ? [{ source: "/api/v1/:path*", destination: `${apiOrigin}/api/v1/:path*` }] : [];
   },
   turbopack: {
     // Keep Turbopack inside this project (a pnpm-workspace.yaml in the home folder confused it).

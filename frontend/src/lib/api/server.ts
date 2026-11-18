@@ -1,5 +1,5 @@
 import { cacheLife, cacheTag } from "next/cache";
-import { apiUrl } from "@/lib/site";
+import { serverApiUrl as apiUrl } from "@/lib/site";
 import type {
   ApiEnvelope,
   Brand,
