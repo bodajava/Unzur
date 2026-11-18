@@ -1,0 +1,83 @@
+import { Global, Module } from '@nestjs/common';
+import { PrismaService } from './prisma.service.js';
+import {
+  AuditLogRepository,
+  BrandRepository,
+  CartItemRepository,
+  CartRepository,
+  CategoryRepository,
+  ContactMessageRepository,
+  CouponRepository,
+  OrderRepository,
+  OtpRepository,
+  PaymentRepository,
+  ProductRepository,
+  ReferralRepository,
+  RefreshTokenRepository,
+  SubscriberRepository,
+  SystemRepository,
+  UserRepository,
+  TransactionManager,
+  AddressRepository,
+  WishlistItemRepository,
+  GiftCardRepository,
+  LoyaltyTransactionRepository,
+  OrderStatusHistoryRepository,
+  CouponUsageRepository,
+  ShippingZoneRepository,
+  StoreSettingRepository,
+  OrderItemRepository,
+  ProductImageRepository,
+  ProductVariantRepository,
+  ProductViewRepository,
+  RecentlyViewedRepository,
+  ReviewRepository,
+  StockNotificationRepository,
+  PushDeviceRepository,
+} from './repositories/index.js';
+
+const REPOSITORIES = [
+  PushDeviceRepository,
+  AuditLogRepository,
+  BrandRepository,
+  CartItemRepository,
+  CartRepository,
+  CategoryRepository,
+  ContactMessageRepository,
+  CouponRepository,
+  OrderRepository,
+  OtpRepository,
+  PaymentRepository,
+  ProductRepository,
+  ReferralRepository,
+  RefreshTokenRepository,
+  SubscriberRepository,
+  SystemRepository,
+  UserRepository,
+  OrderItemRepository,
+  AddressRepository,
+  WishlistItemRepository,
+  GiftCardRepository,
+  LoyaltyTransactionRepository,
+  OrderStatusHistoryRepository,
+  CouponUsageRepository,
+  ShippingZoneRepository,
+  StoreSettingRepository,
+  ProductImageRepository,
+  ProductVariantRepository,
+  ProductViewRepository,
+  RecentlyViewedRepository,
+  ReviewRepository,
+  StockNotificationRepository,
+];
+
+/**
+ * Data layer. Feature modules inject repositories (and TransactionManager),
+ * never PrismaService or the generated client directly.
+ */
+@Global()
+@Module({
+  providers: [PrismaService, TransactionManager, ...REPOSITORIES],
+  exports: [TransactionManager, ...REPOSITORIES],
+})
+export class ModelsModule {}
