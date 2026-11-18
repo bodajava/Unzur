@@ -79,9 +79,12 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
               "@type": "Organization",
               "@id": `${site.url}/#organization`,
               name: site.name,
-              alternateName: site.nameAr,
+              alternateName: [...site.alternateNames],
               url: site.url,
-              logo: `${site.url}/icon.svg`,
+              // Google wants a raster logo (112px+); the app icon is a 180px PNG.
+              logo: `${site.url}/apple-icon`,
+              image: `${site.url}/apple-icon`,
+              sameAs: [...site.sameAs],
               description: t.meta.description,
             },
             {
@@ -89,7 +92,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
               "@type": "WebSite",
               "@id": `${site.url}/${lang}#website`,
               name: site.name,
-              alternateName: site.nameAr,
+              alternateName: [...site.alternateNames],
               url: `${site.url}${localePath(lang)}`,
               inLanguage: lang,
               publisher: { "@id": `${site.url}/#organization` },

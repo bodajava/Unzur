@@ -10,9 +10,16 @@ export const site = {
     "أنظر: قطع أثاث وإضاءة متجرّدة في الفن، تستلهم أشكالها من العمارة والهندسة والخيال.",
   taglineAr: "انظر أو كُفّ عن النظر",
   locale: "en_US",
+  /** Every spelling people type when they look for the brand (search engines match these). */
+  alternateNames: ["أنظر", "انظر", "Unzur", "أنظر UNZUR", "UNZUR Egypt"],
+  /** Official profiles, so search engines tie them to the site (Organization.sameAs). */
+  sameAs: ["https://www.instagram.com/unzur.eg"],
   keywords: [
     "UNZUR",
     "أنظر",
+    "انظر",
+    "انظر أثاث",
+    "UNZUR furniture",
     "furniture Egypt",
     "designer furniture",
     "sculptural furniture",
