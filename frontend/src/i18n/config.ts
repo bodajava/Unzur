@@ -36,12 +36,12 @@ export function switchLocalePath(pathname: string, to: Locale): string {
 }
 
 /**
- * Canonical link for a storefront page. The storefront is Arabic only
- * (/en storefront URLs redirect to /ar), so there is one version per page.
+ * Canonical link for a storefront page. The storefront is served in English
+ * (/ar storefront URLs redirect to /en), so there is one version per page.
  */
 export function alternatesFor(_lang: Locale, path = "/") {
   return {
-    canonical: localePath("ar", path),
-    languages: { ar: localePath("ar", path), "x-default": localePath("ar", path) },
+    canonical: localePath("en", path),
+    languages: { en: localePath("en", path), "x-default": localePath("en", path) },
   };
 }

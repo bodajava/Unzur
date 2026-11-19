@@ -17,13 +17,13 @@ function preferredLocale(request: NextRequest): Locale {
   return ranked.find((r) => isLocale(r.base))?.base as Locale | undefined ?? defaultLocale;
 }
 
-/** The storefront speaks Arabic only; the dashboard (/en/admin, /ar/admin) keeps both. */
-const STORE_LOCALE: Locale = "ar";
+/** The storefront speaks English (with Arabic touches); the dashboard (/en/admin, /ar/admin) keeps both. */
+const STORE_LOCALE: Locale = "en";
 
 /**
- * Every page lives under /en or /ar. Storefront pages are always /ar: an
- * /en storefront link (old bookmarks, search results) moves there for good.
- * Paths without a language go to /ar, or to the visitor's language for /admin.
+ * Every page lives under /en or /ar. Storefront pages are always /en: an
+ * /ar storefront link (old bookmarks, search results) moves there for good.
+ * Paths without a language go to /en, or to the visitor's language for /admin.
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

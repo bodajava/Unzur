@@ -13,7 +13,7 @@ export function Concept() {
   const { lang, t } = useI18n();
   const ref = useRef<HTMLElement>(null);
   const bodyLang = t.concept.bodyLang;
-  const tagline = lang === "ar" ? "انظر أو كُفّ عن النظر" : "Look, or stop looking.";
+  const tagline = t.common.tagline;
 
   useGSAP(
     () => {
@@ -53,6 +53,7 @@ export function Concept() {
         <div className="lg:col-span-8">
           <p
             lang={bodyLang}
+            dir={bodyLang === "ar" ? "rtl" : undefined}
             data-concept-text
             className={`text-[clamp(1.3rem,2.55vw,2.35rem)] font-medium ${bodyLang === "ar" ? "leading-[1.75]" : "leading-[1.35] tracking-[-0.01em]"}`}
           >
@@ -62,7 +63,9 @@ export function Concept() {
               </span>
             ))}
           </p>
-          <p className="mt-10 text-[clamp(1.6rem,3.2vw,3rem)] font-semibold">{tagline}</p>
+          <p lang="ar" dir="rtl" className="mt-10 text-[clamp(1.6rem,3.2vw,3rem)] font-semibold">
+            {tagline}
+          </p>
         </div>
       </div>
     </section>

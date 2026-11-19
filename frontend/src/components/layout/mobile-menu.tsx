@@ -60,7 +60,9 @@ export function MobileMenu({
             </li>
           ))}
         </ul>
-        <p className="mt-10 text-pale/80">{t.common.tagline}</p>
+        <p lang="ar" dir="rtl" className="mt-10 text-pale/80">
+          {t.common.tagline}
+        </p>
       </nav>
     </div>
   );

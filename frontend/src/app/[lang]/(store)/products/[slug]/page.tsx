@@ -54,10 +54,11 @@ function copyOf(product: ProductDetail, lang: Locale) {
   return {
     name: product.name,
     nameLang: "en" as const,
-    short: localized(lang, product.shortDescription, product.shortDescriptionAr),
-    shortLang: en(product.shortDescriptionAr),
-    description: localized(lang, product.description, product.descriptionAr),
-    descriptionLang: en(product.descriptionAr),
+    // Descriptions are shown in Arabic on every store page (English when no Arabic is written).
+    short: localized("ar", product.shortDescription, product.shortDescriptionAr),
+    shortLang: product.shortDescriptionAr ? ("ar" as const) : ("en" as const),
+    description: localized("ar", product.description, product.descriptionAr),
+    descriptionLang: product.descriptionAr ? ("ar" as const) : ("en" as const),
     category: localized(lang, product.category.name, product.category.nameAr),
     categoryLang: en(product.category.nameAr),
   };

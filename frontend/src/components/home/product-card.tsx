@@ -40,7 +40,8 @@ export function ProductCard({
   const { lang, t, href } = useI18n();
   const url = href(`/products/${product.slug}`);
   const name = product.name;
-  const short = localized(lang, product.shortDescription, product.shortDescriptionAr);
+  // The line under the name is Arabic on every store page (English when no Arabic is written).
+  const short = localized("ar", product.shortDescription, product.shortDescriptionAr);
   const { price, was, from } = cardPrice(product);
   const priceText = formatPrice(price, lang);
 
@@ -79,7 +80,7 @@ export function ProductCard({
           {name}
         </h3>
         {short && (
-          <p lang={isFallback(lang, product.shortDescriptionAr) ? "en" : undefined} dir="auto" className="mt-1 truncate text-sm text-muted rtl:text-right">
+          <p lang={product.shortDescriptionAr ? "ar" : "en"} dir="auto" className="mt-1 truncate text-sm text-muted">
             {short}
           </p>
         )}

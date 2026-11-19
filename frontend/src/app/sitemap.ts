@@ -30,9 +30,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ];
 
-  // The storefront is Arabic only (/en storefront URLs redirect to /ar).
+  // The storefront is served in English (/ar storefront URLs redirect to /en).
   return pages.map((page) => ({
-    url: `${site.url}${localePath("ar", page.path)}`,
+    url: `${site.url}${localePath("en", page.path)}`,
     changeFrequency: page.changeFrequency,
     priority: page.priority,
     ...(page.lastModified ? { lastModified: page.lastModified } : {}),

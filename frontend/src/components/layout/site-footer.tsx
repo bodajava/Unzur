@@ -33,20 +33,21 @@ function CameraIcon() {
  */
 export async function SiteFooter() {
   const lang = await getLang();
-  const [t, categories, settings, year] = await Promise.all([getDictionary(lang), getCategories(), getPublicSettings(), currentYear()]);
+  // The footer is always Arabic (labels, categories, tagline); its links stay on the visitor's store pages.
+  const [t, categories, settings, year] = await Promise.all([getDictionary("ar"), getCategories(), getPublicSettings(), currentYear()]);
   const tf = t.footer;
   const c = contactInfo(settings);
   const link = (href: string) => localePath(lang, href);
   const column = "text-sm font-semibold";
 
   return (
-    <footer className="overflow-hidden bg-page px-6 pt-24 text-ink sm:px-10 lg:px-14">
+    <footer lang="ar" dir="rtl" className="overflow-hidden bg-page px-6 pt-24 text-ink sm:px-10 lg:px-14">
       <Reveal className="mx-auto grid max-w-[90rem] gap-12 border-t border-ink/15 pt-14 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div data-reveal className="max-w-sm">
           <h2 className={column}>{t.newsletter.title}</h2>
           <p className="mt-2 text-sm text-muted">{t.newsletter.blurb}</p>
           <div className="mt-5">
-            <NewsletterForm />
+            <NewsletterForm dict={t} />
           </div>
         </div>
 
@@ -60,8 +61,8 @@ export async function SiteFooter() {
             </li>
             {categories.map((cat) => (
               <li key={cat.id}>
-                <Link href={link(`/category/${cat.slug}`)} lang={isFallback(lang, cat.nameAr) ? "en" : undefined} className="nav-link">
-                  {localized(lang, cat.name, cat.nameAr)}
+                <Link href={link(`/category/${cat.slug}`)} lang={isFallback("ar", cat.nameAr) ? "en" : undefined} className="nav-link">
+                  {localized("ar", cat.name, cat.nameAr)}
                 </Link>
               </li>
             ))}

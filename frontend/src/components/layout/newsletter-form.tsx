@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { useI18n } from "@/i18n/client";
+import type { Dictionary } from "@/i18n/dictionaries/en";
 import { errorMessage } from "@/lib/api/errors";
 import { useSubscribe } from "@/lib/api/hooks";
 
-/** API 7.1 */
-export function NewsletterForm() {
-  const { t } = useI18n();
+/** API 7.1. `dict` overrides the page language (the footer is always Arabic). */
+export function NewsletterForm({ dict }: { dict?: Dictionary } = {}) {
+  const page = useI18n().t;
+  const t = dict ?? page;
   const [email, setEmail] = useState("");
   const subscribe = useSubscribe();
 

@@ -15,7 +15,7 @@ export const en = {
     close: "Close",
     home: "Home",
     arrow: "→",
-    tagline: "Look, or stop looking",
+    tagline: "انظر أو كُفّ عن النظر",
   },
   nav: {
     main: "Main",
@@ -51,8 +51,9 @@ export const en = {
   concept: {
     title: "The concept",
     intro: "Pieces made with the freedom of art. UNZUR does not design furniture to fill a room; it designs it to give the room a character.",
-    body: "Pieces stripped down to art, free in what they say. They step past the familiar to redraw the line between furniture and space. Their shapes come from architecture, geometry and imagination, pairing boldness with simplicity in details that carry a character of their own. UNZUR does not design furniture to fill a void, but to give it a personality: every piece a presence of its own, every angle a chance to see things differently.",
-    bodyLang: "en",
+    // The brand text stays Arabic on the English store.
+    body: "قطعٌ متجرّدةٌ في الفنّ، حرّةٌ في التعبير، تتجاوز المألوفَ لتُعيد تعريف العلاقة بين الأثاث والمساحة. تستلهم أشكالها من العمارة والهندسة والخيال، وتجمع بين الجرأة والبساطة في تفاصيلَ تحمل طابعًا خاصًّا. أنظر لا يُصمّم الأثاث ليملأ الفراغ، بل ليمنحه شخصيّةً؛ كلُّ قطعةٍ حضورٌ مستقلّ، وكلُّ زاويةٍ فرصةٌ لرؤية الأشياء بشكلٍ مختلف.",
+    bodyLang: "ar",
   },
   pieces: {
     title: "Best sellers",
