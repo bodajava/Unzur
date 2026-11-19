@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { CouponsManager } from "@/components/admin/coupons-manager";
 import { GiftCardsManager } from "@/components/admin/gift-cards-manager";
+import { PromoManager } from "@/components/admin/promo-manager";
 import { PageTitle } from "@/components/admin/ui";
 import { getDictionary } from "@/i18n/server";
 
@@ -15,6 +16,7 @@ export default async function MarketingPage() {
     <div>
       <PageTitle>{t.admin.marketing.title}</PageTitle>
       <div className="space-y-6">
+        <PromoManager />
         <CouponsManager />
         <GiftCardsManager />
       </div>

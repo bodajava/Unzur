@@ -16,36 +16,11 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { useI18n } from "@/i18n/client";
 import { fmt, isFallback, localized, plural } from "@/i18n/format";
 import { LanguageSwitch } from "./language-switch";
+import { Marquee } from "./marquee";
 import { MobileMenu } from "./mobile-menu";
 import { SearchPanel } from "./search-panel";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
-
-function Marquee() {
-  const { t } = useI18n();
-  const items = t.nav.marquee;
-  // Two identical halves: the track slides by -50% and loops seamlessly.
-  const half = (hidden: boolean) => (
-    <div className="flex shrink-0 items-center" aria-hidden={hidden || undefined}>
-      {[...items, ...items].map((text, i) => (
-        <span key={i} className="flex items-center gap-6 px-6 whitespace-nowrap">
-          <span lang={/[؀-ۿ]/.test(text) ? "ar" : "en"} className="eyebrow !tracking-[0.1em]">
-            {text}
-          </span>
-          <span className="h-3 w-px bg-current opacity-40" />
-        </span>
-      ))}
-    </div>
-  );
-  return (
-    <div className="overflow-hidden border-b border-current/10 py-2" dir="ltr">
-      <div className="marquee-track flex w-max">
-        {half(false)}
-        {half(true)}
-      </div>
-    </div>
-  );
-}
 
 function CartLink() {
   const { lang, t } = useI18n();
@@ -65,7 +40,8 @@ function CartLink() {
   );
 }
 
-export function SiteHeader({ categories }: { categories: CategoryNode[] }) {
+/** `marquee`: the lines of the top strip (from the dashboard), or null to hide it. */
+export function SiteHeader({ categories, marquee }: { categories: CategoryNode[]; marquee: string[] | null }) {
   const { lang, t, href } = useI18n();
   const ref = useRef<HTMLElement>(null);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -133,7 +109,7 @@ export function SiteHeader({ categories }: { categories: CategoryNode[] }) {
     <>
       <header ref={ref} className="fixed inset-x-0 top-0 z-50 px-2.5 pt-2.5 sm:px-4 sm:pt-4">
         <LiquidGlass radius={14} tone={tone}>
-          <Marquee />
+          {marquee && <Marquee items={marquee} />}
           <nav aria-label={t.nav.main} className="grid h-14 grid-cols-[1fr_auto_1fr] items-center px-4 sm:h-16 sm:px-6">
             <div className="flex items-center gap-7">
               <button

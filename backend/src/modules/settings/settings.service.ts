@@ -44,6 +44,12 @@ export class SettingsService {
     return typeof row?.value === 'boolean' ? row.value : fallback;
   }
 
+  /** Any JSON setting (public or private), or null when unset. */
+  async getJson<T>(key: string): Promise<T | null> {
+    const [row] = await this.settings.findByKeys([key]);
+    return (row?.value as T | undefined) ?? null;
+  }
+
   async getString(key: string): Promise<string | null> {
     const [row] = await this.settings.findByKeys([key]);
     return typeof row?.value === 'string' && row.value.trim() ? row.value.trim() : null;

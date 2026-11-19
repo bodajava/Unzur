@@ -190,6 +190,34 @@ export class CouponsService {
     return this.findOne(coupon.id);
   }
 
+  /**
+   * A single-use coupon the store gives away itself (prize wheel). No admin
+   * acted, so there is no audit row; the coupon's description says why.
+   */
+  async issueSingleUse(input: {
+    code: string;
+    description: string;
+    discountType: DiscountType;
+    discountValue: number;
+    minOrderAmount: number;
+    expiresAt: Date;
+  }): Promise<CouponModel> {
+    const created = await this.coupons.create({
+      code: input.code,
+      description: input.description,
+      discountType: input.discountType,
+      discountValue: input.discountValue,
+      minOrderAmount: input.minOrderAmount,
+      maxDiscountAmount: null,
+      usageLimit: 1,
+      perUserLimit: 1,
+      startsAt: new Date(),
+      expiresAt: input.expiresAt,
+      isActive: true,
+    });
+    return this.findOne(created.id);
+  }
+
   async update(id: string, dto: UpdateCouponDto, audit: AuditContext): Promise<CouponModel> {
     const existing = await this.coupons.findById(id);
     if (!existing) throw new NotFoundException('Coupon not found');

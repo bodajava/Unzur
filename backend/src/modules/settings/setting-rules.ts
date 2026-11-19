@@ -1,4 +1,5 @@
 import { Regex } from '../../common/utilities/regex/regex.js';
+import { wheelConfigError } from './wheel-config.js';
 
 /** Well-known keys and their checks. Unknown keys accept any JSON. */
 export const SettingKey = {
@@ -26,6 +27,12 @@ export const SettingKey = {
   UNPAID_ORDER_EXPIRY_MINUTES: 'unpaid_order_expiry_minutes',
   /** 20.2 Minutes before an unpaid purchased gift card is removed (default 60) */
   UNPAID_GIFT_CARD_EXPIRY_MINUTES: 'unpaid_gift_card_expiry_minutes',
+  /** Scrolling text above the navbar: { enabled, items: [{ en, ar }] } (public) */
+  MARQUEE_TOP: 'marquee_top',
+  /** Blue scrolling text after the home page pieces, same shape (public) */
+  MARQUEE_BOTTOM: 'marquee_bottom',
+  /** Prize wheel config, private (weights and chosen winners stay secret); see wheel-config.ts */
+  SPIN_WHEEL: 'spin_wheel',
 } as const;
 
 export const SETTING_DEFAULTS = {
@@ -36,6 +43,19 @@ export const SETTING_DEFAULTS = {
   [SettingKey.UNPAID_ORDER_EXPIRY_MINUTES]: 30,
   [SettingKey.UNPAID_GIFT_CARD_EXPIRY_MINUTES]: 60,
 } as const;
+
+/** { enabled: boolean, items: [{ en, ar }] } with 1-12 short lines. */
+export function marqueeError(v: unknown): string | null {
+  if (!v || typeof v !== 'object') return 'must be { enabled, items }';
+  const m = v as { enabled?: unknown; items?: unknown };
+  if (typeof m.enabled !== 'boolean') return 'enabled must be true or false';
+  if (!Array.isArray(m.items) || m.items.length < 1 || m.items.length > 12) return 'needs 1-12 items';
+  for (const it of m.items as { en?: unknown; ar?: unknown }[]) {
+    const ok = (x: unknown) => typeof x === 'string' && x.trim().length >= 1 && x.length <= 80;
+    if (!it || !ok(it.en) || !ok(it.ar)) return 'each item needs English and Arabic text (1-80 characters)';
+  }
+  return null;
+}
 
 const positiveInt = (v: unknown) =>
   Number.isInteger(v) && (v as number) >= 1 && (v as number) <= 1_000_000 ? null : 'must be a positive integer';
@@ -66,6 +86,9 @@ const RULES: Record<string, (value: unknown) => string | null> = {
     typeof v === 'string' && /^https:\/\/(www\.)?instagram\.com\/[A-Za-z0-9._]+\/?$/.test(v)
       ? null
       : 'must be an Instagram profile link like https://www.instagram.com/unzur',
+  [SettingKey.MARQUEE_TOP]: marqueeError,
+  [SettingKey.MARQUEE_BOTTOM]: marqueeError,
+  [SettingKey.SPIN_WHEEL]: (v) => wheelConfigError(v),
   [SettingKey.CURRENCY]: (v) => (typeof v === 'string' && /^[A-Z]{3}$/.test(v) ? null : 'must be a 3-letter code like EGP'),
 };
 

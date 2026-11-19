@@ -8,6 +8,6 @@ import { CouponsService } from './coupons.service.js';
 @Module({
   controllers: [CouponsController],
   providers: [CouponsService, CouponEvaluator, CouponsResolver, CouponsListener],
-  exports: [CouponEvaluator],
+  exports: [CouponEvaluator, CouponsService],
 })
 export class CouponsModule {}
