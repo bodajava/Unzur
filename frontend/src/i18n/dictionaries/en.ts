@@ -99,7 +99,17 @@ export const en = {
     reach: "Get in touch",
     instagram: "Follow us on Instagram",
     whatsapp: "WhatsApp",
+    policies: "Policies",
+    returns: "Returns & exchanges",
+    shipping: "Shipping & delivery",
+    privacy: "Privacy policy",
+    terms: "Terms & conditions",
     rights: "© {year} UNZUR. All rights reserved.",
+  },
+  legal: {
+    updated: "Last updated {date}",
+    questions: "Questions about this policy?",
+    contact: "Contact us",
   },
   shop: {
     title: "Shop",

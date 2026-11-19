@@ -18,6 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "/shop", changeFrequency: "daily", priority: 0.9 },
     { path: "/contact", changeFrequency: "weekly", priority: 0.5 },
     { path: "/track", changeFrequency: "weekly", priority: 0.3 },
+    ...["returns", "shipping", "privacy", "terms"].map((s) => ({ path: `/legal/${s}`, changeFrequency: "weekly" as const, priority: 0.3 })),
     ...categories
       .flatMap((c) => [c, ...c.children])
       .map((c) => ({ path: `/category/${c.slug}`, changeFrequency: "weekly" as const, priority: 0.8 })),

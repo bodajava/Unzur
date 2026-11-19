@@ -459,7 +459,16 @@ export function CheckoutForm() {
                 ? t.checkout.place
                 : t.checkout.placeAndPay}
         </button>
-        <p className="mt-3 text-center text-xs text-muted">{t.checkout.terms}</p>
+        <p className="mt-3 text-center text-xs text-muted">
+          {t.checkout.terms}{" "}
+          <a href={href("/legal/terms")} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-ink">
+            {t.footer.terms}
+          </a>
+          {" · "}
+          <a href={href("/legal/returns")} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-ink">
+            {t.footer.returns}
+          </a>
+        </p>
 
         <div role="alert" className="mt-3 text-sm text-[#d1342f]">
           {Object.values(errors).some(Boolean) && <p>{t.checkout.fixFields}</p>}

@@ -81,6 +81,10 @@ export async function SiteFooter() {
               ["/track", tf.track],
               ["/account", tf.account],
               ["/cart", tf.cart],
+              ["/legal/returns", tf.returns],
+              ["/legal/shipping", tf.shipping],
+              ["/legal/privacy", tf.privacy],
+              ["/legal/terms", tf.terms],
             ].map(([href, label]) => (
               <li key={href}>
                 <Link href={link(href)} className="nav-link">

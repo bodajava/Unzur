@@ -112,7 +112,17 @@ export const ar: Dictionary = {
     reach: "كلّمنا",
     instagram: "تابعنا على إنستجرام",
     whatsapp: "واتساب",
+    policies: "السياسات",
+    returns: "الاسترجاع والاستبدال",
+    shipping: "الشحن والتوصيل",
+    privacy: "سياسة الخصوصية",
+    terms: "الشروط والأحكام",
     rights: "© {year} أنظر. كل الحقوق محفوظة.",
+  },
+  legal: {
+    updated: "آخر تحديث {date}",
+    questions: "عندك سؤال عن السياسة دي؟",
+    contact: "كلّمنا",
   },
   shop: {
     title: "المتجر",
