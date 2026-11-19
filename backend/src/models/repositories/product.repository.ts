@@ -115,34 +115,42 @@ export class ProductRepository extends BaseRepository<
   // ───────────── Full-text search (tsvector, 'simple' config) ─────────────
 
   /**
-   * Ids of active products matching a prefix tsquery and/or a partial name
-   * match, best rank first. `tsQuery` must come from toPrefixTsQuery() (letters
-   * and digits only); values are bound parameters, never interpolated.
+   * Ids of active products for a search, best match first. Three ways to
+   * match, all on Arabic-normalised text (unzur_norm, see the fuzzy_search
+   * migration): a prefix tsquery from toPrefixTsQuery() (letters and digits
+   * only), a partial name match, and trigram similarity on the name so a
+   * typo ("unzor", "شمعه") still finds the piece. Values are bound
+   * parameters, never interpolated.
    */
-  async searchIds(tsQuery: string | null, likePattern: string, limit: number): Promise<string[]> {
-    const rows = tsQuery
-      ? await this.db.$queryRaw<{ id: string }[]>`
-          SELECT p.id
-          FROM products p
-          WHERE p.is_active = true
-            AND p.deleted_at IS NULL
-            AND (p.search_vector @@ to_tsquery('simple', ${tsQuery}) OR p.name ILIKE ${likePattern})
-          ORDER BY ts_rank(p.search_vector, to_tsquery('simple', ${tsQuery})) DESC,
-                   p.is_featured DESC, p.created_at DESC
-          LIMIT ${limit}`
-      : await this.db.$queryRaw<{ id: string }[]>`
-          SELECT p.id
-          FROM products p
-          WHERE p.is_active = true
-            AND p.deleted_at IS NULL
-            AND p.name ILIKE ${likePattern}
-          ORDER BY p.is_featured DESC, p.created_at DESC
-          LIMIT ${limit}`;
+  async searchIds(tsQuery: string | null, likePattern: string, limit: number, term?: string): Promise<string[]> {
+    const fuzzy = (term ?? likePattern.replace(/^%|%$/g, '')).trim();
+    const rows = await this.db.$queryRaw<{ id: string }[]>`
+      WITH q AS (
+        SELECT unzur_norm(${fuzzy}) AS term,
+               CASE WHEN ${tsQuery}::text IS NULL THEN NULL
+                    ELSE to_tsquery('simple', unzur_norm(${tsQuery}::text)) END AS ts
+      )
+      SELECT p.id
+      FROM products p, q
+      WHERE p.is_active = true
+        AND p.deleted_at IS NULL
+        AND (
+          (q.ts IS NOT NULL AND p.search_vector @@ q.ts)
+          OR unzur_norm(coalesce(p.name, '') || ' ' || coalesce(p.name_ar, '')) ILIKE unzur_norm(${likePattern})
+          OR (length(q.term) >= 3
+              AND word_similarity(q.term, unzur_norm(coalesce(p.name, '') || ' ' || coalesce(p.name_ar, ''))) >= 0.45)
+        )
+      ORDER BY greatest(
+                 CASE WHEN q.ts IS NULL THEN 0 ELSE ts_rank(p.search_vector, q.ts) END,
+                 word_similarity(q.term, unzur_norm(coalesce(p.name, '') || ' ' || coalesce(p.name_ar, '')))
+               ) DESC,
+               p.is_featured DESC, p.created_at DESC
+      LIMIT ${limit}`;
     return rows.map((r) => r.id);
   }
 
-  async suggest(tsQuery: string | null, likePattern: string, limit: number): Promise<ProductSuggestRow[]> {
-    const ids = await this.searchIds(tsQuery, likePattern, limit);
+  async suggest(tsQuery: string | null, likePattern: string, limit: number, term?: string): Promise<ProductSuggestRow[]> {
+    const ids = await this.searchIds(tsQuery, likePattern, limit, term);
     if (!ids.length) return [];
     const rows = await this.db.product.findMany({
       where: { id: { in: ids } },

@@ -337,6 +337,7 @@ export class ProductsService {
           toPrefixTsQuery(search),
           toLikePattern(search),
           SEARCH_CANDIDATES,
+          search,
         );
         if (!ids.length) return null;
         resolved.ids = ids;

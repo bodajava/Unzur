@@ -41,7 +41,7 @@ export class DiscoveryService {
   async suggest(q: string | undefined): Promise<ProductSuggestion[]> {
     const text = q?.trim();
     if (!text) return [];
-    const rows = await this.products.suggest(toPrefixTsQuery(text), toLikePattern(text), SUGGEST_LIMIT);
+    const rows = await this.products.suggest(toPrefixTsQuery(text), toLikePattern(text), SUGGEST_LIMIT, text);
     return rows.map(toSuggestion);
   }
 
