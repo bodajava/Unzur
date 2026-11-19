@@ -121,7 +121,7 @@ export function Hero({ words }: { words: string[] }) {
             scrollTrigger: {
               trigger: root.current,
               start: "top top",
-              end: "+=130%",
+              end: "+=110%",
               pin: true,
               scrub: 0.8,
               invalidateOnRefresh: true,
@@ -154,8 +154,8 @@ export function Hero({ words }: { words: string[] }) {
             .to(q("[data-veil]"), { opacity: 1, duration: 0.12 }, 0.76)
             // Once the veil is opaque, drop the giant pupil so no sub-pixel edge shows through.
             .set(q("[data-zoom]"), { autoAlpha: 0 }, 0.88)
-            // a beat of stillness inside the pupil before the page arrives
-            .to({}, { duration: 0.12 });
+            // a short beat inside the pupil before the pieces slide up
+            .to({}, { duration: 0.04 });
 
           // ── Pointer: the logo tilts, the eyes follow you ──
           if (finePointer) {

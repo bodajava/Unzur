@@ -25,10 +25,24 @@ function SmoothScroll() {
       scrollState.velocity = l.velocity;
       ScrollTrigger.update();
     });
+    // Pages stream in and the footer stays mounted across navigations, so
+    // re-measure every scroll animation whenever the page height changes;
+    // otherwise reveals keep the old page's positions and never fire.
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const remeasure = new ResizeObserver(() => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        lenis.resize();
+        ScrollTrigger.refresh();
+      }, 150);
+    });
+    remeasure.observe(document.body);
     const tick = (time: number) => lenis.raf(time * 1000);
     gsap.ticker.add(tick);
     gsap.ticker.lagSmoothing(0);
     return () => {
+      remeasure.disconnect();
+      clearTimeout(timer);
       gsap.ticker.remove(tick);
       scrollState.lenis = null;
       lenis.destroy();
@@ -49,6 +63,7 @@ function ResetScrollOnNavigate() {
     if (!lenis || window.location.hash) return;
     lenis.scrollTo(0, { immediate: true, force: true });
     lenis.resize();
+    requestAnimationFrame(() => ScrollTrigger.refresh());
   }, [pathname]);
   return null;
 }

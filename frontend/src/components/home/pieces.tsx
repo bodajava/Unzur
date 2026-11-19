@@ -64,7 +64,7 @@ export function Pieces({ products }: { products: Product[] }) {
   );
 
   return (
-    <section ref={ref} id="pieces" aria-labelledby="pieces-title" className="overflow-hidden bg-page py-20 lg:flex lg:h-svh lg:flex-col lg:justify-center lg:py-0">
+    <section ref={ref} id="pieces" aria-labelledby="pieces-title" className="relative z-10 overflow-hidden bg-page py-20 motion-safe:-mt-[30svh] lg:flex lg:h-svh lg:flex-col lg:justify-center lg:py-0">
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 px-6 sm:px-10 lg:px-14">
         <div>
           <p className="eyebrow text-muted">{plural(lang, t.pieces.count, products.length)}</p>
