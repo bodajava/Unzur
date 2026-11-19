@@ -39,7 +39,7 @@ export function ProductCard({
 }) {
   const { lang, t, href } = useI18n();
   const url = href(`/products/${product.slug}`);
-  const name = localized(lang, product.name, product.nameAr);
+  const name = product.name;
   const short = localized(lang, product.shortDescription, product.shortDescriptionAr);
   const { price, was, from } = cardPrice(product);
   const priceText = formatPrice(price, lang);
@@ -75,7 +75,7 @@ export function ProductCard({
       </Link>
       {/* The title link is the one announced; the photo above repeats it for the mouse. */}
       <Link href={url} className="mt-4 block focus-visible:outline-offset-4">
-        <h3 lang={isFallback(lang, product.nameAr) ? "en" : undefined} className="display text-[clamp(1.15rem,1.6vw,1.5rem)]">
+        <h3 lang="en" className="display text-[clamp(1.15rem,1.6vw,1.5rem)]">
           {name}
         </h3>
         {short && (

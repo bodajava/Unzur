@@ -15,7 +15,7 @@ import type { ProductCard } from "@/lib/api/types";
  */
 export function QuickAdd({ product, price }: { product: ProductCard; price: ReactNode }) {
   const { lang, t } = useI18n();
-  const name = localized(lang, product.name, product.nameAr);
+  const name = product.name;
   const { openCart } = useCartDrawer();
   const add = useAddToCart();
   const [choosing, setChoosing] = useState(false);

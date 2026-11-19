@@ -1,4 +1,4 @@
-import { IBM_Plex_Sans_Arabic } from "next/font/google";
+import { Amiri } from "next/font/google";
 import localFont from "next/font/local";
 
 /** Archivo variable (weight 100–900, width 62–125), Latin subset. Body + wordmark. */
@@ -18,11 +18,14 @@ export const gothic = localFont({
   display: "swap",
 });
 
-/** Arabic text (the brand fonts have no Arabic letters). */
-export const plexArabic = IBM_Plex_Sans_Arabic({
+/**
+ * Arabic text: Amiri, a classic naskh that carries tashkeel (vowel marks)
+ * cleanly. The brand fonts have no Arabic letters.
+ */
+export const arabic = Amiri({
   subsets: ["arabic"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-plex-arabic",
+  weight: ["400", "700"],
+  variable: "--font-amiri",
   display: "swap",
   preload: false,
 });

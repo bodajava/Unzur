@@ -1,4 +1,3 @@
-import { localized } from "@/i18n/format";
 import { Collections } from "@/components/home/collections";
 import { Concept } from "@/components/home/concept";
 import { Hero } from "@/components/home/hero";
@@ -20,7 +19,8 @@ export default async function HomePage() {
     getPublicSettings(),
   ]);
   const band = marqueeLines(settings.marquee_bottom, lang, t.nav.marquee);
-  const words = categories.length ? [...categories.map((c) => localized(lang, c.name, c.nameAr)), t.pieces.title] : [];
+  // The hero is English on every page, so its words are too.
+  const words = categories.length ? [...categories.map((c) => c.name), "Pieces"] : [];
 
   return (
     <>
@@ -34,7 +34,7 @@ export default async function HomePage() {
             "@type": "ListItem",
             position: i + 1,
             url: `${site.url}${localePath(lang, `/products/${p.slug}`)}`,
-            name: localized(lang, p.name, p.nameAr),
+            name: p.name,
           })),
         }}
       />

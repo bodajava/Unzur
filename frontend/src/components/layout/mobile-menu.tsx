@@ -4,10 +4,8 @@ import Link from "next/link";
 import { useEffect } from "react";
 import type { CategoryNode } from "@/lib/api/types";
 import { Logo } from "@/components/brand/logo";
-import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { useI18n } from "@/i18n/client";
 import { localized } from "@/i18n/format";
-import { LanguageSwitch } from "./language-switch";
 
 export function MobileMenu({
   open,
@@ -62,11 +60,7 @@ export function MobileMenu({
             </li>
           ))}
         </ul>
-        <div className="mt-10 flex items-center gap-6 text-pale">
-          <LanguageSwitch onNavigate={onClose} />
-          <ThemeToggle />
-        </div>
-        <p className="mt-6 text-pale/80">{t.common.tagline}</p>
+        <p className="mt-10 text-pale/80">{t.common.tagline}</p>
       </nav>
     </div>
   );

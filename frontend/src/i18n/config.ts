@@ -35,14 +35,13 @@ export function switchLocalePath(pathname: string, to: Locale): string {
   return parts.join("/").replace(/\/$/, "") || `/${to}`;
 }
 
-/** Canonical + hreflang links for a page that exists in both languages. */
-export function alternatesFor(lang: Locale, path = "/") {
+/**
+ * Canonical link for a storefront page. The storefront is Arabic only
+ * (/en storefront URLs redirect to /ar), so there is one version per page.
+ */
+export function alternatesFor(_lang: Locale, path = "/") {
   return {
-    canonical: localePath(lang, path),
-    languages: {
-      en: localePath("en", path),
-      ar: localePath("ar", path),
-      "x-default": localePath(defaultLocale, path),
-    },
+    canonical: localePath("ar", path),
+    languages: { ar: localePath("ar", path), "x-default": localePath("ar", path) },
   };
 }

@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { localePath, locales } from "@/i18n/config";
+import { localePath } from "@/i18n/config";
 import { getAllProductSlugs, getCategories } from "@/lib/api/server";
 import { site } from "@/lib/site";
 
@@ -30,15 +30,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ];
 
-  return pages.flatMap((page) =>
-    locales.map((lang) => ({
-      url: `${site.url}${localePath(lang, page.path)}`,
-      changeFrequency: page.changeFrequency,
-      priority: page.priority,
-      ...(page.lastModified ? { lastModified: page.lastModified } : {}),
-      alternates: {
-        languages: Object.fromEntries(locales.map((l) => [l, `${site.url}${localePath(l, page.path)}`])),
-      },
-    })),
-  );
+  // The storefront is Arabic only (/en storefront URLs redirect to /ar).
+  return pages.map((page) => ({
+    url: `${site.url}${localePath("ar", page.path)}`,
+    changeFrequency: page.changeFrequency,
+    priority: page.priority,
+    ...(page.lastModified ? { lastModified: page.lastModified } : {}),
+  }));
 }

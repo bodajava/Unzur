@@ -131,8 +131,8 @@ function OrderDetails({ order, contact, justPlaced, paymobSuccess }: { order: Or
             {order.items.map((item) => (
               <li key={item.id} className="flex items-center justify-between gap-4 py-3 text-sm">
                 <span>
-                  <span lang={isFallback(lang, item.productNameAr) ? "en" : undefined} className="font-semibold">
-                    {localized(lang, item.productName, item.productNameAr)}
+                  <span lang="en" className="font-semibold">
+                    {item.productName}
                   </span>
                   {item.variantName && (
                     <span lang={isFallback(lang, item.variantNameAr) ? "en" : undefined} className="text-muted">

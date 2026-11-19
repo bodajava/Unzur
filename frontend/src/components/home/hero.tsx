@@ -11,7 +11,9 @@ import { Starfield } from "./starfield";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
-const TICKS = 33;
+/** The hero speaks English on every page, as the brand line; only the scroll cue is Arabic. */
+const COPY = { line1: "Closer", line2: "look.", body: "Every piece is made to be noticed", cta: "Shop pieces" };
+const SCROLL_CUE = "انزل شوف تحت";
 /** Pupil centre as a fraction of the logo box: the fly-through dives into it. */
 const ORIGIN = `${(PUPIL.x / LOGO_BOX.width) * 100}% ${(PUPIL.y / LOGO_BOX.height) * 100}%`;
 
@@ -54,7 +56,7 @@ export function Hero({ words }: { words: string[] }) {
             )
             .from(q("[data-glow]"), { opacity: 0, scale: 0.6, duration: 2.4 }, 0.2)
             .from(q("[data-rise]"), { opacity: 0, y: 40, duration: 1.4, stagger: 0.08 }, 0.5)
-            .from(q("[data-tick]"), { scaleY: 0, duration: 0.8, stagger: { each: 0.012, from: "start" } }, 0.8);
+            .from(q("[data-cue]"), { opacity: 0, y: 16, duration: 1.2 }, 1);
 
           // ── Zero gravity: the logo never stops floating ──
           gsap.to(q("[data-float]"), {
@@ -148,7 +150,6 @@ export function Hero({ words }: { words: string[] }) {
           });
           tl.to(q("[data-depart]"), { opacity: 0, y: -80, filter: "blur(10px)", duration: 0.35, stagger: 0.03 }, 0)
             .to(q("[data-glow]"), { opacity: 0, duration: 0.3 }, 0)
-            .to(q("[data-tick]"), { scaleY: 2.2, opacity: 1, duration: 0.4, stagger: 0.012 }, 0)
             .to(q("[data-zoom]"), { x: () => at().dx, y: () => at().dy, duration: 0.45, ease: "power2.inOut" }, 0.02)
             .to(q("[data-zoom]"), { scale: () => at().scale, duration: 0.8, ease: "expo.in" }, 0.05)
             .to(q("[data-veil]"), { opacity: 1, duration: 0.12 }, 0.76)
@@ -204,29 +205,26 @@ export function Hero({ words }: { words: string[] }) {
         </div>
       </div>
 
-      {/* Left: headline + call to action */}
-      <div className="absolute inset-x-0 bottom-[7.75rem] px-6 sm:px-10 xl:bottom-auto xl:top-1/2 xl:max-w-[26rem] xl:-translate-y-1/2 xl:px-14">
+      {/* Left: headline + call to action (English, see COPY) */}
+      <div lang="en" dir="ltr" className="absolute inset-x-0 bottom-[7.75rem] px-6 sm:px-10 xl:bottom-auto xl:top-1/2 xl:max-w-[26rem] xl:-translate-y-1/2 xl:px-14">
         <div data-depart>
           <h1 id="hero-title">
             <span data-rise className="display block text-[clamp(2.2rem,4.4vw,4.1rem)]">
-              {t.hero.titleLine1}
+              {COPY.line1}
               <br />
-              {t.hero.titleLine2}
-            </span>
-            <span data-rise className="eyebrow mt-4 block text-hero-accent">
-              {t.hero.eyebrow}
+              {COPY.line2}
             </span>
           </h1>
-          <p data-rise className="mt-5 max-w-[22rem] text-[0.98rem] leading-relaxed text-on-hero/85 [@media(max-height:760px)]:hidden">
-            {t.hero.body}
+          <p data-rise className="mt-5 max-w-[22rem] text-[1.05rem] leading-relaxed text-on-hero/85">
+            {COPY.body}
           </p>
           <Link
             data-rise
             href={href("/#pieces")}
             className="mt-7 inline-flex items-center gap-3 rounded-full border-2 border-on-hero px-6 py-2.5 text-[0.95rem] font-semibold transition-colors duration-300 hover:bg-on-hero hover:text-blue dark:hover:text-night"
           >
-            {t.hero.cta}
-            <span aria-hidden>{t.common.arrow}</span>
+            {COPY.cta}
+            <span aria-hidden>→</span>
           </Link>
         </div>
       </div>
@@ -256,23 +254,14 @@ export function Hero({ words }: { words: string[] }) {
         </div>
       </div>
 
-      {/* Bottom: the ruler fills up as you fly in */}
-      <div className="absolute inset-x-6 bottom-7 sm:inset-x-10 lg:inset-x-14" data-depart>
-        <div className="flex justify-between text-[0.7rem] tracking-[0.12em] uppercase text-hero-accent sm:text-xs">
-          <span>{t.hero.rulerStart}</span>
-          <span className="tracking-normal">{t.common.tagline}</span>
-          <span>{t.hero.rulerEnd}</span>
-        </div>
-        <div className="mt-2 flex h-4 items-end justify-between border-b-2 border-on-hero">
-          {Array.from({ length: TICKS }, (_, i) => (
-            <span
-              key={i}
-              data-tick
-              className={`w-[2px] origin-bottom bg-hero-accent opacity-80 ${i % 4 === 0 ? "h-3.5" : "h-2"} ${i % 2 ? "max-sm:hidden" : ""}`}
-            />
-          ))}
-        </div>
-        <p className="mt-2.5 text-center text-xs text-on-hero/70">{t.hero.scrollHint}</p>
+      {/* Bottom: a quiet cue to scroll */}
+      <div data-depart className="absolute inset-x-0 bottom-7 flex flex-col items-center gap-1.5 text-on-hero/85">
+        <p data-cue lang="ar" className="text-sm sm:text-base">
+          {SCROLL_CUE}
+        </p>
+        <span data-cue aria-hidden className="text-lg motion-safe:animate-bounce">
+          ↓
+        </span>
       </div>
 
       {/* Fades to the next section's colour at the end of the fly-through */}

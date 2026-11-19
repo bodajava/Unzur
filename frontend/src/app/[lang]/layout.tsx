@@ -7,7 +7,7 @@ import { alternatesFor, dirOf, locales, localePath, ogLocale, type Locale } from
 import { I18nProvider } from "@/i18n/client";
 import { getDictionary, getLang } from "@/i18n/server";
 import { site } from "@/lib/site";
-import { archivo, gothic, plexArabic } from "../fonts";
+import { arabic, archivo, gothic } from "../fonts";
 import "../globals.css";
 
 /**
@@ -64,7 +64,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
       dir={dirOf(lang)}
       data-theme="light"
       suppressHydrationWarning
-      className={`${archivo.variable} ${gothic.variable} ${plexArabic.variable}`}
+      className={`${archivo.variable} ${gothic.variable} ${arabic.variable}`}
     >
       <head>
         <InlineScript html={themeScript} />

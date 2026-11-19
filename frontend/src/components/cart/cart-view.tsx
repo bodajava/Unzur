@@ -29,7 +29,7 @@ function Line({ line, onNavigate }: { line: CartLine; onNavigate?: () => void })
       ? fmt(t.cart.stockLeft, { count: line.availableStock })
       : null;
   const error = update.error ?? remove.error;
-  const name = localized(lang, line.product.name, line.product.nameAr);
+  const name = line.product.name;
 
   return (
     <li className={`flex gap-4 py-5 transition-opacity ${busy ? "opacity-50" : ""}`}>
@@ -52,7 +52,7 @@ function Line({ line, onNavigate }: { line: CartLine; onNavigate?: () => void })
             <Link
               href={href(`/products/${line.product.slug}`)}
               onClick={onNavigate}
-              lang={isFallback(lang, line.product.nameAr) ? "en" : undefined}
+              lang="en"
               className="display block truncate text-lg hover:opacity-70"
             >
               {name}

@@ -12,10 +12,8 @@ import { lockScroll } from "@/lib/motion/scroll-state";
 import { Logo } from "@/components/brand/logo";
 import { LiquidGlass } from "@/components/ui/liquid-glass";
 import { useCartDrawer } from "@/components/cart/cart-drawer-context";
-import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { useI18n } from "@/i18n/client";
 import { fmt, isFallback, localized, plural } from "@/i18n/format";
-import { LanguageSwitch } from "./language-switch";
 import { Marquee } from "./marquee";
 import { MobileMenu } from "./mobile-menu";
 import { SearchPanel } from "./search-panel";
@@ -136,8 +134,6 @@ export function SiteHeader({ categories, marquee }: { categories: CategoryNode[]
             </Link>
 
             <div className="flex items-center justify-end gap-5 sm:gap-6 xl:gap-7">
-              <LanguageSwitch className="nav-link hidden lg:inline" />
-              <ThemeToggle className="nav-link hidden lg:inline-flex" />
               <Link href={href("/account")} className="nav-link hidden lg:inline">
                 {t.nav.account}
               </Link>

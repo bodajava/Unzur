@@ -42,7 +42,7 @@
 
   --font-display: var(--font-gothic), "Arial Black", sans-serif;
   --font-body: var(--font-archivo), system-ui, sans-serif;
-  --font-arabic: var(--font-plex-arabic), var(--font-archivo), sans-serif;
+  --font-arabic: var(--font-amiri), var(--font-archivo), serif;
 
   --ease-float: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -80,6 +80,10 @@
 
   :lang(ar) {
     font-family: var(--font-arabic);
+  }
+  /* English inside an Arabic page (product names, the hero) keeps the Latin font. */
+  [lang="en"] {
+    font-family: var(--font-body);
   }
 
   ::selection {
@@ -168,12 +172,12 @@ html[data-theme="dark"] {
     text-transform: uppercase;
   }
 
-  /* Arabic: Plex Sans Arabic does the display work (Latin names are marked lang="en" and keep Gothic). */
+  /* Arabic: Amiri does the display work (Latin names are marked lang="en" and keep Gothic). */
   .display:lang(ar) {
-    font-family: var(--font-plex-arabic), sans-serif;
+    font-family: var(--font-amiri), serif;
     font-weight: 700;
     letter-spacing: 0;
-    line-height: 1.12;
+    line-height: 1.35;
     text-transform: none;
   }
 
@@ -186,7 +190,7 @@ html[data-theme="dark"] {
   }
   .eyebrow:lang(ar) {
     font-family: var(--font-arabic);
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0;
   }
 

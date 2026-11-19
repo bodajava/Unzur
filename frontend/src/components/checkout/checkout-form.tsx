@@ -380,8 +380,8 @@ export function CheckoutForm() {
                 )}
               </div>
               <div className="min-w-0 flex-1 text-sm">
-                <p lang={isFallback(lang, line.product.nameAr) ? "en" : undefined} className="truncate font-semibold">
-                  {localized(lang, line.product.name, line.product.nameAr)}
+                <p lang="en" className="truncate font-semibold">
+                  {line.product.name}
                 </p>
                 <p className="text-muted">
                   {line.variant && <span lang={isFallback(lang, line.variant.nameAr) ? "en" : undefined}>{localized(lang, line.variant.name, line.variant.nameAr)} · </span>}× {line.quantity}

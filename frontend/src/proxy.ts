@@ -17,14 +17,29 @@ function preferredLocale(request: NextRequest): Locale {
   return ranked.find((r) => isLocale(r.base))?.base as Locale | undefined ?? defaultLocale;
 }
 
-/** Every page lives under /en or /ar: anything else is redirected there. */
+/** The storefront speaks Arabic only; the dashboard (/en/admin, /ar/admin) keeps both. */
+const STORE_LOCALE: Locale = "ar";
+
+/**
+ * Every page lives under /en or /ar. Storefront pages are always /ar: an
+ * /en storefront link (old bookmarks, search results) moves there for good.
+ * Paths without a language go to /ar, or to the visitor's language for /admin.
+ */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const first = pathname.split("/")[1];
-  if (locales.some((l) => l === first)) return;
+  const [, first, second] = pathname.split("/");
+  const isAdmin = (first === "admin") || (locales.some((l) => l === first) && second === "admin");
+
+  if (locales.some((l) => l === first)) {
+    if (first === STORE_LOCALE || isAdmin) return;
+    const url = request.nextUrl.clone();
+    url.pathname = `/${STORE_LOCALE}${pathname.slice(first.length + 1)}`;
+    return NextResponse.redirect(url, 308);
+  }
 
   const url = request.nextUrl.clone();
-  url.pathname = `/${preferredLocale(request)}${pathname === "/" ? "" : pathname}`;
+  const lang = isAdmin ? preferredLocale(request) : STORE_LOCALE;
+  url.pathname = `/${lang}${pathname === "/" ? "" : pathname}`;
   return NextResponse.redirect(url);
 }
 

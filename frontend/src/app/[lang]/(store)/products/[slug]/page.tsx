@@ -52,8 +52,8 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 function copyOf(product: ProductDetail, lang: Locale) {
   const en = (ar?: string | null) => (isFallback(lang, ar) ? "en" : undefined);
   return {
-    name: localized(lang, product.name, product.nameAr),
-    nameLang: en(product.nameAr),
+    name: product.name,
+    nameLang: "en" as const,
     short: localized(lang, product.shortDescription, product.shortDescriptionAr),
     shortLang: en(product.shortDescriptionAr),
     description: localized(lang, product.description, product.descriptionAr),

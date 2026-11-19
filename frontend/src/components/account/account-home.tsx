@@ -7,7 +7,7 @@ import { OrderStatusBadge } from "@/components/admin/status-badge";
 import { rememberOrder } from "@/components/checkout/last-order";
 import { ProductCard } from "@/components/home/product-card";
 import { useI18n } from "@/i18n/client";
-import { fmt, formatDate, formatPrice, localized, plural } from "@/i18n/format";
+import { fmt, formatDate, formatPrice, plural } from "@/i18n/format";
 import { errorMessage } from "@/lib/api/errors";
 import { useLogout, useMyOrders, useToggleWishlist, useUpdateProfile, useWishlist } from "@/lib/api/hooks";
 import type { User } from "@/lib/api/types";
@@ -138,7 +138,7 @@ function Orders({ email }: { email: string }) {
 }
 
 function Wishlist() {
-  const { lang, t, href } = useI18n();
+  const { t, href } = useI18n();
   const ta = t.account;
   const list = useWishlist({ limit: 48 });
   const toggle = useToggleWishlist();
@@ -162,7 +162,7 @@ function Wishlist() {
             <ProductCard product={w.product} sizes="(min-width: 1024px) 25vw, 50vw" />
           ) : (
             <p className="rounded-2xl bg-panel p-6 text-sm text-muted">
-              <span>{localized(lang, w.product.name, w.product.nameAr)}</span> · {ta.unavailable}
+              <span>{w.product.name}</span> · {ta.unavailable}
             </p>
           )}
           <button
