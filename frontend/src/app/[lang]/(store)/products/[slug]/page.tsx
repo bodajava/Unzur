@@ -6,7 +6,7 @@ import { Suspense } from "react";
 import { Gallery } from "@/components/product/gallery";
 import { PurchasePanel } from "@/components/product/purchase-panel";
 import { RecentlyViewed } from "@/components/product/recently-viewed";
-import { Reviews } from "@/components/product/reviews";
+import { ReviewSection } from "@/components/product/review-section";
 import { TrackView } from "@/components/product/track-view";
 import { Breadcrumbs } from "@/components/shop/breadcrumbs";
 import { ProductGrid } from "@/components/shop/product-grid";
@@ -186,7 +186,7 @@ async function ProductView({ lang, t, params }: { lang: Locale; t: Dictionary; p
         </div>
       </div>
 
-      <Reviews lang={lang} t={t} page={reviews} />
+      <ReviewSection productId={product.id} initial={reviews} />
 
       {related.length > 0 && (
         <section aria-labelledby="related-title" className="mt-24 lg:mt-32">

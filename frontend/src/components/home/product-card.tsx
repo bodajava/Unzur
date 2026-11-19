@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useI18n } from "@/i18n/client";
-import { fmt, formatPrice, isFallback, localized } from "@/i18n/format";
+import { fmt, formatPrice, isFallback, localized, plural } from "@/i18n/format";
+import { Stars } from "@/components/product/review-section";
 import type { ProductCard as Product } from "@/lib/api/types";
 import { QuickAdd } from "./quick-add";
 
@@ -81,6 +82,19 @@ export function ProductCard({
           <p lang={isFallback(lang, product.shortDescriptionAr) ? "en" : undefined} dir="auto" className="mt-1 truncate text-sm text-muted rtl:text-right">
             {short}
           </p>
+        )}
+      </Link>
+      {/* Reviews: stars and count (or an invite to write one), straight to the product's reviews. */}
+      <Link href={`${url}#reviews`} className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted hover:text-ink">
+        {product.rating ? (
+          <>
+            <Stars value={product.rating.average} size="size-3.5" label={fmt(t.reviews.outOf, { rating: product.rating.average.toFixed(1) })} />
+            <span className="tabular-nums">
+              {product.rating.average.toFixed(1)} · {plural(lang, t.reviews.count, product.rating.count)}
+            </span>
+          </>
+        ) : (
+          <span>☆ {t.reviews.write}</span>
         )}
       </Link>
       <QuickAdd

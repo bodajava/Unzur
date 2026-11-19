@@ -42,6 +42,20 @@ export class ReviewRepository extends BaseRepository<
   }
 
   /** Approved reviews per star (5..1), zeros included. */
+  /** Average and count of approved reviews for many products at once (product cards). */
+  async ratingsFor(productIds: string[]): Promise<Map<string, { average: number; count: number }>> {
+    if (!productIds.length) return new Map();
+    const groups = await this.db.review.groupBy({
+      by: ['productId'],
+      where: { productId: { in: productIds }, isApproved: true },
+      _avg: { rating: true },
+      _count: { _all: true },
+    });
+    return new Map(
+      groups.map((g) => [g.productId, { average: Math.round((g._avg.rating ?? 0) * 10) / 10, count: g._count._all }]),
+    );
+  }
+
   async breakdown(productId: string): Promise<RatingBreakdown[]> {
     const groups = await this.db.review.groupBy({
       by: ['rating'],

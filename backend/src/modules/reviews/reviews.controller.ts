@@ -1,11 +1,13 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { createMulterMemoryOptions } from '../../common/utilities/multer/multer.config.js';
 import { Audit, CurrentUser, Public, RateLimit, ResponseMessage, Roles } from '../../common/decorators/index.js';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto.js';
 import { UserRole } from '../../common/enums/index.js';
 import type { AuditContext } from '../../common/interfaces/audit.interface.js';
 import { ParseIdPipe } from '../../common/pipes/parse-id.pipe.js';
 import { AdminReviewQueryDto, CreateReviewDto, ModerateReviewDto } from './dto/index.js';
-import { ReviewsService } from './reviews.service.js';
+import { MAX_REVIEW_IMAGES, ReviewsService } from './reviews.service.js';
 
 const STAFF = [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF] as const;
 
@@ -20,12 +22,18 @@ export class ReviewsController {
     return this.reviews.forProduct(productId, query.page, query.limit);
   }
 
-  /** 12.2 */
+  /** 12.2 JSON, or multipart/form-data with up to 4 photos in `images`. */
   @RateLimit({ limit: 10, windowSeconds: 3600 })
   @Post('products/:id/reviews')
-  @ResponseMessage('Thanks! Your review will appear after approval.')
-  create(@CurrentUser('id') userId: string, @Param('id', ParseIdPipe) productId: string, @Body() dto: CreateReviewDto) {
-    return this.reviews.create(userId, productId, dto);
+  @UseInterceptors(FilesInterceptor('images', MAX_REVIEW_IMAGES, createMulterMemoryOptions({ maxFiles: MAX_REVIEW_IMAGES })))
+  @ResponseMessage('Thanks for your review!')
+  create(
+    @CurrentUser('id') userId: string,
+    @Param('id', ParseIdPipe) productId: string,
+    @Body() dto: CreateReviewDto,
+    @UploadedFiles() files: Express.Multer.File[] | undefined,
+  ) {
+    return this.reviews.create(userId, productId, dto, files ?? []);
   }
 
   /** 12.3 Pending first. */

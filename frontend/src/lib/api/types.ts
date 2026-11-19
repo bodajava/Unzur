@@ -84,6 +84,8 @@ export interface ProductCard {
   primaryImage: ImageRef | null;
   /** Active versions (empty when the product has none). */
   variants: CardVariant[];
+  /** Approved reviews (list pages only; null or missing when there are none). */
+  rating?: { average: number; count: number } | null;
 }
 
 export interface CardVariant {
@@ -176,6 +178,8 @@ export interface Review {
   rating: number;
   title: string | null;
   comment: string | null;
+  /** Customer photo URLs (up to 4). */
+  images: string[];
   /** "First L." style name chosen by the API. */
   reviewerName: string;
   verifiedPurchase: boolean;

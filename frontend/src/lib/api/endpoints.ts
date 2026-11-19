@@ -156,8 +156,16 @@ export const reviewsApi = {
   /** 12.1 Approved reviews + rating summary. */
   list: (productId: string, query: PageQuery = {}) => api<ReviewPage>(`/products/${enc(productId)}/reviews${qs({ ...query })}`),
   /** 12.2 Signed-in customers; shown after moderation. */
-  create: (productId: string, input: CreateReviewInput) =>
-    api<Review>(`/products/${enc(productId)}/reviews`, { method: "POST", json: input }),
+  /** 12.2 With photos it goes as multipart form data (field `images`, up to 4). */
+  create: (productId: string, input: CreateReviewInput, photos: File[] = []) => {
+    if (!photos.length) return api<Review>(`/products/${enc(productId)}/reviews`, { method: "POST", json: input });
+    const form = new FormData();
+    form.set("rating", String(input.rating));
+    if (input.title) form.set("title", input.title);
+    if (input.comment) form.set("comment", input.comment);
+    for (const p of photos) form.append("images", p);
+    return api<Review>(`/products/${enc(productId)}/reviews`, { method: "POST", form });
+  },
 };
 
 // ───────────────────────── 3 · cart ─────────────────────────

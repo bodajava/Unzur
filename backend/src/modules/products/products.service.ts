@@ -95,12 +95,15 @@ export class ProductsService {
     const orderBy = parseSortParam(query.sort, PRODUCT_SORT_FIELDS, DEFAULT_SORT);
 
     // Searching without an explicit sort: best match first.
-    if (resolved.ids && !query.sort) {
-      const page = await this.rankedPage(where, resolved.ids, query);
-      return { items: page.items.map(toCard), meta: page.meta };
-    }
-    const page = await this.products.paginateCards(where, query.page, query.limit, orderBy);
-    return { items: page.items.map(toCard), meta: page.meta };
+    const page =
+      resolved.ids && !query.sort
+        ? await this.rankedPage(where, resolved.ids, query)
+        : await this.products.paginateCards(where, query.page, query.limit, orderBy);
+    const ratings = await this.reviews.ratingsFor(page.items.map((p) => p.id));
+    return {
+      items: page.items.map((row) => ({ ...toCard(row), rating: ratings.get(row.id) ?? null })),
+      meta: page.meta,
+    };
   }
 
   // ───────────── 2.2 Product page ─────────────

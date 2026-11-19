@@ -21,6 +21,7 @@ export const PUBLIC_REVIEW_SELECT = {
   rating: true,
   title: true,
   comment: true,
+  images: true,
   orderId: true,
   createdAt: true,
   user: { select: { firstName: true, lastName: true } },

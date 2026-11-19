@@ -1,4 +1,5 @@
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { StorageService } from '../../common/services/s3/storage.service.js';
 import type { Paginated } from '../../common/interfaces/api-response.interface.js';
 import type { AuditContext } from '../../common/interfaces/audit.interface.js';
 import { isUniqueViolation } from '../../models/prisma-errors.js';
@@ -13,7 +14,7 @@ import { SettingsService } from '../settings/settings.service.js';
 import type { AdminReviewQueryDto, CreateReviewDto } from './dto/index.js';
 import type { ProductReviewsModel, PublicReviewModel } from './entities/review.model.js';
 
-export const NOT_PURCHASED = 'You can only review products you have purchased and received';
+export const MAX_REVIEW_IMAGES = 4;
 
 const reviewerName = (u: { firstName: string; lastName: string }) =>
   `${u.firstName}${u.lastName ? ` ${u.lastName.trim().charAt(0)}.` : ''}`;
@@ -24,6 +25,7 @@ function toPublic(row: PublicReviewRow): PublicReviewModel {
     rating: row.rating,
     title: row.title,
     comment: row.comment,
+    images: row.images,
     reviewerName: reviewerName(row.user),
     verifiedPurchase: row.orderId !== null,
     createdAt: row.createdAt,
@@ -39,6 +41,7 @@ export class ReviewsService {
     private readonly auditLogs: AuditLogRepository,
     private readonly tx: TransactionManager,
     private readonly settings: SettingsService,
+    private readonly storage: StorageService,
   ) {}
 
   /** 12.1 */
@@ -56,26 +59,35 @@ export class ReviewsService {
     };
   }
 
-  /** 12.2 Verified buyers only, one review per product. */
-  async create(userId: string, productId: string, dto: CreateReviewDto): Promise<ReviewEntity> {
+  /**
+   * 12.2 Any signed-in customer, one review per product, up to 4 photos.
+   * Buyers whose order was delivered get the "verified purchase" badge.
+   * Published at once unless "check reviews first" is on (auto_approve_reviews = false).
+   */
+  async create(userId: string, productId: string, dto: CreateReviewDto, files: Express.Multer.File[] = []): Promise<ReviewEntity> {
     if (!(await this.products.findPublicById(productId))) throw new NotFoundException('Product not found');
-    const order = await this.orders.findDeliveredWithProduct(userId, productId);
-    if (!order) throw new ForbiddenException(NOT_PURCHASED);
+    if (files.length > MAX_REVIEW_IMAGES) throw new BadRequestException(`Up to ${MAX_REVIEW_IMAGES} photos`);
     if (await this.reviews.existsForUser(userId, productId)) {
       throw new ConflictException('You already reviewed this product');
     }
-    const autoApprove = await this.settings.getBool(SettingKey.AUTO_APPROVE_REVIEWS, false);
+    const [order, autoApprove] = await Promise.all([
+      this.orders.findDeliveredWithProduct(userId, productId),
+      this.settings.getBool(SettingKey.AUTO_APPROVE_REVIEWS, true),
+    ]);
+    const stored = files.length ? await this.storage.uploadFiles(files, 'reviews') : [];
     try {
       return await this.reviews.create({
         productId,
         userId,
-        orderId: order.id,
+        orderId: order?.id ?? null,
         rating: dto.rating,
         title: dto.title ?? null,
         comment: dto.comment ?? null,
+        images: stored.map((f) => f.url),
         isApproved: autoApprove,
       });
     } catch (error) {
+      if (stored.length) await this.storage.deleteFiles(stored.map((f) => f.key)).catch(() => undefined);
       // Double submit: the unique (user, product) index caught it.
       if (isUniqueViolation(error)) throw new ConflictException('You already reviewed this product');
       throw error;

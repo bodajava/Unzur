@@ -615,6 +615,8 @@ model Review {
   rating     Int
   title      String?
   comment    String?
+  /// Customer photos (public URLs), up to 4
+  images     String[] @default([])
   isApproved Boolean  @default(false) @map("is_approved")
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz

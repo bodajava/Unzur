@@ -7,6 +7,8 @@ export class PublicReviewModel {
   @Field(() => Int) rating: number;
   @Field(() => String, { nullable: true }) title: string | null;
   @Field(() => String, { nullable: true }) comment: string | null;
+  /** Customer photo URLs */
+  @Field(() => [String]) images: string[];
   /** "Mona A." */
   @Field() reviewerName: string;
   @Field() verifiedPurchase: boolean;

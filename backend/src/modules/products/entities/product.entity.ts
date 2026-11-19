@@ -9,7 +9,11 @@ import type { RatingSummary } from '../../../models/schemas/review.schema.js';
 type PrimaryImage = ProductCardRow['images'][number] | null;
 
 /** Public list item. Never contains costPrice / deletedAt. */
-export type ProductCard = Omit<ProductCardRow, 'images'> & { primaryImage: PrimaryImage };
+export type ProductCard = Omit<ProductCardRow, 'images'> & {
+  primaryImage: PrimaryImage;
+  /** Approved reviews; only on list pages (null when there are none). */
+  rating?: { average: number; count: number } | null;
+};
 
 export type ProductDetail = ProductDetailRow &
   RatingSummary & { relatedProducts: ProductCard[] };
