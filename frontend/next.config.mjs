@@ -28,6 +28,15 @@ const nextConfig = {
   async rewrites() {
     return apiOrigin ? [{ source: "/api/v1/:path*", destination: `${apiOrigin}/api/v1/:path*` }] : [];
   },
+  webpack(config, { isServer }) {
+    // Hostinger falls back to @next/swc-wasm-nodejs; Webpack scope-hoisting
+    // chokes on Next's CJS `image-response.js` export when concatenated into a
+    // single metadata route. Disabling it server-side has no client impact.
+    if (isServer) {
+      config.optimization.concatenateModules = false;
+    }
+    return config;
+  },
   turbopack: {
     // Keep Turbopack inside this project (a pnpm-workspace.yaml in the home folder confused it).
     root: process.cwd(),
