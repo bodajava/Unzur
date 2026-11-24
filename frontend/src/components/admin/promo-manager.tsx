@@ -286,7 +286,29 @@ function WheelForm({ initial }: { initial: WheelConfig }) {
     winnersOk;
 
   return (
-    <Panel title={tp.wheelTitle}>
+    <Panel
+      title={tp.wheelTitle}
+      action={
+        // One click turns the wheel on or off for the whole store (saved at once).
+        <button
+          type="button"
+          role="switch"
+          aria-checked={w.enabled}
+          disabled={save.isPending}
+          onClick={() => {
+            const enabled = !w.enabled;
+            const value: WheelConfig = { ...initial, ...w, enabled, minOrder: piasters(minOrder) };
+            save.mutate([{ key: "spin_wheel", value, isPublic: false }], { onSuccess: () => setW((cur) => ({ ...cur, enabled })) });
+          }}
+          className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60 ${
+            w.enabled ? "bg-[#1f9d55] text-white hover:bg-[#16773f]" : "bg-ink/10 text-ink hover:bg-ink/20"
+          }`}
+        >
+          <span aria-hidden className={`size-2.5 rounded-full ${w.enabled ? "bg-white" : "bg-ink/40"}`} />
+          {w.enabled ? tp.wheelOn : tp.wheelOff}
+        </button>
+      }
+    >
       <p className="mb-4 text-sm text-muted">{tp.wheelHint}</p>
       <form
         className="space-y-6"

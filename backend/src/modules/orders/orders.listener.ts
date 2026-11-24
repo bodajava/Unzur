@@ -10,6 +10,7 @@ import {
 } from '../../common/events/index.js';
 import { runInBackground } from '../../common/utilities/background.js';
 import { EmailService } from '../../common/utilities/email/email.service.js';
+import type { StoreOrderEmailData } from '../../common/utilities/emails/order.template.js';
 import { OrderRepository } from '../../models/repositories/order.repository.js';
 import { WhatsAppService } from '../whatsapp/whatsapp.service.js';
 
@@ -17,6 +18,8 @@ import { WhatsAppService } from '../whatsapp/whatsapp.service.js';
 @Injectable()
 export class OrdersListener {
   private readonly frontendUrl: string;
+  /** The store's orders inbox: every new order (and online payment) is copied here in full. */
+  private readonly ordersEmail: string | undefined;
 
   constructor(
     private readonly email: EmailService,
@@ -25,11 +28,13 @@ export class OrdersListener {
     config: ConfigService,
   ) {
     this.frontendUrl = (config.get<string>('FRONTEND_URL') || 'http://localhost:3000').replace(/\/+$/, '');
+    this.ordersEmail = config.get<string>('ORDERS_EMAIL')?.trim() || undefined;
   }
 
   @OnEvent(AppEvents.ORDER_CREATED)
   onCreated(event: OrderCreatedEvent): void {
     this.send(event.orderId, 'created');
+    this.notifyStore(event.orderId, 'created');
   }
 
   @OnEvent(AppEvents.ORDER_STATUS_CHANGED)
@@ -47,6 +52,26 @@ export class OrdersListener {
   @OnEvent(AppEvents.PAYMENT_SUCCEEDED)
   onPaid(event: PaymentSucceededEvent): void {
     this.send(event.orderId, 'paid');
+    this.notifyStore(event.orderId, 'paid');
+  }
+
+  /** Sends the full order (photos, address, money, customer) to the orders inbox. */
+  private notifyStore(orderId: string, kind: 'created' | 'paid'): void {
+    const to = this.ordersEmail;
+    if (!to) return;
+    runInBackground(`order-store-email:${kind}`, async () => {
+      const order = await this.orders.findWithItems(orderId);
+      if (!order) return;
+      await this.email.sendStoreOrderEmail(
+        to,
+        {
+          ...order,
+          shippingAddress: (order.shippingAddress ?? {}) as StoreOrderEmailData['shippingAddress'],
+          adminUrl: `${this.frontendUrl}/en/admin/orders/${order.id}`,
+        },
+        kind,
+      );
+    });
   }
 
   private send(orderId: string, kind: 'created' | 'status' | 'paid'): void {
@@ -59,8 +84,8 @@ export class OrdersListener {
         status: order.status,
         totalAmount: order.totalAmount,
         items: order.items,
-        // The storefront's tracking page (/ar/track); it asks for the email or phone to show the order.
-        trackUrl: `${this.frontendUrl}/ar/track?orderNumber=${encodeURIComponent(order.orderNumber)}`,
+        // The storefront's tracking page (/en/track); it asks for the email or phone to show the order.
+        trackUrl: `${this.frontendUrl}/en/track?orderNumber=${encodeURIComponent(order.orderNumber)}`,
         note: order.cancelOrRefundReason,
       });
     });

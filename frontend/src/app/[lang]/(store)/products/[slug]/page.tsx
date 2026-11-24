@@ -31,11 +31,32 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   const product = await getProduct(slug);
   if (!product) return {};
   const c = copyOf(product, lang);
-  const description = c.short ?? c.description?.slice(0, 160) ?? undefined;
+  const category = product.category.name;
+  const price = (product.salePrice ?? product.basePrice) / 100;
+  // Search snippet: what it is in English, the Arabic line people search with, then brand, place and price.
+  const english = product.shortDescription ?? product.description?.slice(0, 120);
+  const arabic = product.shortDescriptionAr ?? product.descriptionAr?.slice(0, 120);
+  const description = [
+    `${product.name}${english ? `: ${english.replace(/\.?\s*$/, ".")}` : ` — ${category.toLowerCase()} by UNZUR.`}`,
+    arabic,
+    `Designed by UNZUR (أنظر) in Egypt. EGP ${price.toLocaleString("en-US")}.`,
+  ]
+    .filter(Boolean)
+    .join(" ");
   const images = product.images.map((img) => ({ url: img.url, alt: img.altText ?? c.name }));
   return {
-    title: c.name,
+    title: `${c.name} — ${category}`,
     description,
+    keywords: [
+      product.name,
+      ...(product.nameAr ? [product.nameAr] : []),
+      `${product.name} UNZUR`,
+      category,
+      ...(product.category.nameAr ? [product.category.nameAr, `${product.category.nameAr} أنظر`] : []),
+      `${category} Egypt`,
+      "UNZUR",
+      "أنظر",
+    ],
     alternates: alternatesFor(lang, `/products/${slug}`),
     openGraph: {
       type: "website",

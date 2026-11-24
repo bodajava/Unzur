@@ -7,7 +7,8 @@ const STAFF = new Set(["STAFF", "ADMIN", "SUPER_ADMIN"]);
 /**
  * POST { tags: string[] } from the dashboard after a change. The bearer
  * token is checked against the API (must be staff) before any cache is
- * dropped. Stale pages are served while fresh ones render ("max").
+ * dropped. The data expires at once ({ expire: 0 }): the next visitor gets
+ * the new version, never the old one.
  */
 export async function POST(request: Request) {
   const auth = request.headers.get("authorization");
@@ -21,6 +22,6 @@ export async function POST(request: Request) {
 
   const input = (await request.json().catch(() => null)) as { tags?: unknown } | null;
   const tags = Array.isArray(input?.tags) ? input.tags.filter((t): t is string => typeof t === "string" && ALLOWED.test(t)) : [];
-  for (const tag of tags.slice(0, 20)) revalidateTag(tag, "max");
+  for (const tag of tags.slice(0, 20)) revalidateTag(tag, { expire: 0 });
   return Response.json({ ok: true, revalidated: tags });
 }

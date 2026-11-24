@@ -5,7 +5,7 @@ export const en = {
   /** Which language this dictionary is (for code that only has the dictionary). */
   locale: "en",
   meta: {
-    title: "UNZUR — Sculptural furniture & lighting",
+    title: "UNZUR أنظر — Sculptural furniture & lighting in Egypt",
     description:
       "UNZUR designs sculptural furniture and lighting shaped by architecture and imagination. Shop chairs, tables, shelves and lamps made to be looked at.",
     bestSellersList: "UNZUR best sellers",
@@ -762,6 +762,8 @@ export const en = {
       default: "Default",
     },
     promo: {
+      wheelOn: "Wheel is on: click to stop",
+      wheelOff: "Wheel is off: click to start",
       marqueeTitle: "Scrolling text",
       marqueeHint: "The moving strips: one above the menu, one blue band after the home page pieces.",
       top: "Top strip (above the menu)",

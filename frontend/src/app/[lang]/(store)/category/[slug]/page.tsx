@@ -23,9 +23,13 @@ export async function generateMetadata(props: PageProps<"/[lang]/category/[slug]
   if (!category) return {};
   const t = await getDictionary(lang);
   const name = localized(lang, category.name, category.nameAr);
+  const ar = category.nameAr ? ` (${category.nameAr})` : "";
   return {
-    title: name,
-    description: localized(lang, category.description, category.descriptionAr) ?? `${name} · ${t.meta.description}`,
+    title: `${name}${ar} in Egypt`,
+    description:
+      localized(lang, category.description, category.descriptionAr) ??
+      `${name}${ar} by UNZUR (أنظر), designed and made in Egypt. ${t.meta.description}`,
+    keywords: [name, ...(category.nameAr ? [category.nameAr, `${category.nameAr} مصر`] : []), `${name} Egypt`, `UNZUR ${name}`, "أنظر"],
     alternates: alternatesFor(lang, `/category/${slug}`),
     openGraph: { title: name, url: localePath(lang, `/category/${slug}`) },
   };

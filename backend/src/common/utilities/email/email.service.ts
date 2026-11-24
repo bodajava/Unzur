@@ -12,7 +12,7 @@ import {
   newsletterWelcomeEmail,
   unsubscribeFooter,
 } from '../emails/notice.template.js';
-import { orderEmail, type OrderEmailData } from '../emails/order.template.js';
+import { orderEmail, storeOrderEmail, type OrderEmailData, type StoreOrderEmailData } from '../emails/order.template.js';
 import { otpEmail, type RenderedEmail } from '../emails/otp.template.js';
 
 export interface SendEmailInput {
@@ -119,6 +119,14 @@ export class EmailService {
   /** Bilingual order email: placed, status update or payment receipt. */
   async sendOrderEmail(to: string, kind: 'created' | 'status' | 'paid', data: OrderEmailData): Promise<void> {
     await this.send({ to, ...orderEmail(kind, this.brandName, data) }, ` order=${data.orderNumber} kind=${kind}`);
+  }
+
+  /** Full order details for the store's orders inbox (ORDERS_EMAIL). */
+  async sendStoreOrderEmail(to: string, data: StoreOrderEmailData, kind: 'created' | 'paid' = 'created'): Promise<void> {
+    await this.send(
+      { to, replyTo: data.customerEmail, ...storeOrderEmail(this.brandName, data, kind) },
+      ` order=${data.orderNumber} store-copy`,
+    );
   }
 
   /** Bilingual promotional coupon email (6.4). */

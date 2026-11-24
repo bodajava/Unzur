@@ -1,7 +1,7 @@
 import { Lang } from '../../enums/http.enum.js';
 import { OtpType } from '../../enums/prisma.enums.js';
 import { escapeHtml } from './escape-html.js';
-import { layoutTemplate } from './layout.template.js';
+import { BRAND, emailCode, layoutTemplate } from './layout.template.js';
 
 const COPY = {
   [OtpType.EMAIL_VERIFICATION]: {
@@ -52,8 +52,8 @@ export function otpEmail(opts: {
   const body = `
     <p style="margin:0 0 16px;font-size:16px">${escapeHtml(copy.greeting(opts.firstName))}</p>
     <p style="margin:0 0 24px;font-size:15px;line-height:1.6">${escapeHtml(copy.intro)}</p>
-    <p dir="ltr" style="margin:0 0 24px;font-size:32px;font-weight:bold;letter-spacing:8px;text-align:center">${escapeHtml(opts.code)}</p>
-    <p style="margin:0;font-size:13px;color:#78716c">${EXPIRY[opts.lang]}</p>`;
+    ${emailCode(opts.code, 32)}
+    <p style="margin:0;font-size:13px;color:${BRAND.muted}">${EXPIRY[opts.lang]}</p>`;
 
   return {
     subject: `${copy.subject} - ${opts.brandName}`,

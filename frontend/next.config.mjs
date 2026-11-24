@@ -1,3 +1,7 @@
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+
 // Plain JavaScript on purpose: the Hostinger build server has an old glibc, so
 // Next falls back to the WASM compiler, which cannot load a TypeScript config.
 
@@ -13,6 +17,9 @@ const api = new URL(apiOrigin ? `${apiOrigin}/api/v1` : (process.env.NEXT_PUBLIC
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   cacheComponents: true,
+  // Shares cache invalidations between the site's processes (see cache-handler.cjs),
+  // so a dashboard change shows on every copy right away.
+  cacheHandlers: { default: require.resolve("./cache-handler.cjs") },
   partialPrefetching: true,
   images: {
     // Product photos come from the backend (local driver) or Vercel Blob.

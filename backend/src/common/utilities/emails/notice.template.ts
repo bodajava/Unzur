@@ -1,18 +1,18 @@
 import { Lang } from '../../enums/http.enum.js';
 import { escapeHtml } from './escape-html.js';
-import { layoutTemplate } from './layout.template.js';
+import { BRAND, emailButton, emailCode, layoutTemplate } from './layout.template.js';
 import type { RenderedEmail } from './otp.template.js';
 import { formatEgp } from './order.template.js';
 
 const block = (ar: string, en: string) => `
   <div dir="rtl" style="text-align:right;margin:0 0 16px;font-size:15px;line-height:1.7">${ar}</div>
-  <div dir="ltr" style="text-align:left;border-top:1px solid #e7e5e4;padding-top:12px;font-size:15px;line-height:1.7">${en}</div>`;
+  <div dir="ltr" style="text-align:left;border-top:1px solid ${BRAND.line};padding-top:12px;font-size:15px;line-height:1.7">${en}</div>`;
 
 /** Bilingual unsubscribe line for newsletter-type emails. */
 export function unsubscribeFooter(url: string): string {
   const u = escapeHtml(url);
-  return `<p style="margin:24px 0 0;font-size:12px;color:#a8a29e;text-align:center">
-    <a href="${u}" style="color:#a8a29e">إلغاء الاشتراك</a> · <a href="${u}" style="color:#a8a29e">Unsubscribe</a></p>`;
+  return `<p style="margin:24px 0 0;font-size:12px;color:${BRAND.muted};text-align:center">
+    <a href="${u}" style="color:${BRAND.muted}">إلغاء الاشتراك</a> · <a href="${u}" style="color:${BRAND.muted}">Unsubscribe</a></p>`;
 }
 
 /** 7.1 Newsletter welcome (bilingual). */
@@ -44,7 +44,7 @@ export function contactNotificationEmail(
     ['Phone', m.phone ?? '-'],
     ['Subject', m.subject ?? '-'],
   ]
-    .map(([k, v]) => `<tr><td style="padding:2px 8px 2px 0;color:#78716c">${k}</td><td>${escapeHtml(v)}</td></tr>`)
+    .map(([k, v]) => `<tr><td style="padding:2px 8px 2px 0;color:${BRAND.muted}">${k}</td><td>${escapeHtml(v)}</td></tr>`)
     .join('');
   return {
     // Reply goes to the customer (Reply-To is set by EmailService).
@@ -69,7 +69,7 @@ export function giftCardEmail(
   const until = g.expiresAt ? g.expiresAt.toISOString().slice(0, 10) : null;
   const from = g.fromName ? escapeHtml(g.fromName) : null;
   const note = g.message
-    ? `<p style="margin:0 0 16px;padding:12px;background:#fafaf9;border-radius:8px;white-space:pre-wrap">${escapeHtml(g.message)}</p>`
+    ? `<p style="margin:0 0 16px;padding:12px;background:${BRAND.haze};border-radius:12px;white-space:pre-wrap">${escapeHtml(g.message)}</p>`
     : '';
   const body = `
     ${block(
@@ -77,7 +77,7 @@ export function giftCardEmail(
       `${from ? `${from} sent you` : 'You received'} a gift card worth <b>EGP ${amount}</b>${until ? `, valid until ${until}` : ''}. Use this code at checkout:`,
     )}
     ${note}
-    <p dir="ltr" style="margin:16px 0 0;padding:12px;border:2px dashed #d6d3d1;border-radius:8px;font-size:24px;font-weight:bold;letter-spacing:3px;text-align:center">${escapeHtml(g.code)}</p>`;
+    ${emailCode(g.code, 24)}`;
   return {
     subject: `Gift card EGP ${amount} | بطاقة هدية ${amount} جنيه - ${brandName}`,
     html: layoutTemplate({ lang: Lang.AR, brandName, preheader: `EGP ${amount} gift card`, body }),
@@ -88,7 +88,7 @@ export function giftCardEmail(
 /** 20.3 Back in stock (bilingual). */
 export function backInStockEmail(brandName: string, p: { productName: string; variantName?: string | null; url: string }): RenderedEmail {
   const name = escapeHtml(p.variantName ? `${p.productName} (${p.variantName})` : p.productName);
-  const button = `<p style="margin:20px 0 0;text-align:center"><a href="${escapeHtml(p.url)}" style="background:#1c1917;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none">اطلبه دلوقتي / Shop now</a></p>`;
+  const button = emailButton(p.url, 'اطلبه دلوقتي / Shop now');
   return {
     subject: `Back in stock: ${p.productName} | رجع تاني - ${brandName}`,
     html: layoutTemplate({
@@ -111,7 +111,7 @@ export function abandonedCartEmail(
     .map((i) => `<li>${escapeHtml(i.name)} × ${i.quantity}</li>`)
     .join('');
   const name = escapeHtml(c.firstName);
-  const button = `<p style="margin:20px 0 0;text-align:center"><a href="${escapeHtml(c.cartUrl)}" style="background:#1c1917;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none">كمّل طلبك / Complete your order</a></p>`;
+  const button = emailButton(c.cartUrl, 'كمّل طلبك / Complete your order');
   return {
     subject: `You left something in your cart | سلتك مستنياك - ${brandName}`,
     html: layoutTemplate({
