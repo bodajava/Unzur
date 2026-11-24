@@ -340,6 +340,7 @@ export const en = {
     instagram: "Instagram",
   },
   account: {
+    dashboard: "Open the dashboard",
     title: "My account",
     intro: "Sign in to follow your orders and keep the pieces you love. You can still order without an account.",
     signInTab: "Sign in",

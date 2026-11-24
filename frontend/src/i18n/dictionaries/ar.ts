@@ -373,6 +373,7 @@ export const ar: Dictionary = {
     instagram: "إنستجرام",
   },
   account: {
+    dashboard: "افتح الداشبورد",
     title: "حسابي",
     intro: "ادخل علشان تتابع طلباتك وتحفظ القطع اللي بتحبها. وتقدر تطلب عادي من غير حساب.",
     signInTab: "تسجيل الدخول",
