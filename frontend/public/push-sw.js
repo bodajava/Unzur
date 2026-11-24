@@ -16,8 +16,8 @@ self.addEventListener("push", (event) => {
   const title = data.title || "UNZUR";
   const options = {
     body: data.body || "",
-    icon: "/apple-icon",
-    badge: "/apple-icon",
+    icon: "/icon-192.png",
+    badge: "/icon-192.png",
     tag: data.tag || undefined,
     renotify: Boolean(data.tag),
     lang: data.lang || "ar",

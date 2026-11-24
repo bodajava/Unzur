@@ -40,10 +40,10 @@ export function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
   const lang = isAdmin ? preferredLocale(request) : STORE_LOCALE;
   url.pathname = `/${lang}${pathname === "/" ? "" : pathname}`;
-  return NextResponse.redirect(url);
+  return NextResponse.redirect(url, isAdmin ? 307 : 308);
 }
 
 export const config = {
-  // Skip Next internals, files with an extension (icons, robots.txt, sitemap.xml…) and the generated apple icon.
-  matcher: ["/((?!_next|api|apple-icon|opengraph-image|.*\\..*).*)"],
+  // Skip Next internals, files with an extension (icons, robots.txt, sitemap.xml…) and generated OG images.
+  matcher: ["/((?!_next|api|opengraph-image|.*\\..*).*)"],
 };

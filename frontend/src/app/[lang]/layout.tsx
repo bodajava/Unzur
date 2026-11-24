@@ -30,6 +30,16 @@ export async function generateMetadata(): Promise<Metadata> {
     description: t.meta.description,
     applicationName: site.name,
     keywords: [...site.keywords],
+    icons: {
+      icon: [
+        { url: "/favicon.ico", sizes: "48x48", type: "image/x-icon" },
+        { url: "/icon-48.png", sizes: "48x48", type: "image/png" },
+        { url: "/icon-96.png", sizes: "96x96", type: "image/png" },
+        { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      ],
+      shortcut: ["/favicon.ico"],
+      apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    },
     alternates: alternatesFor(lang, "/"),
     openGraph: {
       type: "website",
@@ -81,9 +91,9 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
               name: site.name,
               alternateName: [...site.alternateNames],
               url: site.url,
-              // Google wants a raster logo (112px+); the app icon is a 180px PNG.
-              logo: `${site.url}/apple-icon`,
-              image: `${site.url}/apple-icon`,
+              // Google wants a stable square raster logo (112px+); use the 512px PNG.
+              logo: `${site.url}/icon-512.png`,
+              image: `${site.url}/icon-512.png`,
               sameAs: [...site.sameAs],
               description: t.meta.description,
             },

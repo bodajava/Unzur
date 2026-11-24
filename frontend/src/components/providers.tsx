@@ -6,7 +6,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { AnimatedFavicon } from "@/components/brand/animated-favicon";
 import { CartDrawer } from "@/components/cart/cart-drawer";
 import { CartDrawerProvider } from "@/components/cart/cart-drawer-context";
 import { scrollState } from "@/lib/motion/scroll-state";
@@ -76,7 +75,6 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={client}>
       <SmoothScroll />
-      <AnimatedFavicon />
       <ResetScrollOnNavigate />
       <CartDrawerProvider>
         {children}
