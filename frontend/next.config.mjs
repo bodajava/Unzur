@@ -26,7 +26,10 @@ const nextConfig = {
     dangerouslyAllowLocalIP: ["localhost", "127.0.0.1", "::1"].includes(api.hostname),
   },
   async rewrites() {
-    return apiOrigin ? [{ source: "/api/v1/:path*", destination: `${apiOrigin}/api/v1/:path*` }] : [];
+    return [
+      { source: "/.well-known/mcp/server-card.json", destination: "/api/mcp/server-card" },
+      ...(apiOrigin ? [{ source: "/api/v1/:path*", destination: `${apiOrigin}/api/v1/:path*` }] : []),
+    ];
   },
   webpack(config, { isServer }) {
     // Hostinger falls back to @next/swc-wasm-nodejs; Webpack scope-hoisting

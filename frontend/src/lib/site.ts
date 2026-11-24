@@ -14,6 +14,16 @@ export const site = {
   alternateNames: ["أنظر", "انظر", "Unzur", "أنظر UNZUR", "UNZUR Egypt", "Unzor", "Anzur", "Onzur", "انضر", "أنضر", "انزور"],
   /** Official profiles, so search engines tie them to the site (Organization.sameAs). */
   sameAs: ["https://www.instagram.com/unzur.eg"],
+  /** Public business defaults (overridden by Dashboard → Store settings when set). */
+  email: "contact@unzur.net",
+  phone: "+20 109 210 6797",
+  currency: "EGP",
+  address: {
+    locality: "Cairo",
+    region: "Cairo",
+    country: "EG",
+    countryName: "Egypt",
+  },
   keywords: [
     "UNZUR",
     "أنظر",

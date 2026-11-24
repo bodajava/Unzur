@@ -78,6 +78,7 @@ export async function SiteFooter() {
           <h2 className={column}>{tf.help}</h2>
           <ul className="mt-4 space-y-2.5 text-sm">
             {[
+              ["/about", tf.about],
               ["/contact", tf.contact],
               ["/track", tf.track],
               ["/account", tf.account],

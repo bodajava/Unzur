@@ -6,6 +6,8 @@ import { JsonLd } from "@/components/ui/json-ld";
 import { alternatesFor, dirOf, locales, localePath, ogLocale, type Locale } from "@/i18n/config";
 import { I18nProvider } from "@/i18n/client";
 import { getDictionary, getLang } from "@/i18n/server";
+import { getPublicSettings } from "@/lib/api/server";
+import { contactInfo } from "@/lib/contact-info";
 import { site } from "@/lib/site";
 import { arabic, archivo, gothic } from "../fonts";
 import "../globals.css";
@@ -66,7 +68,11 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
   const lang: Locale = await getLang();
-  const t = await getDictionary(lang);
+  const [t, settings] = await Promise.all([getDictionary(lang), getPublicSettings()]);
+  const c = contactInfo(settings);
+  const email = c.email ?? site.email;
+  const telephone = c.phone ?? site.phone;
+  const sameAs = Array.from(new Set([...site.sameAs, ...(c.instagram ? [c.instagram] : [])]));
 
   return (
     <html
@@ -94,7 +100,23 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
               // Google wants a stable square raster logo (112px+); use the 512px PNG.
               logo: `${site.url}/icon-512.png`,
               image: `${site.url}/icon-512.png`,
-              sameAs: [...site.sameAs],
+              email,
+              telephone,
+              address: {
+                "@type": "PostalAddress",
+                addressLocality: site.address.locality,
+                addressRegion: site.address.region,
+                addressCountry: site.address.country,
+              },
+              contactPoint: {
+                "@type": "ContactPoint",
+                telephone,
+                email,
+                contactType: "customer service",
+                areaServed: site.address.country,
+                availableLanguage: ["en", "ar"],
+              },
+              sameAs,
               description: t.meta.description,
             },
             {

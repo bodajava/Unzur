@@ -19,19 +19,46 @@ function preferredLocale(request: NextRequest): Locale {
 
 /** The storefront speaks English (with Arabic touches); the dashboard (/en/admin, /ar/admin) keeps both. */
 const STORE_LOCALE: Locale = "en";
+const PRIVATE_SEGMENTS = new Set(["admin", "account", "cart", "checkout", "search"]);
+
+/** True when an AI agent explicitly negotiates Markdown instead of HTML. */
+function wantsMarkdown(request: NextRequest): boolean {
+  if (request.method !== "GET" && request.method !== "HEAD") return false;
+  return /\btext\/markdown\b/i.test(request.headers.get("accept") ?? "");
+}
 
 /**
  * Every page lives under /en or /ar. Storefront pages are always /en: an
  * /ar storefront link (old bookmarks, search results) moves there for good.
  * Paths without a language go to /en, or to the visitor's language for /admin.
+ * Public storefront requests with `Accept: text/markdown` are rewritten to
+ * a lightweight Markdown representation for AI agents.
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const [, first, second] = pathname.split("/");
-  const isAdmin = (first === "admin") || (locales.some((l) => l === first) && second === "admin");
+  const hasLocale = locales.some((l) => l === first);
+  const isAdmin = first === "admin" || (hasLocale && second === "admin");
+  const isPrivate = PRIVATE_SEGMENTS.has(hasLocale ? (second ?? "") : (first ?? ""));
 
-  if (locales.some((l) => l === first)) {
-    if (first === STORE_LOCALE || isAdmin) return;
+  if (!isPrivate && wantsMarkdown(request)) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/api/markdown";
+    url.search = `?path=${encodeURIComponent(pathname)}`;
+    return NextResponse.rewrite(url);
+  }
+
+  if (hasLocale) {
+    if (first === STORE_LOCALE || isAdmin) {
+      if (isAdmin || isPrivate) return;
+      const res = NextResponse.next();
+      res.headers.append("Vary", "Accept");
+      res.headers.append(
+        "Link",
+        '</llms.txt>; rel="describedby"; type="text/plain", </.well-known/mcp/server-card.json>; rel="describedby"; type="application/json"',
+      );
+      return res;
+    }
     const url = request.nextUrl.clone();
     url.pathname = `/${STORE_LOCALE}${pathname.slice(first.length + 1)}`;
     return NextResponse.redirect(url, 308);

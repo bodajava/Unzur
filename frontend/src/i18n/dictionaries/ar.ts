@@ -105,6 +105,7 @@ export const ar: Dictionary = {
     shop: "المتجر",
     allPieces: "كل القطع",
     help: "مساعدة",
+    about: "عن أنظر",
     contact: "تواصل معانا",
     track: "تابع طلبك",
     account: "حسابي",

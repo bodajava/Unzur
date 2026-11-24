@@ -93,6 +93,7 @@ export const en = {
     shop: "Shop",
     allPieces: "All pieces",
     help: "Help",
+    about: "About UNZUR",
     contact: "Contact us",
     track: "Track your order",
     account: "My account",

@@ -3,6 +3,7 @@
 import { useGSAP } from "@gsap/react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Link from "next/link";
 import { useRef } from "react";
 import { useI18n } from "@/i18n/client";
 
@@ -10,7 +11,7 @@ gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 /** The brand idea. Words come into focus one by one as the visitor scrolls. */
 export function Concept() {
-  const { lang, t } = useI18n();
+  const { lang, t, href } = useI18n();
   const ref = useRef<HTMLElement>(null);
   const bodyLang = t.concept.bodyLang;
   const tagline = t.common.tagline;
@@ -49,6 +50,9 @@ export function Concept() {
             {t.concept.title}
           </h2>
           <p className="mt-6 max-w-sm text-[0.95rem] leading-relaxed text-muted">{t.concept.intro}</p>
+          <Link href={href("/about")} className="nav-link mt-7 inline-flex items-center gap-2 text-sm">
+            {t.footer.about} {t.common.arrow}
+          </Link>
         </div>
         <div className="lg:col-span-8">
           <p

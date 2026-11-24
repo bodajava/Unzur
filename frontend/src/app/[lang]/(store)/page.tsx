@@ -22,6 +22,8 @@ export default async function HomePage() {
   // The hero is English on every page, so its words are too.
   const words = categories.length ? [...categories.map((c) => c.name), "Pieces"] : [];
 
+  const egp = (piasters: number) => (piasters / 100).toFixed(2);
+
   return (
     <>
       <JsonLd
@@ -30,12 +32,47 @@ export default async function HomePage() {
           "@type": "ItemList",
           name: t.meta.bestSellersList,
           inLanguage: lang,
-          itemListElement: products.map((p, i) => ({
-            "@type": "ListItem",
-            position: i + 1,
-            url: `${site.url}${localePath(lang, `/products/${p.slug}`)}`,
-            name: p.name,
-          })),
+          itemListElement: products.map((p, i) => {
+            const url = `${site.url}${localePath(lang, `/products/${p.slug}`)}`;
+            const prices = p.variants?.length
+              ? p.variants.map((v) => v.salePrice ?? v.price)
+              : [p.salePrice ?? p.basePrice];
+            const inStock = p.variants?.length ? p.variants.some((v) => v.stock > 0) : p.stock > 0;
+            const availability = `https://schema.org/${inStock ? "InStock" : "OutOfStock"}`;
+            const offers =
+              prices.length > 1
+                ? {
+                    "@type": "AggregateOffer",
+                    priceCurrency: site.currency,
+                    lowPrice: egp(Math.min(...prices)),
+                    highPrice: egp(Math.max(...prices)),
+                    offerCount: prices.length,
+                    availability,
+                    url,
+                  }
+                : {
+                    "@type": "Offer",
+                    priceCurrency: site.currency,
+                    price: egp(prices[0]),
+                    availability,
+                    url,
+                  };
+            return {
+              "@type": "ListItem",
+              position: i + 1,
+              url,
+              name: p.name,
+              item: {
+                "@type": "Product",
+                name: p.name,
+                url,
+                ...(p.primaryImage ? { image: p.primaryImage.url } : {}),
+                ...(p.shortDescription ? { description: p.shortDescription } : {}),
+                brand: { "@type": "Brand", name: p.brand?.name ?? site.name },
+                offers,
+              },
+            };
+          }),
         }}
       />
       <Hero words={words} />
