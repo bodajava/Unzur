@@ -133,7 +133,9 @@ export class EmailService {
     await this.send(
       {
         to,
-        replyTo: data.customerEmail,
+        // No Reply-To here: a free-mail Reply-To that differs from From is a strong spam signal,
+        // and it sent the orders inbox copy to Spam. The body links the customer's email instead.
+        headers: { 'Auto-Submitted': 'auto-generated', 'X-Auto-Response-Suppress': 'All' },
         ...storeOrderEmail(this.brandName, data, kind),
         ...(pdf ? { attachments: [{ filename: `${data.orderNumber}.pdf`, content: pdf, contentType: 'application/pdf' }] } : {}),
       },

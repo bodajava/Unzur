@@ -144,7 +144,7 @@ export function storeOrderEmail(brandName: string, d: StoreOrderEmailData, kind:
   const info = [
     ['Customer · العميل', `<b>${escapeHtml(d.customerName)}</b>`],
     ['Phone · الموبايل', `<a href="tel:${phone}" style="color:${BRAND.blue}">${phone}</a> · <a href="https://wa.me/${waPhone}" style="color:${BRAND.blue}">WhatsApp</a>`],
-    ['Email', `<a href="mailto:${escapeHtml(d.customerEmail)}" style="color:${BRAND.blue}">${escapeHtml(d.customerEmail)}</a>`],
+    ['Email', `<a href="mailto:${escapeHtml(d.customerEmail)}?subject=${encodeURIComponent(d.orderNumber)}" style="color:${BRAND.blue}">${escapeHtml(d.customerEmail)}</a>`],
     ['Address · العنوان', `<span dir="rtl">${address || '-'}</span>`],
     ['Payment · الدفع', `${escapeHtml(PAYMENT_LABELS[d.paymentMethod] ?? d.paymentMethod)} · <b>${escapeHtml(d.paymentStatus)}</b>`],
     ['Status · الحالة', `${STATUS_LABELS[d.status].en} · ${STATUS_LABELS[d.status].ar}`],
