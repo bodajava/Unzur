@@ -23,57 +23,81 @@ export default async function HomePage() {
   const words = categories.length ? [...categories.map((c) => c.name), "Pieces"] : [];
 
   const egp = (piasters: number) => (piasters / 100).toFixed(2);
+  const productEntries = products.map((p) => {
+    const url = `${site.url}${localePath(lang, `/products/${p.slug}`)}`;
+    const productId = `${url}#product`;
+    const prices = p.variants?.length
+      ? p.variants.map((v) => v.salePrice ?? v.price)
+      : [p.salePrice ?? p.basePrice];
+    const minPrice = egp(Math.min(...prices));
+    const maxPrice = egp(Math.max(...prices));
+    const inStock = p.variants?.length ? p.variants.some((v) => v.stock > 0) : p.stock > 0;
+    const availability = `https://schema.org/${inStock ? "InStock" : "OutOfStock"}`;
+
+    const offers =
+      prices.length > 1
+        ? {
+            "@type": "AggregateOffer",
+            priceCurrency: site.currency,
+            lowPrice: minPrice,
+            highPrice: maxPrice,
+            offerCount: prices.length,
+            availability,
+            url,
+          }
+        : {
+            "@type": "Offer",
+            priceCurrency: site.currency,
+            price: minPrice,
+            availability,
+            url,
+          };
+
+    const productNode = {
+      "@type": "Product",
+      "@id": productId,
+      name: p.name,
+      url,
+      ...(p.primaryImage ? { image: p.primaryImage.url } : {}),
+      ...(p.shortDescription ? { description: p.shortDescription } : {}),
+      brand: { "@type": "Brand", name: p.brand?.name ?? site.name },
+      offers,
+    };
+
+    const offerNode = {
+      "@type": "Offer",
+      "@id": `${url}#offer`,
+      name: p.name,
+      price: minPrice,
+      priceCurrency: site.currency,
+      availability,
+      url,
+      seller: { "@id": `${site.url}/#organization` },
+      itemOffered: { "@id": productId },
+    };
+
+    return { p, url, productId, productNode, offerNode };
+  });
 
   return (
     <>
       <JsonLd
-        data={{
-          "@context": "https://schema.org",
-          "@type": "ItemList",
-          name: t.meta.bestSellersList,
-          inLanguage: lang,
-          itemListElement: products.map((p, i) => {
-            const url = `${site.url}${localePath(lang, `/products/${p.slug}`)}`;
-            const prices = p.variants?.length
-              ? p.variants.map((v) => v.salePrice ?? v.price)
-              : [p.salePrice ?? p.basePrice];
-            const inStock = p.variants?.length ? p.variants.some((v) => v.stock > 0) : p.stock > 0;
-            const availability = `https://schema.org/${inStock ? "InStock" : "OutOfStock"}`;
-            const offers =
-              prices.length > 1
-                ? {
-                    "@type": "AggregateOffer",
-                    priceCurrency: site.currency,
-                    lowPrice: egp(Math.min(...prices)),
-                    highPrice: egp(Math.max(...prices)),
-                    offerCount: prices.length,
-                    availability,
-                    url,
-                  }
-                : {
-                    "@type": "Offer",
-                    priceCurrency: site.currency,
-                    price: egp(prices[0]),
-                    availability,
-                    url,
-                  };
-            return {
+        data={[
+          {
+            "@type": "ItemList",
+            name: t.meta.bestSellersList,
+            inLanguage: lang,
+            itemListElement: productEntries.map(({ p, url, productId }, i) => ({
               "@type": "ListItem",
               position: i + 1,
               url,
               name: p.name,
-              item: {
-                "@type": "Product",
-                name: p.name,
-                url,
-                ...(p.primaryImage ? { image: p.primaryImage.url } : {}),
-                ...(p.shortDescription ? { description: p.shortDescription } : {}),
-                brand: { "@type": "Brand", name: p.brand?.name ?? site.name },
-                offers,
-              },
-            };
-          }),
-        }}
+              item: { "@id": productId },
+            })),
+          },
+          ...productEntries.map((e) => e.productNode),
+          ...productEntries.map((e) => e.offerNode),
+        ]}
       />
       <Hero words={words} />
       <Pieces products={products} />
