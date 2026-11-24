@@ -12,19 +12,22 @@ import { runInBackground } from '../../common/utilities/background.js';
 import { EmailService } from '../../common/utilities/email/email.service.js';
 import type { StoreOrderEmailData } from '../../common/utilities/emails/order.template.js';
 import { OrderRepository } from '../../models/repositories/order.repository.js';
+import { SettingsService } from '../settings/settings.service.js';
 import { WhatsAppService } from '../whatsapp/whatsapp.service.js';
+import { loadInvoiceImages, renderInvoice } from './invoice/invoice.renderer.js';
 
 /** Order emails (bilingual), always after the response. */
 @Injectable()
 export class OrdersListener {
   private readonly frontendUrl: string;
-  /** The store's orders inbox: every new order (and online payment) is copied here in full. */
+  /** The store's orders inbox (comma-separated for several): every new order and online payment, in full. */
   private readonly ordersEmail: string | undefined;
 
   constructor(
     private readonly email: EmailService,
     private readonly orders: OrderRepository,
     private readonly whatsapp: WhatsAppService,
+    private readonly settings: SettingsService,
     config: ConfigService,
   ) {
     this.frontendUrl = (config.get<string>('FRONTEND_URL') || 'http://localhost:3000').replace(/\/+$/, '');
@@ -62,6 +65,8 @@ export class OrdersListener {
     runInBackground(`order-store-email:${kind}`, async () => {
       const order = await this.orders.findWithItems(orderId);
       if (!order) return;
+      // The same A4 sheet as the dashboard invoice, with photos, attached ready to print.
+      const pdf = await this.printableSheet(order).catch(() => undefined);
       await this.email.sendStoreOrderEmail(
         to,
         {
@@ -70,8 +75,25 @@ export class OrdersListener {
           adminUrl: `${this.frontendUrl}/en/admin/orders/${order.id}`,
         },
         kind,
+        pdf,
       );
     });
+  }
+
+  private async printableSheet(order: NonNullable<Awaited<ReturnType<OrderRepository['findWithItems']>>>): Promise<Buffer> {
+    const [settings, images] = await Promise.all([
+      this.settings.publicMap(),
+      loadInvoiceImages(order.items.map((i) => i.imageUrl)),
+    ]);
+    return renderInvoice(
+      order,
+      {
+        name: (settings.store_name as string) || this.email.brandName,
+        phone: (settings.whatsapp_number as string) || undefined,
+        website: this.frontendUrl,
+      },
+      images,
+    );
   }
 
   private send(orderId: string, kind: 'created' | 'status' | 'paid'): void {

@@ -53,6 +53,7 @@ export function layoutTemplate({ lang, brandName, preheader, body }: LayoutOptio
     <meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light">
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
     <title>${brand}</title>
+    <style>@media print{body,table{background:#ffffff!important}a[href]{text-decoration:none!important}}</style>
   </head>
   <body style="margin:0;padding:0;background:${BRAND.haze};font-family:${SANS};color:${BRAND.text};-webkit-font-smoothing:antialiased">
     <span style="display:none!important;visibility:hidden;opacity:0;height:0;width:0;overflow:hidden;mso-hide:all">${escapeHtml(preheader ?? '')}</span>

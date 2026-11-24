@@ -24,8 +24,36 @@ export interface StoreInfo {
 
 const egp = (piasters: number) => `${formatEgp(piasters)} EGP`;
 
+/** Product photos keyed by image URL (JPEG/PNG only: what PDF can embed). */
+export type InvoiceImages = Map<string, Buffer>;
+
+const isJpeg = (b: Buffer) => b[0] === 0xff && b[1] === 0xd8;
+const isPng = (b: Buffer) => b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47;
+
+/**
+ * Downloads the order's product photos for a printed sheet. Each one is
+ * optional: slow, missing or WebP images are skipped and the row prints without a photo.
+ */
+export async function loadInvoiceImages(urls: (string | null | undefined)[], timeoutMs = 5000): Promise<InvoiceImages> {
+  const images: InvoiceImages = new Map();
+  const unique = [...new Set(urls.filter((u): u is string => !!u && /^https?:\/\//.test(u)))].slice(0, 30);
+  await Promise.all(
+    unique.map(async (url) => {
+      try {
+        const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+        if (!res.ok) return;
+        const buf = Buffer.from(await res.arrayBuffer());
+        if (buf.length < 5_000_000 && (isJpeg(buf) || isPng(buf))) images.set(url, buf);
+      } catch {
+        /* print without this photo */
+      }
+    }),
+  );
+  return images;
+}
+
 /** A4 invoice as a PDF buffer. All amounts are piasters, printed in EGP. */
-export function renderInvoice(order: OrderWithItems, store: StoreInfo): Promise<Buffer> {
+export function renderInvoice(order: OrderWithItems, store: StoreInfo, images: InvoiceImages = new Map()): Promise<Buffer> {
   const doc = new PDFDocument({ size: 'A4', margin: 40, info: { Title: `Invoice ${order.orderNumber}` } });
   doc.registerFont('regular', FONT);
   doc.registerFont('bold', FONT_BOLD);
@@ -42,7 +70,7 @@ export function renderInvoice(order: OrderWithItems, store: StoreInfo): Promise<
     drawLine(doc, text, o.x ?? left, y, o.w ?? width, { size: o.size ?? 10, font: o.font ?? 'regular', align: o.align, color: o.color });
 
   // Header
-  line(store.name, 40, { size: 20, font: 'bold' });
+  line(store.name, 40, { size: 20, font: 'bold', color: '#1b44ff' });
   line('INVOICE / فاتورة', 46, { size: 14, font: 'bold', align: 'right' });
   const contactLine = [store.phone, store.website].filter(Boolean).join('  ·  ');
   if (contactLine) line(contactLine, 68, { size: 9, color: '#57534e' });
@@ -92,17 +120,37 @@ export function renderInvoice(order: OrderWithItems, store: StoreInfo): Promise<
   line('Unit', y, { x: cols.unit, w: colW.unit, font: 'bold', align: 'right' });
   line('Total', y, { x: cols.total, w: colW.total - 4, font: 'bold', align: 'right' });
   y += 24;
+  const withPhotos = order.items.some((item) => item.imageUrl && images.has(item.imageUrl));
+  const rowH = withPhotos ? 52 : 18;
+  const photo = 44;
   for (const item of order.items) {
-    if (y > doc.page.height - 180) {
+    if (y + rowH > doc.page.height - 180) {
       doc.addPage();
       y = 40;
     }
     const name = item.variantName ? `${item.productName} - ${item.variantName}` : item.productName;
-    line(name, y, { x: cols.item + 4, w: colW.item });
-    line(String(item.quantity), y, { x: cols.qty, w: colW.qty, align: 'center' });
-    line(egp(item.priceAtPurchase), y, { x: cols.unit, w: colW.unit, align: 'right' });
-    line(egp(item.priceAtPurchase * item.quantity), y, { x: cols.total, w: colW.total - 4, align: 'right' });
-    y += 18;
+    const img = item.imageUrl ? images.get(item.imageUrl) : undefined;
+    const textY = withPhotos ? y + photo / 2 - 6 : y;
+    let nameX = cols.item + 4;
+    if (withPhotos) {
+      if (img) {
+        try {
+          doc.save().roundedRect(nameX, y - 2, photo, photo, 6).clip();
+          doc.image(img, nameX, y - 2, { cover: [photo, photo], align: 'center', valign: 'center' });
+          doc.restore();
+        } catch {
+          doc.restore();
+        }
+      } else {
+        doc.roundedRect(nameX, y - 2, photo, photo, 6).fill('#e8e8e5');
+      }
+      nameX += photo + 10;
+    }
+    line(name, textY, { x: nameX, w: colW.item - (nameX - cols.item) });
+    line(String(item.quantity), textY, { x: cols.qty, w: colW.qty, align: 'center' });
+    line(egp(item.priceAtPurchase), textY, { x: cols.unit, w: colW.unit, align: 'right' });
+    line(egp(item.priceAtPurchase * item.quantity), textY, { x: cols.total, w: colW.total - 4, align: 'right' });
+    y += rowH;
     doc.moveTo(left, y - 4).lineTo(left + width, y - 4).strokeColor('#e7e5e4').stroke();
   }
 
@@ -123,6 +171,14 @@ export function renderInvoice(order: OrderWithItems, store: StoreInfo): Promise<
   y += 8;
   line('Total / الإجمالي', y, { x: labelX, w: width * 0.3, size: 12, font: 'bold' });
   line(egp(order.totalAmount), y, { x: left + width * 0.75, w: width * 0.25 - 4, size: 12, font: 'bold', align: 'right' });
+
+  // What the courier collects at the door (cash orders not yet paid).
+  if (order.paymentMethod === 'COD' && order.paymentStatus !== 'PAID' && order.totalAmount > 0) {
+    y += 30;
+    doc.roundedRect(left, y - 10, width, 46, 6).fill('#1b44ff');
+    line(`Collect on delivery: ${egp(order.totalAmount)}`, y, { size: 13, font: 'bold', align: 'center', color: '#ffffff' });
+    line('المبلغ المطلوب تحصيله من العميل', y + 18, { size: 10, align: 'center', color: '#ffffff' });
+  }
 
   line('Thank you for your order! / شكراً لطلبك!', doc.page.height - 70, { align: 'center', color: '#78716c', size: 9 });
   doc.end();

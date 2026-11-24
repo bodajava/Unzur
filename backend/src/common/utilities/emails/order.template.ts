@@ -165,6 +165,7 @@ export function storeOrderEmail(brandName: string, d: StoreOrderEmailData, kind:
     <p style="margin:0 0 4px;color:${BRAND.muted};font-size:13px;letter-spacing:1px;text-transform:uppercase">${headline}</p>
     <h1 dir="ltr" style="margin:0 0 4px;font-size:26px;line-height:1.2;color:${BRAND.blue}">${escapeHtml(d.orderNumber)}</h1>
     <p style="margin:0 0 20px;font-size:15px"><b>${money(d.totalAmount)} EGP</b> · ${count} ${count === 1 ? 'piece' : 'pieces'}</p>
+    <p style="margin:0 0 16px;padding:10px 14px;border-radius:12px;background:${BRAND.haze};font-size:13px">🖨️ <b>${escapeHtml(d.orderNumber)}.pdf</b> is attached, ready to print · <span dir="rtl">ملف الطلب مرفق جاهز للطباعة</span></p>
     <table role="presentation" width="100%" style="margin:0 0 20px;border-top:1px solid ${BRAND.line};padding-top:8px">${info}</table>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px">${itemRows(d.items, 'right')}
       <tr><td colspan="3" style="height:8px"></td></tr>

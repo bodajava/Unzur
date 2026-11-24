@@ -24,6 +24,8 @@ export interface SendEmailInput {
   headers?: Record<string, string>;
   /** Where "Reply" goes (the customer, for contact-form notifications). */
   replyTo?: string;
+  /** Files sent with the email (e.g. the order's printable PDF). */
+  attachments?: { filename: string; content: Buffer; contentType: string }[];
 }
 
 /** RFC 8058 one-click unsubscribe headers. */
@@ -122,9 +124,19 @@ export class EmailService {
   }
 
   /** Full order details for the store's orders inbox (ORDERS_EMAIL). */
-  async sendStoreOrderEmail(to: string, data: StoreOrderEmailData, kind: 'created' | 'paid' = 'created'): Promise<void> {
+  async sendStoreOrderEmail(
+    to: string,
+    data: StoreOrderEmailData,
+    kind: 'created' | 'paid' = 'created',
+    pdf?: Buffer,
+  ): Promise<void> {
     await this.send(
-      { to, replyTo: data.customerEmail, ...storeOrderEmail(this.brandName, data, kind) },
+      {
+        to,
+        replyTo: data.customerEmail,
+        ...storeOrderEmail(this.brandName, data, kind),
+        ...(pdf ? { attachments: [{ filename: `${data.orderNumber}.pdf`, content: pdf, contentType: 'application/pdf' }] } : {}),
+      },
       ` order=${data.orderNumber} store-copy`,
     );
   }
