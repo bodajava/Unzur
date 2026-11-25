@@ -989,6 +989,7 @@ type PublicReview {
   comment: String
   createdAt: DateTime!
   id: ID!
+  images: [String!]!
   rating: Int!
   reviewerName: String!
   title: String

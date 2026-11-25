@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { OrderStatusBadge } from "@/components/admin/status-badge";
 import { rememberOrder } from "@/components/checkout/last-order";
 import { ProductCard } from "@/components/home/product-card";
@@ -19,14 +19,28 @@ import {
 import type { User } from "@/lib/api/types";
 import { PushToggle } from "@/components/notifications/push-toggle";
 import { STAFF_ROLES } from "@/lib/admin/types";
+import { Addresses, GiftCards, PasswordForm, Rewards } from "./account-extras";
 
-type Tab = "orders" | "wishlist" | "profile";
+const TABS = ["orders", "wishlist", "addresses", "rewards", "giftCards", "profile"] as const;
+type Tab = (typeof TABS)[number];
+
+function initialTab(): Tab {
+  if (typeof window === "undefined") return "orders";
+  const h = window.location.hash.slice(1);
+  return (TABS as readonly string[]).includes(h) ? (h as Tab) : "orders";
+}
 
 /** The signed-in customer's corner: orders with their status, saved pieces, profile. */
 export function AccountHome({ user }: { user: User }) {
   const { t } = useI18n();
   const ta = t.account;
-  const [tab, setTab] = useState<Tab>("orders");
+  const [tab, setTab] = useState<Tab>(initialTab);
+  // Links like /account#giftCards open that tab, also when already on the page.
+  useEffect(() => {
+    const sync = () => setTab(initialTab());
+    window.addEventListener("hashchange", sync);
+    return () => window.removeEventListener("hashchange", sync);
+  }, []);
   const logout = useLogout();
   const router = useRouter();
   const { href } = useI18n();
@@ -77,14 +91,17 @@ export function AccountHome({ user }: { user: User }) {
         aria-label={ta.title}
         className="mt-10 flex gap-1 overflow-x-auto border-b border-ink/15"
       >
-        {(["orders", "wishlist", "profile"] as const).map((k) => (
+        {TABS.map((k) => (
           <button
             key={k}
             type="button"
             role="tab"
             aria-selected={tab === k}
             aria-controls={`account-${k}`}
-            onClick={() => setTab(k)}
+            onClick={() => {
+              setTab(k);
+              window.history.replaceState(null, "", `#${k}`);
+            }}
             className={`-mb-px shrink-0 border-b-2 px-4 py-3 text-sm transition-colors ${tab === k ? "border-ink font-semibold" : "border-transparent text-muted hover:text-ink"}`}
           >
             {ta.tabs[k]}
@@ -95,6 +112,14 @@ export function AccountHome({ user }: { user: User }) {
       <div id={`account-${tab}`} role="tabpanel" className="pt-8">
         {tab === "orders" && <Orders email={user.email} />}
         {tab === "wishlist" && <Wishlist />}
+        {tab === "addresses" && (
+          <Addresses
+            fullName={`${user.firstName} ${user.lastName}`.trim()}
+            phone={user.phone ?? ""}
+          />
+        )}
+        {tab === "rewards" && <Rewards />}
+        {tab === "giftCards" && <GiftCards />}
         {tab === "profile" && <Profile user={user} />}
       </div>
     </div>
@@ -316,7 +341,8 @@ function Profile({ user }: { user: User }) {
           )}
         </p>
       </form>
-      <div>
+      <PasswordForm />
+      <div className="lg:col-span-2">
         <h2 className="text-sm font-semibold">{ta.notifications}</h2>
         <PushToggle audience="customer" />
       </div>
