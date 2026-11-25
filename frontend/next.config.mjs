@@ -32,6 +32,21 @@ const nextConfig = {
     // API itself runs on this machine (development); production keeps the guard.
     dangerouslyAllowLocalIP: ["localhost", "127.0.0.1", "::1"].includes(api.hostname),
   },
+  /**
+   * www.unzur.net used to serve a full copy of the site, so Google saw two
+   * sites and picked www as canonical (and never showed our favicon). Send
+   * every www request to the bare domain for good, path and query kept.
+   */
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.unzur.net" }],
+        destination: "https://unzur.net/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     return [
       { source: "/.well-known/mcp/server-card.json", destination: "/api/mcp/server-card" },
