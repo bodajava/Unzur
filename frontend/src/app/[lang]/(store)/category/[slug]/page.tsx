@@ -8,7 +8,7 @@ import { GridSkeleton } from "@/components/shop/product-grid";
 import { alternatesFor, localePath, type Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { getDictionary, getLang } from "@/i18n/server";
-import { getCategories, getCategory } from "@/lib/api/server";
+import { getCategories, getCategory, getCategoryProductCount } from "@/lib/api/server";
 
 /** Every category is prerendered; new ones are rendered on first visit and cached. */
 export async function generateStaticParams() {
@@ -19,7 +19,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata(props: PageProps<"/[lang]/category/[slug]">): Promise<Metadata> {
   const [{ slug }, lang] = await Promise.all([props.params, getLang()]);
-  const category = await getCategory(slug);
+  const [category, count] = await Promise.all([getCategory(slug), getCategoryProductCount(slug)]);
   if (!category) return {};
   const t = await getDictionary(lang);
   const name = localized(lang, category.name, category.nameAr);
@@ -32,6 +32,8 @@ export async function generateMetadata(props: PageProps<"/[lang]/category/[slug]
     keywords: [name, ...(category.nameAr ? [category.nameAr, `${category.nameAr} مصر`] : []), `${name} Egypt`, `UNZUR ${name}`, "أنظر"],
     alternates: alternatesFor(lang, `/category/${slug}`),
     openGraph: { title: name, url: localePath(lang, `/category/${slug}`) },
+    // No products yet: an empty grid reads as a "soft 404". Back in the index once it has pieces.
+    ...(count === 0 ? { robots: { index: false, follow: true } } : {}),
   };
 }
 

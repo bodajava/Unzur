@@ -125,6 +125,25 @@ export async function getProducts(params: ProductQuery = {}): Promise<Paginated<
   }
 }
 
+/**
+ * How many products a category shows (subcategories included), or null when
+ * the API can't be reached. An empty category page looks like a "soft 404"
+ * to Google, so it is kept out of the index until it has products; null
+ * (unknown) never hides a category.
+ */
+export async function getCategoryProductCount(slug: string): Promise<number | null> {
+  "use cache";
+  cacheTag("products", "categories");
+  try {
+    const data = await get<Paginated<ProductCard>>(`/products${query({ category: slug, limit: 1 })}`);
+    cacheLife("minutes");
+    return data.meta.total;
+  } catch {
+    cacheLife(RETRY);
+    return null;
+  }
+}
+
 /** One category (by slug). null when it doesn't exist. */
 export async function getCategory(slug: string): Promise<CategoryNode | null> {
   "use cache";

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { localePath } from "@/i18n/config";
-import { getAllProductSlugs, getCategories } from "@/lib/api/server";
+import { getAllProductSlugs, getCategories, getCategoryProductCount } from "@/lib/api/server";
 import { site } from "@/lib/site";
 
 type Entry = {
@@ -13,6 +13,10 @@ type Entry = {
 /** Every public page in both languages, each pointing at its translation (hreflang). */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [categories, products] = await Promise.all([getCategories(), getAllProductSlugs()]);
+  // Empty categories stay out until they have products (their pages are noindex meanwhile).
+  const allCategories = categories.flatMap((c) => [c, ...c.children]);
+  const counts = await Promise.all(allCategories.map((c) => getCategoryProductCount(c.slug)));
+  const listedCategories = allCategories.filter((_, i) => counts[i] !== 0);
   const pages: Entry[] = [
     { path: "/", changeFrequency: "daily", priority: 1 },
     { path: "/shop", changeFrequency: "daily", priority: 0.9 },
@@ -20,9 +24,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "/contact", changeFrequency: "weekly", priority: 0.5 },
     { path: "/track", changeFrequency: "weekly", priority: 0.3 },
     ...["returns", "shipping", "privacy", "terms"].map((s) => ({ path: `/legal/${s}`, changeFrequency: "weekly" as const, priority: 0.3 })),
-    ...categories
-      .flatMap((c) => [c, ...c.children])
-      .map((c) => ({ path: `/category/${c.slug}`, changeFrequency: "weekly" as const, priority: 0.8 })),
+    ...listedCategories.map((c) => ({ path: `/category/${c.slug}`, changeFrequency: "weekly" as const, priority: 0.8 })),
     ...products.map((p) => ({
       path: `/products/${p.slug}`,
       changeFrequency: "weekly" as const,
