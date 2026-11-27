@@ -4,7 +4,7 @@ import type { Dictionary } from "./en";
 export const ar: Dictionary = {
   locale: "ar",
   meta: {
-    title: "أنظر UNZUR — أثاث وإضاءة نحتية",
+    title: "أنظر UNZUR — Creative Decor cool Lighting",
     description:
       "أنظر يصمّم أثاثًا وإضاءة نحتية تستلهم أشكالها من العمارة والخيال. تسوّق كراسي وطاولات ورفوف وأباجورات صُنعت لتُرى.",
     bestSellersList: "الأكثر مبيعًا في أنظر",
