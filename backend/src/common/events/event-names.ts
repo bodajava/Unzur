@@ -12,6 +12,10 @@ export const AppEvents = {
   GIFT_CARD_ISSUED: 'gift_card.issued',
   NEWSLETTER_SUBSCRIBED: 'newsletter.subscribed',
   CONTACT_MESSAGE_RECEIVED: 'contact.message_received',
+  /** An unexpected server error (500) was answered; payload: ServerErrorEvent. */
+  SERVER_ERROR: 'server.error',
+  /** Something the team must act on (spend limit, late payment to refund); payload: OpsAlertEvent. */
+  OPS_ALERT: 'ops.alert',
 } as const;
 
 export type AppEventName = (typeof AppEvents)[keyof typeof AppEvents];

@@ -3,7 +3,7 @@ export const site = {
   name: "UNZUR",
   nameAr: "أنظر",
   url: (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/+$/, ""),
-  title: "UNZUR أنظر — Sculptural furniture & lighting in Egypt",
+  title: "UNZUR أنظر — Creative Decor cool Lighting",
   description:
     "UNZUR designs sculptural furniture and lighting shaped by architecture and imagination. Shop chairs, tables, shelves and lamps made to be looked at.",
   descriptionAr:

@@ -24,6 +24,7 @@ import { AiModule } from './modules/ai/ai.module.js';
 import { AnalyticsModule } from './modules/analytics/analytics.module.js';
 import { AutomationModule } from './modules/automation/automation.module.js';
 import { WheelModule } from './modules/wheel/wheel.module.js';
+import { MonitoringModule } from './modules/monitoring/monitoring.module.js';
 import { WhatsAppModule } from './modules/whatsapp/whatsapp.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { ContactModule } from './modules/contact/contact.module.js';
@@ -82,6 +83,7 @@ import { ShippingModule } from './modules/shipping/shipping.module.js';
     AutomationModule,
     WhatsAppModule,
     WheelModule,
+    MonitoringModule, // error tracking (alert emails)
   ],
   providers: [
     // Guards run in this order

@@ -26,7 +26,9 @@
     "postinstall": "prisma generate",
     "seed": "node dist/database/seeders/run-seeders.js",
     "demo:seed": "node scripts/demo-data.mjs seed",
-    "demo:clean": "node scripts/demo-data.mjs clean"
+    "demo:clean": "node scripts/demo-data.mjs clean",
+    "db:backup": "bash scripts/db-backup.sh",
+    "db:restore": "bash scripts/db-restore.sh"
   },
   "dependencies": {
     "@apollo/server": "^5.5.2",

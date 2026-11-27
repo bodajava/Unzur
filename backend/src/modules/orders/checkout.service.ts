@@ -273,6 +273,18 @@ export class CheckoutService {
       if (!(await this.coupons.withTx(tx).incrementUsage(coupon.id))) {
         throw new ConflictException(`Coupon ${coupon.code} has reached its usage limit`);
       }
+      // The UPDATE above holds the coupon row lock until commit, so two checkouts
+      // by the same customer run this one at a time: the second sees the first's
+      // usage here and is refused (the per-customer check before the transaction
+      // can't see an order that is still being placed).
+      const used = await this.couponUsages.withTx(tx).countForRedeemer(coupon.id, {
+        userId: actor.userId,
+        guestId: actor.userId ? undefined : actor.guestId,
+        email: dto.customerEmail,
+      });
+      if (used >= coupon.perUserLimit) {
+        throw new ConflictException(`Coupon ${coupon.code}: You have already used this coupon`);
+      }
       await this.couponUsages.withTx(tx).create({
         couponId: coupon.id,
         orderId: order.id,

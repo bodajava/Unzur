@@ -11,6 +11,8 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['**/*.e2e-spec.ts'],
+    // Never against the live database by mistake (see test/local-db-guard.ts).
+    globalSetup: ['./test/local-db-guard.ts'],
     // Scheduled jobs off in tests; specs call AutomationService.process* directly.
     env: { DISABLE_CRON: 'true' },
     // Files share one database and one Redis (rate-limit counters, background jobs): run them one by one.

@@ -17,20 +17,22 @@ export class WishlistService {
   /** 11.1 */
   async list(userId: string, page: number, limit: number): Promise<Paginated<WishlistItemModel>> {
     const result = await this.wishlist.paginateForUser(userId, page, limit);
-    const items = await Promise.all(
-      result.items.map(async (row) => {
-        const { isActive, deletedAt: _deletedAt, ...card } = row.product;
-        const inStock = card.stock > 0 || (await this.variants.hasStock(row.productId));
-        return {
-          id: row.id,
-          productId: row.productId,
-          addedAt: row.createdAt,
-          product: toCard(card),
-          isAvailable: isActive,
-          inStock: isActive && inStock,
-        };
-      }),
+    // Variant stock for every product on the page in one query (not one per item).
+    const variantStocked = await this.variants.productIdsWithStock(
+      result.items.filter((row) => row.product.stock <= 0).map((row) => row.productId),
     );
+    const items = result.items.map((row) => {
+      const { isActive, deletedAt: _deletedAt, ...card } = row.product;
+      const inStock = card.stock > 0 || variantStocked.has(row.productId);
+      return {
+        id: row.id,
+        productId: row.productId,
+        addedAt: row.createdAt,
+        product: toCard(card),
+        isAvailable: isActive,
+        inStock: isActive && inStock,
+      };
+    });
     return { items, meta: result.meta };
   }
 

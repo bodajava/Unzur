@@ -33,6 +33,17 @@ export class ProductVariantRepository extends BaseRepository<
     return !!row;
   }
 
+  /** Of the given products, the ones with an active variant in stock (one query for a whole list). */
+  async productIdsWithStock(productIds: string[]): Promise<Set<string>> {
+    if (!productIds.length) return new Set();
+    const rows = await this.db.productVariant.findMany({
+      where: { productId: { in: productIds }, isActive: true, stock: { gt: 0 } },
+      select: { productId: true },
+      distinct: ['productId'],
+    });
+    return new Set(rows.map((r) => r.productId));
+  }
+
   /**
    * SELECT ... FOR UPDATE on the given rows, in ascending id order. Every
    * caller locks products before variants and always in id order, so two

@@ -5,7 +5,7 @@ export const en = {
   /** Which language this dictionary is (for code that only has the dictionary). */
   locale: "en",
   meta: {
-    title: "UNZUR أنظر — Sculptural furniture & lighting in Egypt",
+    title: "UNZUR أنظر — Creative Decor cool Lighting",
     description:
       "UNZUR designs sculptural furniture and lighting shaped by architecture and imagination. Shop chairs, tables, shelves and lamps made to be looked at.",
     bestSellersList: "UNZUR best sellers",

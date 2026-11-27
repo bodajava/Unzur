@@ -33,6 +33,7 @@ import type { InitiatePaymentDto, OnlineMethod, RefundPaymentDto } from './dto/i
 import type { PaymentModel, PaymentSessionModel } from './entities/payment.model.js';
 import { PaymobGatewayClient } from './paymob/paymob-gateway.client.js';
 import { callbackHmacMessage, transactionHmacMessage, verifyPaymobHmac } from './paymob/paymob-hmac.js';
+import type { OpsAlertEvent } from '../monitoring/error-alerts.listener.js';
 
 const TERMINAL: PaymentStatus[] = [
   PaymentStatus.PAID,
@@ -213,6 +214,12 @@ export class PaymentsService {
           // e.g. paid after the customer cancelled: keep the status, record the money.
           await this.orders.withTx(tx).updateById(order.id, { paymentStatus: PaymentStatus.PAID });
           this.logger.warn(`Order ${order.orderNumber} was paid while ${order.status}: needs a manual refund`);
+          const alert: OpsAlertEvent = {
+            title: `Order ${order.orderNumber} was paid after it closed`,
+            details: `Paymob confirmed ${(order.totalAmount / 100).toFixed(2)} EGP for order ${order.orderNumber} (transaction ${transactionId}) while it was ${order.status}. Refund it from the dashboard or contact the customer (${order.customerEmail}).`,
+            at: new Date().toISOString(),
+          };
+          this.events.emit(AppEvents.OPS_ALERT, alert);
         }
         return moved;
       });

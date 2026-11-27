@@ -30,6 +30,18 @@ if (process.env.NODE_ENV === 'production') {
   console.error('Refusing to run with NODE_ENV=production.');
   process.exit(1);
 }
+
+// A copied .env can point at the live database: only local databases unless DEMO_ALLOW_REMOTE_DB=true.
+{
+  let host = '';
+  try {
+    host = new URL(process.env.DATABASE_URL ?? '').hostname;
+  } catch {}
+  if (!['localhost', '127.0.0.1', '::1', '[::1]', 'postgres'].includes(host) && process.env.DEMO_ALLOW_REMOTE_DB !== 'true') {
+    console.error(`Refusing to touch the database on "${host || '?'}" (not local). Set DEMO_ALLOW_REMOTE_DB=true to override.`);
+    process.exit(1);
+  }
+}
 const mode = process.argv[2];
 if (!['seed', 'clean'].includes(mode)) {
   console.error('Usage: node scripts/demo-data.mjs <seed|clean>');

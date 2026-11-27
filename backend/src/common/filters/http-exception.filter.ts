@@ -5,11 +5,22 @@ import {
   HttpException,
   HttpStatus,
   Logger,
+  Optional,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { Request, Response } from 'express';
 import { GraphQLError } from 'graphql';
 import { Prisma } from '../../generated/prisma/client.js';
 import type { ErrorResponse } from '../interfaces/api-response.interface.js';
+import { AppEvents } from '../events/event-names.js';
+
+/** Payload of AppEvents.SERVER_ERROR (an unexpected 500). */
+export interface ServerErrorEvent {
+  where: string;
+  message: string;
+  stack?: string;
+  at: string;
+}
 
 /** GraphQL error codes (extensions.code) by HTTP status. */
 const GRAPHQL_CODES: Record<number, string> = {
@@ -33,6 +44,9 @@ const GRAPHQL_CODES: Record<number, string> = {
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
 
+  /** Optional so the filter also works when built by hand (tests). */
+  constructor(@Optional() private readonly events?: EventEmitter2) {}
+
   catch(exception: unknown, host: ArgumentsHost): GraphQLError | void {
     if (exception instanceof GraphQLError && host.getType<string>() === 'graphql') return exception;
     const { status, message, errors } = this.resolve(exception);
@@ -45,6 +59,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
         `${where} -> ${status}`,
         exception instanceof Error ? exception.stack : String(exception),
       );
+      // Error tracking: the team gets an alert (throttled) instead of finding out from customers.
+      const event: ServerErrorEvent = {
+        where,
+        message: exception instanceof Error ? exception.message : String(exception),
+        stack: exception instanceof Error ? exception.stack : undefined,
+        at: new Date().toISOString(),
+      };
+      this.events?.emit(AppEvents.SERVER_ERROR, event);
     }
 
     if (isGraphql) {

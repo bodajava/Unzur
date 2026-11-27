@@ -57,6 +57,33 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
+## Operations (UNZUR)
+
+### Backups
+- `npm run db:backup` writes a compressed dump of the database to `backups/` (git-ignored) and keeps the newest 14 (`KEEP=30` to change). It only reads.
+- Back up the **live** database from any machine with the PostgreSQL client tools:
+  `BACKUP_DATABASE_URL="postgresql://…live…" npm run db:backup`. Do it **daily** (a scheduled task or cron), and always **before a deploy that adds a migration**.
+- Keep a copy off the server (another disk or cloud folder). If the database host offers automatic backups / point-in-time restore, turn it on too.
+
+### Restore
+`RESTORE_DATABASE_URL="postgresql://…" npm run db:restore -- backups/unzur-YYYYMMDD-HHMMSS.dump`
+It asks you to type the target host before it overwrites anything. Practise on a throwaway database first.
+
+### Rollback a bad deploy
+1. Code: `git revert <bad-commit>` then `git push` (Hostinger redeploys from `main`), or redeploy the previous build from Hostinger's deployment history.
+2. Database: migrations only move forward. If a migration broke data, restore the backup taken just before the deploy (above), then deploy the previous commit.
+3. Check `GET /api/v1/health` and the storefront after every rollback.
+
+### Live database safety
+- Local work uses the Docker database (`docker compose up -d`). `npm run test:e2e` and `npm run demo:seed|clean` refuse to run when `DATABASE_URL` is not a local database (override only for a throwaway database: `E2E_ALLOW_REMOTE_DB=true` / `DEMO_ALLOW_REMOTE_DB=true`).
+- Never copy the production `.env` to a laptop.
+
+### Alerts
+- **Errors:** every unexpected 500 is emailed to `ALERTS_EMAIL` (else `ORDERS_EMAIL`, else `SUPER_ADMIN_EMAIL`), the same error at most every 30 minutes and at most 20 emails an hour.
+- **Payments:** a payment that arrives after its order was closed is emailed so it can be refunded.
+- **AI spend:** at most `AI_DAILY_LIMIT` paid AI calls a day (default 500); email at 80% and 100%, after which the assistant answers from store data until midnight (Cairo).
+- **Provider bills:** also set spending limits/alerts in each provider's dashboard: the AI provider (monthly budget), Upstash Redis (budget), Hostinger (renewals), Paymob (settlement reports).
+
 ## Deployment
 
 When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
