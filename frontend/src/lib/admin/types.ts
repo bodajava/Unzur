@@ -258,6 +258,8 @@ export interface VariantInput {
   salePrice?: number | null;
   stock?: number;
   isActive?: boolean;
+  /** Free attributes; `color` ("#rrggbb") is the swatch shown on the product page. */
+  attributes?: Record<string, unknown> | null;
 }
 
 export const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];

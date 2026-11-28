@@ -50,7 +50,7 @@ export const PRODUCT_CARD_SELECT = {
   /** Active versions, so a list can add to cart (or ask which version) without opening the product. */
   variants: {
     where: { isActive: true },
-    select: { id: true, name: true, nameAr: true, price: true, salePrice: true, stock: true },
+    select: { id: true, name: true, nameAr: true, price: true, salePrice: true, stock: true, attributes: true },
     orderBy: { price: 'asc' },
   },
 } as const satisfies Prisma.ProductSelect;

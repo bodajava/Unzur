@@ -15,6 +15,8 @@ export class CardVariantModel {
   @Field(() => Int) price: number;
   @Field(() => Int, { nullable: true }) salePrice: number | null;
   @Field(() => Int) stock: number;
+  /** Free attributes; `color` ("#rrggbb") is the version's swatch. */
+  @Field(() => JSONScalar, { nullable: true }) attributes: unknown;
 }
 
 @ObjectType('ProductCard')

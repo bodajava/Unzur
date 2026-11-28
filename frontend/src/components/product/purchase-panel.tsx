@@ -7,6 +7,7 @@ import { fmt, formatPrice, isFallback, localized } from "@/i18n/format";
 import { errorMessage } from "@/lib/api/errors";
 import { useAddToCart, useNotifyMe } from "@/lib/api/hooks";
 import type { ProductDetail } from "@/lib/api/types";
+import { colorOf, isLight } from "@/lib/colors";
 
 const MAX_PER_LINE = 100;
 
@@ -63,6 +64,8 @@ export function PurchasePanel({ product }: { product: ProductDetail }) {
     () => (variants.find((v) => v.stock > 0) ?? variants[0])?.id,
   );
   const variant = variants.find((v) => v.id === variantId);
+  // Every version has a colour: show colour circles instead of name buttons.
+  const swatches = variants.length > 0 && variants.every((v) => colorOf(v.attributes));
   const [qty, setQty] = useState(1);
 
   const price = variant ? (variant.salePrice ?? variant.price) : (product.salePrice ?? product.basePrice);
@@ -99,10 +102,40 @@ export function PurchasePanel({ product }: { product: ProductDetail }) {
         <fieldset className="mt-8">
           <legend id={groupId} className="eyebrow text-muted">
             {t.productPage.choose}
+            {/* With colour circles the name isn't on the button: say which one is picked. */}
+            {swatches && variant && (
+              <span lang={isFallback(lang, variant.nameAr) ? "en" : undefined} className="ms-2 normal-case tracking-normal text-ink">
+                {localized(lang, variant.name, variant.nameAr)}
+              </span>
+            )}
           </legend>
-          <div role="radiogroup" aria-labelledby={groupId} className="mt-3 flex flex-wrap gap-2">
+          <div role="radiogroup" aria-labelledby={groupId} className={`mt-3 flex flex-wrap ${swatches ? "gap-3" : "gap-2"}`}>
             {variants.map((v) => {
               const selected = v.id === variantId;
+              const color = colorOf(v.attributes);
+              const name = localized(lang, v.name, v.nameAr);
+              if (swatches) {
+                return (
+                  <button
+                    key={v.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    aria-label={v.stock <= 0 ? `${name} · ${t.productPage.outOfStock}` : name}
+                    title={name}
+                    onClick={() => choose(v.id)}
+                    className={`relative size-10 rounded-full transition-transform hover:scale-110 ${
+                      selected ? "ring-2 ring-ink ring-offset-2 ring-offset-canvas" : ""
+                    } ${isLight(color) ? "border border-ink/25" : ""} ${v.stock <= 0 ? "opacity-45" : ""}`}
+                    style={{ backgroundColor: color }}
+                  >
+                    {/* Sold out: a diagonal line across the circle. */}
+                    {v.stock <= 0 && (
+                      <span aria-hidden="true" className="absolute inset-0 m-auto h-px w-[130%] -translate-x-[11%] rotate-45 bg-ink" />
+                    )}
+                  </button>
+                );
+              }
               return (
                 <button
                   key={v.id}
@@ -111,11 +144,14 @@ export function PurchasePanel({ product }: { product: ProductDetail }) {
                   aria-checked={selected}
                   lang={isFallback(lang, v.nameAr) ? "en" : undefined}
                   onClick={() => choose(v.id)}
-                  className={`rounded-full border px-5 py-2 text-sm transition-colors ${
+                  className={`inline-flex items-center gap-2 rounded-full border px-5 py-2 text-sm transition-colors ${
                     selected ? "border-ink bg-ink text-canvas" : "border-ink/25 hover:border-ink"
                   } ${v.stock <= 0 ? "line-through decoration-1" : ""}`}
                 >
-                  {localized(lang, v.name, v.nameAr)}
+                  {color && (
+                    <span aria-hidden="true" className="size-3.5 rounded-full border border-current/30" style={{ backgroundColor: color }} />
+                  )}
+                  {name}
                 </button>
               );
             })}

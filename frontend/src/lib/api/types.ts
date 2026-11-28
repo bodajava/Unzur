@@ -96,6 +96,8 @@ export interface CardVariant {
   price: number;
   salePrice: number | null;
   stock: number;
+  /** `color` ("#rrggbb") is the version's swatch. */
+  attributes?: Record<string, unknown> | null;
 }
 
 export interface ProductImage extends ImageRef {

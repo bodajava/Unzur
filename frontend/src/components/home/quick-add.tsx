@@ -7,6 +7,7 @@ import { fmt, isFallback, localized } from "@/i18n/format";
 import { errorMessage } from "@/lib/api/errors";
 import { useAddToCart } from "@/lib/api/hooks";
 import type { ProductCard } from "@/lib/api/types";
+import { colorOf } from "@/lib/colors";
 
 /**
  * The card's footer: a hairline, then the price on one side and
@@ -66,8 +67,15 @@ export function QuickAdd({ product, price }: { product: ProductCard; price: Reac
               lang={isFallback(lang, v.nameAr) ? "en" : undefined}
               disabled={v.stock <= 0 || add.isPending}
               onClick={() => addLine(v.id)}
-              className="rounded-full border border-ink/25 px-3 py-1.5 text-xs transition-colors hover:border-ink hover:bg-ink hover:text-canvas disabled:pointer-events-none disabled:line-through disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 rounded-full border border-ink/25 px-3 py-1.5 text-xs transition-colors hover:border-ink hover:bg-ink hover:text-canvas disabled:pointer-events-none disabled:line-through disabled:opacity-40"
             >
+              {colorOf(v.attributes) && (
+                <span
+                  aria-hidden="true"
+                  className="size-3 rounded-full border border-current/30"
+                  style={{ backgroundColor: colorOf(v.attributes) }}
+                />
+              )}
               {localized(lang, v.name, v.nameAr)}
             </button>
           ))}

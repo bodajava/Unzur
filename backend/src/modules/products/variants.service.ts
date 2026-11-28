@@ -23,6 +23,19 @@ const toJsonInput = (value: Record<string, unknown> | null | undefined) =>
       ? Prisma.DbNull
       : (value as Prisma.InputJsonObject);
 
+/**
+ * attributes.color is the swatch shown on the product page: "#rrggbb".
+ * Validated and lower-cased here; other attribute keys pass through.
+ */
+export function withValidColor<T extends Record<string, unknown> | null | undefined>(attributes: T): T {
+  if (!attributes || attributes.color === undefined || attributes.color === null) return attributes;
+  const color = attributes.color;
+  if (typeof color !== 'string' || !/^#[0-9a-f]{6}$/i.test(color.trim())) {
+    throw new BadRequestException('Color must look like #d1342f');
+  }
+  return { ...attributes, color: color.trim().toLowerCase() };
+}
+
 @Injectable()
 export class VariantsService {
   constructor(
@@ -48,7 +61,7 @@ export class VariantsService {
         price: dto.price,
         salePrice: dto.salePrice ?? null,
         stock: dto.stock ?? 0,
-        attributes: toJsonInput(dto.attributes),
+        attributes: toJsonInput(withValidColor(dto.attributes)),
         isActive: dto.isActive ?? true,
       });
       await this.auditLogs.withTx(tx).record({
@@ -81,7 +94,7 @@ export class VariantsService {
         price: dto.price,
         salePrice: dto.salePrice,
         stock: dto.stock,
-        attributes: toJsonInput(dto.attributes),
+        attributes: toJsonInput(withValidColor(dto.attributes)),
         isActive: dto.isActive,
       });
       await this.auditLogs.withTx(tx).record({

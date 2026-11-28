@@ -247,6 +247,7 @@ input CancelOrderInput {
 }
 
 type CardVariant {
+  attributes: JSON
   id: ID!
   name: String!
   nameAr: String
