@@ -29,8 +29,18 @@ class NotFoundError extends Error {}
  */
 const building = process.env.NEXT_PHASE === "phase-production-build";
 
+/**
+ * A slow or restarting API must not hang a page (a crawler waiting on
+ * /sitemap.xml got a 500 after ~5 s): give up after this long and use the
+ * same short-lived fallback as an API error.
+ */
+const API_TIMEOUT_MS = 4_000;
+
 async function get<T>(path: string): Promise<T> {
-  const res = await fetch(`${apiUrl}${path}`, { headers: { accept: "application/json" } });
+  const res = await fetch(`${apiUrl}${path}`, {
+    headers: { accept: "application/json" },
+    signal: AbortSignal.timeout(API_TIMEOUT_MS),
+  });
   if (res.status === 404) throw new NotFoundError(path);
   if (!res.ok) throw new Error(`${path} -> ${res.status}`);
   return ((await res.json()) as ApiEnvelope<T>).data;
