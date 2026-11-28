@@ -36,6 +36,7 @@ export function priceCartLines(rows: CartDetailItemRow[]): {
       id: row.id,
       productId: row.productId,
       variantId: row.variantId,
+      choice: row.choice,
       quantity: row.quantity,
       product: {
         id: product.id,

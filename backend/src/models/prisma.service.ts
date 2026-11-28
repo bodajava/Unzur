@@ -26,7 +26,14 @@ function createClientOptions(config: ConfigService) {
  * (each also has its migration). Production then never depends on someone
  * running `prisma migrate deploy` by hand. Must stay idempotent.
  */
-const SCHEMA_PATCHES = [`ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "size_chart" JSONB`];
+const SCHEMA_PATCHES = [
+  `ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "size_chart" JSONB`,
+  `ALTER TABLE "cart_items" ADD COLUMN IF NOT EXISTS "choice" TEXT`,
+  `ALTER TABLE "order_items" ADD COLUMN IF NOT EXISTS "choice" TEXT`,
+  // One cart line per (product, version, choice): the Arabic and the English copy are two lines.
+  `CREATE UNIQUE INDEX IF NOT EXISTS "cart_items_cart_id_product_id_variant_id_choice_key" ON "cart_items"("cart_id", "product_id", "variant_id", "choice") NULLS NOT DISTINCT`,
+  `DROP INDEX IF EXISTS "cart_items_cart_id_product_id_variant_id_key"`,
+];
 
 @Injectable()
 export class PrismaService

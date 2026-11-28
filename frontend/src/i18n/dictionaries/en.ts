@@ -178,7 +178,7 @@ export const en = {
     recentlyViewed: "Recently viewed",
     gallery: "Photos of {name}",
     photo: "Photo {n} of {total}",
-    sizeChart: { close: "Close" },
+    sizeChart: { close: "Close", pick: "Choose one and it goes straight to your cart." },
   },
   reviews: {
     title: "Reviews",

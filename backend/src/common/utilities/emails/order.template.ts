@@ -25,6 +25,8 @@ export const STATUS_LABELS: Record<OrderStatus, { ar: string; en: string }> = {
 export interface OrderEmailItem {
   productName: string;
   variantName: string | null;
+  /** Size-chart choice picked (e.g. "English") */
+  choice?: string | null;
   quantity: number;
   priceAtPurchase: number;
   imageUrl?: string | null;
@@ -85,7 +87,8 @@ function itemRows(items: OrderEmailItem[], end: 'left' | 'right' = 'left'): stri
       const photo = img
         ? `<img src="${escapeHtml(img)}" width="56" height="56" alt="" style="display:block;width:56px;height:56px;object-fit:cover;border-radius:12px;background:${BRAND.haze};border:0">`
         : `<div style="width:56px;height:56px;border-radius:12px;background:${BRAND.haze}"></div>`;
-      const variant = i.variantName ? `<br><span style="color:${BRAND.muted};font-size:13px">${escapeHtml(i.variantName)}</span>` : '';
+      const detail = [i.variantName, i.choice].filter(Boolean).join(' · ');
+      const variant = detail ? `<br><span style="color:${BRAND.muted};font-size:13px">${escapeHtml(detail)}</span>` : '';
       return (
         `<tr><td width="68" style="padding:10px 0;border-bottom:1px solid ${BRAND.line};vertical-align:middle">${photo}</td>` +
         `<td style="padding:10px 8px;border-bottom:1px solid ${BRAND.line};vertical-align:middle"><b>${escapeHtml(i.productName)}</b>${variant}<br><span dir="ltr" style="color:${BRAND.muted};font-size:13px">× ${i.quantity} · ${money(i.priceAtPurchase)} EGP</span></td>` +
@@ -183,7 +186,7 @@ export function storeOrderEmail(brandName: string, d: StoreOrderEmailData, kind:
     `${headline}: ${d.orderNumber}`,
     `${d.customerName} | ${d.customerPhone} | ${d.customerEmail}`,
     [a.street, a.building, a.floor, a.apartment, a.city, a.governorate].filter(Boolean).join(', '),
-    ...d.items.map((i) => `- ${i.productName}${i.variantName ? ` (${i.variantName})` : ''} x${i.quantity}: ${money(i.priceAtPurchase * i.quantity)} EGP`),
+    ...d.items.map((i) => `- ${i.productName}${[i.variantName, i.choice].filter(Boolean).length ? ` (${[i.variantName, i.choice].filter(Boolean).join(', ')})` : ''} x${i.quantity}: ${money(i.priceAtPurchase * i.quantity)} EGP`),
     `Total: ${money(d.totalAmount)} EGP (${d.paymentMethod}, ${d.paymentStatus})`,
     d.notes ? `Note: ${d.notes}` : '',
     d.adminUrl,

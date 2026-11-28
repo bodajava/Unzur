@@ -3,6 +3,7 @@
 # ------------------------------------------------------
 
 input AddToCartInput {
+  choice: String
   productId: ID!
   quantity: Int!
   variantId: ID
@@ -271,6 +272,7 @@ type Cart {
 
 type CartLine {
   availableStock: Int!
+  choice: String
   hasEnoughStock: Boolean!
   id: ID!
   inStock: Boolean!
@@ -780,6 +782,7 @@ type OrderEvent {
 }
 
 type OrderItem {
+  choice: String
   id: ID!
   imageUrl: String
   priceAtPurchase: Int!

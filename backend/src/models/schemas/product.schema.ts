@@ -43,6 +43,8 @@ export const PRODUCT_CARD_SELECT = {
   salePrice: true,
   stock: true,
   isFeatured: true,
+  /** Raw JSON: toCard passes on only an enabled chart (quick add asks for the choice). */
+  sizeChart: true,
   createdAt: true,
   category: CATEGORY_REF,
   brand: BRAND_REF,

@@ -17,6 +17,8 @@ export class OrderItemModel {
   @Field(() => String, { nullable: true }) variantNameAr: string | null;
   @Field(() => Int) priceAtPurchase: number;
   @Field(() => String, { nullable: true }) imageUrl: string | null;
+  /** Size-chart choice picked (e.g. "عربي") */
+  @Field(() => String, { nullable: true }) choice: string | null;
   @Field(() => Int) quantity: number;
 }
 

@@ -5,13 +5,14 @@ import type {
   ProductSuggestRow,
 } from '../../../models/schemas/product.schema.js';
 import type { RatingSummary } from '../../../models/schemas/review.schema.js';
-import type { PublicSizeChart } from '../size-chart.js';
+import { publicSizeChart, type PublicSizeChart } from '../size-chart.js';
 
 type PrimaryImage = ProductCardRow['images'][number] | null;
 
 /** Public list item. Never contains costPrice / deletedAt. */
-export type ProductCard = Omit<ProductCardRow, 'images'> & {
+export type ProductCard = Omit<ProductCardRow, 'images' | 'sizeChart'> & {
   primaryImage: PrimaryImage;
+  sizeChart: PublicSizeChart | null;
   /** Approved reviews; only on list pages (null when there are none). */
   rating?: { average: number; count: number } | null;
 };
@@ -38,8 +39,8 @@ export type RecommendationReason = 'bought_together' | 'same_category' | 'featur
 export type Recommendation = ProductCard & { reason: RecommendationReason };
 
 export function toCard(row: ProductCardRow): ProductCard {
-  const { images, ...rest } = row;
-  return { ...rest, primaryImage: images[0] ?? null };
+  const { images, sizeChart, ...rest } = row;
+  return { ...rest, primaryImage: images[0] ?? null, sizeChart: publicSizeChart(sizeChart) };
 }
 
 export function toSuggestion(row: ProductSuggestRow): ProductSuggestion {

@@ -1,5 +1,6 @@
 import { Field, ID, InputType, Int } from '@nestjs/graphql';
-import { IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, IsUUID, Length, Max, Min } from 'class-validator';
+import { Trim } from '../../../common/decorators/index.js';
 
 export const MAX_LINE_QUANTITY = 100;
 
@@ -15,6 +16,14 @@ export class AddCartItemDto {
   @IsOptional()
   @IsUUID('4')
   variantId?: string;
+
+  /** Required when the product has a size chart: one of its choice names (e.g. "عربي"). */
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @Trim()
+  @IsString()
+  @Length(1, 30)
+  choice?: string;
 
   @Field(() => Int)
   @IsInt()

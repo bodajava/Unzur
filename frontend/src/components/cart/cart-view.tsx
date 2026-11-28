@@ -62,6 +62,11 @@ function Line({ line, onNavigate }: { line: CartLine; onNavigate?: () => void })
                 {localized(lang, line.variant.name, line.variant.nameAr)}
               </p>
             )}
+            {line.choice && (
+              <p dir="auto" className="mt-0.5 text-sm text-muted">
+                {line.choice}
+              </p>
+            )}
           </div>
           <p className="shrink-0 text-sm tabular-nums">{formatPrice(line.lineTotal, lang)}</p>
         </div>

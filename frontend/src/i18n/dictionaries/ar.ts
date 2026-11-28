@@ -197,7 +197,7 @@ export const ar: Dictionary = {
     recentlyViewed: "شاهدتها مؤخرًا",
     gallery: "صور {name}",
     photo: "صورة {n} من {total}",
-    sizeChart: { close: "اقفل" },
+    sizeChart: { close: "اقفل", pick: "اختار واحدة وهتتضاف للسلة على طول." },
   },
   reviews: {
     title: "التقييمات",

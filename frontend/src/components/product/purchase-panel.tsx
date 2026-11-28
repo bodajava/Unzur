@@ -1,13 +1,15 @@
 "use client";
 
-import { useId, useState } from "react";
-import { useCartDrawer } from "@/components/cart/cart-drawer-context";
+import { useId, useRef, useState } from "react";
+import { useFlyingAdd } from "@/components/cart/use-flying-add";
 import { useI18n } from "@/i18n/client";
 import { fmt, formatPrice, isFallback, localized } from "@/i18n/format";
 import { errorMessage } from "@/lib/api/errors";
-import { useAddToCart, useNotifyMe } from "@/lib/api/hooks";
+import { useNotifyMe } from "@/lib/api/hooks";
 import type { ProductDetail } from "@/lib/api/types";
 import { colorOf, imageIdOf, isLight } from "@/lib/colors";
+import { visibleElement } from "@/lib/motion/fly-to-cart";
+import { preloadChoices, useChoiceSheet } from "./choice-sheet";
 import { useProductSelection } from "./selection";
 
 const MAX_PER_LINE = 100;
@@ -56,9 +58,9 @@ function NotifyMe({ productId, variantId }: { productId: string; variantId?: str
 /** Price, version, quantity and "Add to cart" (or "Email me" when it's out of stock). */
 export function PurchasePanel({ product }: { product: ProductDetail }) {
   const { lang, t } = useI18n();
-  const { openCart } = useCartDrawer();
-  const add = useAddToCart();
+  const { add, run } = useFlyingAdd();
   const groupId = useId();
+  const addButton = useRef<HTMLButtonElement>(null);
 
   const variants = product.variants;
   const [variantId, setVariantId] = useState<string | undefined>(
@@ -91,8 +93,21 @@ export function PurchasePanel({ product }: { product: ProductDetail }) {
     add.reset();
   };
 
+  // With a size chart, "Add to cart" first asks which one (e.g. Arabic or English); the picked photo flies to the cart.
+  const chart = product.sizeChart?.options.length ? product.sizeChart : null;
+  const choice = useChoiceSheet(chart, (label, url, photo) =>
+    run({ productId: product.id, variantId: variant?.id, quantity: qty, choice: label }, photo, url),
+  );
+  const addToCart = () => {
+    add.reset();
+    if (chart) return choice.ask(addButton.current);
+    // Otherwise the product photo on screen takes off (or the button, when the gallery is scrolled away).
+    run({ productId: product.id, variantId: variant?.id, quantity: qty }, visibleElement("[data-fly-source]") ?? addButton.current, visibleElement("[data-fly-source]") ? undefined : product.images[0]?.url);
+  };
+
   return (
     <div>
+      {choice.sheet}
       <p className="flex items-baseline gap-3 text-2xl tabular-nums">
         <span>{formatPrice(price, lang)}</span>
         {compareAt !== null && (
@@ -200,11 +215,13 @@ export function PurchasePanel({ product }: { product: ProductDetail }) {
             </button>
           </div>
           <button
+            ref={addButton}
             type="button"
             disabled={add.isPending}
-            onClick={() =>
-              add.mutate({ productId: product.id, variantId: variant?.id, quantity: qty }, { onSuccess: () => openCart() })
-            }
+            onPointerEnter={() => preloadChoices(chart)}
+            onFocus={() => preloadChoices(chart)}
+            onTouchStart={() => preloadChoices(chart)}
+            onClick={addToCart}
             className="flex min-w-[12rem] flex-1 items-center justify-center gap-3 rounded-full bg-blue px-8 py-3.5 font-semibold text-haze transition-colors hover:bg-blue-deep disabled:opacity-60 dark:shadow-[0_0_40px_-8px_rgba(27,68,255,0.7)]"
           >
             {add.isPending ? t.productPage.adding : t.productPage.addToCart}

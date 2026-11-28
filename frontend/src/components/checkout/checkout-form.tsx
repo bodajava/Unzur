@@ -384,7 +384,7 @@ export function CheckoutForm() {
                   {line.product.name}
                 </p>
                 <p className="text-muted">
-                  {line.variant && <span lang={isFallback(lang, line.variant.nameAr) ? "en" : undefined}>{localized(lang, line.variant.name, line.variant.nameAr)} · </span>}× {line.quantity}
+                  {line.variant && <span lang={isFallback(lang, line.variant.nameAr) ? "en" : undefined}>{localized(lang, line.variant.name, line.variant.nameAr)} · </span>}{line.choice && <span dir="auto">{line.choice} · </span>}× {line.quantity}
                 </p>
               </div>
               <p className="text-sm tabular-nums">{formatPrice(line.lineTotal, lang)}</p>

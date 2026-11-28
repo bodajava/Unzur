@@ -30,7 +30,8 @@ function CartLink() {
       type="button"
       onClick={openCart}
       aria-haspopup="dialog"
-      className="nav-link whitespace-nowrap tabular-nums"
+      data-cart-target
+      className="nav-link inline-block whitespace-nowrap tabular-nums"
       aria-label={plural(lang, t.nav.cartLabel, count)}
     >
       {fmt(t.nav.cart, { count })}

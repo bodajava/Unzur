@@ -71,7 +71,7 @@ export class ProductRepository extends BaseRepository<
   findPublicById(id: string) {
     return this.db.product.findFirst({
       where: { id, ...PUBLIC_PRODUCT_WHERE },
-      select: { id: true, categoryId: true, stock: true },
+      select: { id: true, categoryId: true, stock: true, sizeChart: true },
     });
   }
 

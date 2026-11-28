@@ -48,7 +48,7 @@ export function ProductCard({
   return (
     <article className="group">
       <Link href={url} tabIndex={-1} aria-hidden className="block">
-        <div className="relative aspect-[4/5] overflow-hidden rounded-[10px] bg-panel dark:ring-1 dark:ring-white/8">
+        <div data-card-photo className="relative aspect-[4/5] overflow-hidden rounded-[10px] bg-panel dark:ring-1 dark:ring-white/8">
           {product.primaryImage ? (
             <Image
               src={product.primaryImage.url}

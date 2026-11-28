@@ -28,6 +28,8 @@ export class CartLineModel {
   @Field(() => ID) id: string;
   @Field(() => ID) productId: string;
   @Field(() => ID, { nullable: true }) variantId: string | null;
+  /** The size-chart choice picked (e.g. "English") */
+  @Field(() => String, { nullable: true }) choice: string | null;
   @Field(() => Int) quantity: number;
   @Field(() => CartLineProductModel) product: CartLineProductModel;
   @Field(() => CartLineVariantModel, { nullable: true }) variant: CartLineVariantModel | null;

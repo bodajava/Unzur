@@ -82,6 +82,8 @@ export interface ProductCard {
   category: CategoryRef;
   brand: BrandRef | null;
   primaryImage: ImageRef | null;
+  /** On when the store asks which one (e.g. Arabic or English) before adding to the cart. */
+  sizeChart?: { title: string; options: { label: string; url: string }[] } | null;
   /** Active versions (empty when the product has none). */
   variants: CardVariant[];
   /** Approved reviews (list pages only; null or missing when there are none). */
@@ -210,6 +212,8 @@ export interface CartLine {
   id: string;
   productId: string;
   variantId: string | null;
+  /** The size-chart choice picked (e.g. "English"). */
+  choice?: string | null;
   quantity: number;
   product: { id: string; name: string; nameAr?: string | null; slug: string; primaryImage: ImageRef | null };
   variant: { id: string; name: string; nameAr?: string | null; sku: string; attributes: unknown } | null;
@@ -247,6 +251,8 @@ export interface Cart {
 export interface AddToCartInput {
   productId: string;
   variantId?: string;
+  /** Required when the product has a size chart: one of its choice names. */
+  choice?: string;
   quantity: number;
 }
 
@@ -321,6 +327,8 @@ export interface OrderItem {
   variantNameAr?: string | null;
   priceAtPurchase: number;
   imageUrl: string | null;
+  /** The size-chart choice picked (e.g. "عربي"). */
+  choice?: string | null;
   quantity: number;
 }
 

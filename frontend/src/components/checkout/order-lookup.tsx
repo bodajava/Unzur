@@ -139,6 +139,7 @@ function OrderDetails({ order, contact, justPlaced, paymobSuccess }: { order: Or
                       {" "}· {localized(lang, item.variantName, item.variantNameAr)}
                     </span>
                   )}
+                  {item.choice && <span className="text-muted"> · <bdi>{item.choice}</bdi></span>}
                   <span className="text-muted"> × {item.quantity}</span>
                 </span>
                 <span className="tabular-nums">{formatPrice(item.priceAtPurchase * item.quantity, lang)}</span>

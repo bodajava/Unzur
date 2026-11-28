@@ -9,6 +9,7 @@ import { ProductRepository } from '../../models/repositories/product.repository.
 import { TransactionManager } from '../../models/repositories/transaction.manager.js';
 import type { CartDetailRow, CartOwner } from '../../models/schemas/cart.schema.js';
 import { CouponEvaluator } from '../coupons/coupon-evaluator.service.js';
+import { publicSizeChart, type PublicSizeChart } from '../products/size-chart.js';
 import { priceCartLines } from './cart-pricing.js';
 import { type AddCartItemDto, MAX_LINE_QUANTITY, type UpdateCartItemDto } from './dto/index.js';
 import type { AppliedCouponModel, CartModel } from './entities/cart.model.js';
@@ -39,17 +40,18 @@ export class CartService {
   async addItem(actor: Actor, dto: AddCartItemDto, email?: string): Promise<CartModel> {
     const owner = await this.ensureOwner(actor);
     const variantId = dto.variantId ?? null;
-    const stock = await this.availableStock(dto.productId, variantId);
+    const { stock, chart } = await this.availability(dto.productId, variantId);
+    const choice = this.resolveChoice(chart, dto.choice);
 
     const write = () =>
       this.tx.run(async (tx) => {
         const cart = await this.carts.withTx(tx).upsertForOwner(owner);
         const items = this.cartItems.withTx(tx);
-        const line = await items.lockLine(cart.id, dto.productId, variantId);
+        const line = await items.lockLine(cart.id, dto.productId, variantId, choice);
         const total = (line?.quantity ?? 0) + dto.quantity;
         this.assertQuantity(total, stock);
         if (line) await items.updateById(line.id, { quantity: total });
-        else await items.create({ cartId: cart.id, productId: dto.productId, variantId, quantity: dto.quantity });
+        else await items.create({ cartId: cart.id, productId: dto.productId, variantId, choice, quantity: dto.quantity });
       });
 
     try {
@@ -69,7 +71,7 @@ export class CartService {
     if (dto.quantity === 0) {
       await this.cartItems.delete({ id: item.id });
     } else {
-      this.assertQuantity(dto.quantity, await this.availableStock(item.productId, item.variantId));
+      this.assertQuantity(dto.quantity, (await this.availability(item.productId, item.variantId)).stock);
       await this.cartItems.updateById(item.id, { quantity: dto.quantity });
     }
     return this.view(owner, await this.carts.findDetailByOwner(owner), email);
@@ -111,7 +113,7 @@ export class CartService {
 
   /**
    * Moves a guest cart into the user's cart. Lines for the same
-   * (product, variant) are summed, so the NULLS NOT DISTINCT unique index
+   * (product, variant, choice) are summed, so the NULLS NOT DISTINCT unique index
    * on cart_items is never violated. Returns the number of guest lines merged.
    */
   mergeGuestCart(guestId: string, userId: string): Promise<number> {
@@ -129,7 +131,7 @@ export class CartService {
       }
 
       for (const item of guestCart.items) {
-        const existing = await items.findLine(userCart.id, item.productId, item.variantId);
+        const existing = await items.findLine(userCart.id, item.productId, item.variantId, item.choice);
         if (existing) {
           await items.updateById(existing.id, {
             quantity: Math.min(existing.quantity + item.quantity, MAX_LINE_QUANTITY),
@@ -172,22 +174,33 @@ export class CartService {
     return { owner, item };
   }
 
-  /** Validates product/variant and returns the stock that applies. */
-  private async availableStock(productId: string, variantId: string | null): Promise<number> {
+  /** Validates product/variant; returns the stock that applies and the product's size chart (if on). */
+  private async availability(productId: string, variantId: string | null) {
     const product = await this.products.findPublicById(productId);
     if (!product) throw new NotFoundException('Product not found');
+    const chart = publicSizeChart(product.sizeChart);
 
     if (!variantId) {
       if (await this.variants.exists({ productId, isActive: true })) {
         throw new BadRequestException('Please choose a variant of this product');
       }
-      return product.stock;
+      return { stock: product.stock, chart };
     }
     const variant = await this.variants.findById(variantId);
     if (!variant || variant.productId !== productId || !variant.isActive) {
       throw new NotFoundException('Variant not found');
     }
-    return variant.stock;
+    return { stock: variant.stock, chart };
+  }
+
+  /** With a size chart the customer must pick one of its choices; without one, no choice is kept. */
+  private resolveChoice(chart: PublicSizeChart | null, choice: string | undefined): string | null {
+    if (!chart) return null;
+    const match = chart.options.find((o) => o.label === choice);
+    if (!match) {
+      throw new BadRequestException(`Please choose: ${chart.options.map((o) => o.label).join(' / ')}`);
+    }
+    return match.label;
   }
 
   private assertQuantity(quantity: number, stock: number): void {

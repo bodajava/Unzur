@@ -6,7 +6,6 @@ import { Suspense } from "react";
 import { Gallery } from "@/components/product/gallery";
 import { PurchasePanel } from "@/components/product/purchase-panel";
 import { ProductSelection } from "@/components/product/selection";
-import { SizeChart } from "@/components/product/size-chart";
 import { imageIdOf } from "@/lib/colors";
 import { RecentlyViewed } from "@/components/product/recently-viewed";
 import { ReviewSection } from "@/components/product/review-section";
@@ -157,7 +156,6 @@ async function ProductView({ lang, t, params }: { lang: Locale; t: Dictionary; p
     <>
       <JsonLd data={productJsonLd(product, reviews, url, lang)} />
       <TrackView slug={slug} />
-      {product.sizeChart?.options.length ? <SizeChart chart={product.sizeChart} /> : null}
       <Breadcrumbs
         label={t.shop.breadcrumb}
         items={[

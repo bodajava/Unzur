@@ -128,7 +128,7 @@ export function renderInvoice(order: OrderWithItems, store: StoreInfo, images: I
       doc.addPage();
       y = 40;
     }
-    const name = item.variantName ? `${item.productName} - ${item.variantName}` : item.productName;
+    const name = [item.productName, item.variantName, item.choice].filter(Boolean).join(' - ');
     const img = item.imageUrl ? images.get(item.imageUrl) : undefined;
     const textY = withPhotos ? y + photo / 2 - 6 : y;
     let nameX = cols.item + 4;

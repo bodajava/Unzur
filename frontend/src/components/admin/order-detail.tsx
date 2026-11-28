@@ -89,6 +89,7 @@ export function OrderDetail({ id }: { id: string }) {
                   <span>
                     <span className="font-semibold">{localized(lang, item.productName, item.productNameAr)}</span>
                     {item.variantName && <span className="text-muted"> · {localized(lang, item.variantName, item.variantNameAr)}</span>}
+                    {item.choice && <span className="font-semibold text-blue"> · <bdi>{item.choice}</bdi></span>}
                     <span className="text-muted"> × {item.quantity}</span>
                     <span className="block text-xs text-muted tabular-nums">{formatPrice(item.priceAtPurchase, lang)}</span>
                   </span>

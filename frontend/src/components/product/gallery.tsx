@@ -60,7 +60,7 @@ function Photos({ name, images, start }: { name: string; images: ProductImage[];
       {/* Phones and tablets: swipeable strip */}
       <ul ref={strip} className="-mx-6 flex snap-x snap-mandatory scroll-px-6 gap-3 overflow-x-auto px-6 [scrollbar-width:none] sm:-mx-10 sm:scroll-px-10 sm:px-10 lg:hidden">
         {images.map((img, i) => (
-          <li key={img.id} className="relative aspect-[4/5] w-[min(80%,calc(58svh*0.8))] shrink-0 snap-start overflow-hidden rounded-2xl bg-panel">
+          <li key={img.id} data-fly-source className="relative aspect-[4/5] w-[min(80%,calc(58svh*0.8))] shrink-0 snap-start overflow-hidden rounded-2xl bg-panel">
             <Image
               src={img.url}
               alt={img.altText ?? fmt(t.productPage.photo, { n: i + 1, total: images.length })}
@@ -75,7 +75,7 @@ function Photos({ name, images, start }: { name: string; images: ProductImage[];
 
       {/* Desktop: large photo + thumbnails */}
       <div className="mx-auto hidden w-full max-w-[min(100%,calc(74svh*0.8))] lg:block">
-        <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-panel">
+        <div data-fly-source className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-panel">
           <Image
             key={current.id}
             src={current.url}

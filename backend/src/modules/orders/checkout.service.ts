@@ -255,6 +255,7 @@ export class CheckoutService {
           variantNameAr: line.variant?.nameAr ?? null,
           priceAtPurchase: line.unitPrice,
           imageUrl: line.product.primaryImage?.url ?? null,
+          choice: line.choice ?? null,
           quantity: line.quantity,
         })),
       },

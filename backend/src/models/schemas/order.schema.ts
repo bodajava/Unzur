@@ -15,6 +15,7 @@ const ORDER_ITEM_SELECT = {
   variantNameAr: true,
   priceAtPurchase: true,
   imageUrl: true,
+  choice: true,
   quantity: true,
 } as const satisfies Prisma.OrderItemSelect;
 
