@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, Logger, type OnApplicationBootstrap } from '@nestjs/common';
 import { isUUID } from 'class-validator';
 import { buildPaginationMeta, parseSortParam } from '../../common/dto/pagination-query.dto.js';
 import type { Paginated } from '../../common/interfaces/api-response.interface.js';
@@ -38,6 +38,7 @@ import {
   withStockStats,
 } from './entities/product.entity.js';
 import { buildProductWhere } from './product-filters.js';
+import { ProductVariantRepository } from '../../models/repositories/product-variant.repository.js';
 
 export const MAX_PRODUCT_IMAGES = 10;
 const RELATED_LIMIT = 6;
@@ -72,7 +73,9 @@ function pick(row: Partial<ProductEntity>, fields: readonly (keyof ProductEntity
 }
 
 @Injectable()
-export class ProductsService {
+export class ProductsService implements OnApplicationBootstrap {
+  private readonly logger = new Logger(ProductsService.name);
+
   constructor(
     private readonly products: ProductRepository,
     private readonly images: ProductImageRepository,
@@ -83,7 +86,18 @@ export class ProductsService {
     private readonly tx: TransactionManager,
     private readonly storage: StorageService,
     private readonly discovery: DiscoveryService,
+    private readonly variants: ProductVariantRepository,
   ) {}
+
+  /** Repairs stock of products sold in versions (sum of their versions) once on start-up. */
+  async onApplicationBootstrap(): Promise<void> {
+    try {
+      const fixed = await this.variants.syncAllProductStocks();
+      if (fixed) this.logger.log(`Synced stock of ${fixed} product(s) with their versions`);
+    } catch (error) {
+      this.logger.warn(`Stock sync skipped: ${(error as Error).message}`);
+    }
+  }
 
   // ───────────── 2.1 Public list ─────────────
 
@@ -256,6 +270,8 @@ export class ProductsService {
           brandId: dto.brandId,
         });
         await this.applyImagePlan(tx, id, imagePlan, stored, updated.name);
+        // Sold in versions: the stock is theirs (a typed product stock is ignored).
+        await this.variants.withTx(tx).syncProductStock(id);
 
         const before = pick(existing, AUDITED_FIELDS);
         const after = pick(updated, AUDITED_FIELDS);

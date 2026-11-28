@@ -7,7 +7,8 @@ import { fmt, formatPrice, isFallback, localized } from "@/i18n/format";
 import { errorMessage } from "@/lib/api/errors";
 import { useAddToCart, useNotifyMe } from "@/lib/api/hooks";
 import type { ProductDetail } from "@/lib/api/types";
-import { colorOf, isLight } from "@/lib/colors";
+import { colorOf, imageIdOf, isLight } from "@/lib/colors";
+import { useProductSelection } from "./selection";
 
 const MAX_PER_LINE = 100;
 
@@ -80,8 +81,12 @@ export function PurchasePanel({ product }: { product: ProductDetail }) {
   const max = Math.max(1, Math.min(stock, MAX_PER_LINE));
   const soldOut = stock <= 0;
 
+  const { setImageId } = useProductSelection();
   const choose = (id: string) => {
     setVariantId(id);
+    // Its own photo, if it has one; otherwise the gallery stays where it is.
+    const photo = imageIdOf(variants.find((v) => v.id === id)?.attributes);
+    if (photo) setImageId(photo);
     setQty(1);
     add.reset();
   };

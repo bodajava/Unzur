@@ -167,6 +167,9 @@ export function ProductForm({
   const [errors, setErrors] = useState<Errors>({});
   const [notice, setNotice] = useState<string | null>(savedNotice ?? null);
   const photos = usePhotos(product);
+  // Sold in versions: the product's stock is their total (the store keeps it in sync).
+  const activeVersions = product?.variants.filter((v) => v.isActive) ?? [];
+  const versionsStock = activeVersions.length ? activeVersions.reduce((sum, v) => sum + v.stock, 0) : null;
   const categories = useCategories();
   const brands = useBrands();
   const create = useCreateProduct();
@@ -227,7 +230,7 @@ export function ProductForm({
     else if (product) put("salePrice", "null");
     if (f.costPrice) put("costPrice", String(toPiasters(f.costPrice)));
     else if (product) put("costPrice", "null");
-    put("stock", String(Math.max(0, Number.parseInt(f.stock, 10) || 0)));
+    if (versionsStock === null) put("stock", String(Math.max(0, Number.parseInt(f.stock, 10) || 0)));
     put("lowStockThreshold", String(Math.max(0, Number.parseInt(f.lowStockThreshold, 10) || 0)));
     put("isActive", String(f.isActive));
     put("isFeatured", String(f.isFeatured));
@@ -415,13 +418,24 @@ export function ProductForm({
                 </Field>
                 <div className="grid grid-cols-2 gap-3">
                   <Field id={id("stock")} label={tp.stock}>
-                    <input id={id("stock")} type="number" min="0" inputMode="numeric" dir="ltr" value={f.stock} onChange={set("stock")} className={input} />
+                    {/* Sold in versions: the stock is the sum of theirs, kept by the store. */}
+                    <input
+                      id={id("stock")}
+                      type="number"
+                      min="0"
+                      inputMode="numeric"
+                      dir="ltr"
+                      value={versionsStock ?? f.stock}
+                      onChange={set("stock")}
+                      disabled={versionsStock !== null}
+                      className={`${input} disabled:opacity-60`}
+                    />
                   </Field>
                   <Field id={id("low")} label={tp.lowStock}>
                     <input id={id("low")} type="number" min="0" inputMode="numeric" dir="ltr" value={f.lowStockThreshold} onChange={set("lowStockThreshold")} className={input} />
                   </Field>
                 </div>
-                <p className="text-xs text-muted">{tp.stockHint}</p>
+                <p className="text-xs text-muted">{versionsStock !== null ? tp.stockFromVersions : tp.stockHint}</p>
               </div>
             </Panel>
 
@@ -471,7 +485,7 @@ export function ProductForm({
 
       {product && !readOnly && (
         <div className="mt-6">
-          <VariantsEditor productId={product.id} variants={product.variants} />
+          <VariantsEditor productId={product.id} variants={product.variants} images={product.images} />
         </div>
       )}
     </div>

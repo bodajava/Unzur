@@ -28,10 +28,10 @@ export const CART_DETAIL_INCLUDE = {
           stock: true,
           isActive: true,
           deletedAt: true,
+          // All photos (a product has at most a few): a colour's own photo is shown for its line.
           images: {
             select: { id: true, url: true, altText: true },
             orderBy: PRODUCT_IMAGE_ORDER,
-            take: 1,
           },
         },
       },

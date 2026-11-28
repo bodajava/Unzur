@@ -8,6 +8,7 @@ import { ProductRepository } from '../../models/repositories/product.repository.
 import { TransactionManager } from '../../models/repositories/transaction.manager.js';
 import type { ProductVariantEntity } from '../../models/schemas/product-variant.schema.js';
 import type { CreateVariantDto, UpdateVariantDto } from './dto/index.js';
+import { ProductImageRepository } from '../../models/repositories/product-image.repository.js';
 
 const ENTITY = 'ProductVariant';
 
@@ -42,6 +43,7 @@ export class VariantsService {
     private readonly variants: ProductVariantRepository,
     private readonly products: ProductRepository,
     private readonly orderItems: OrderItemRepository,
+    private readonly images: ProductImageRepository,
     private readonly auditLogs: AuditLogRepository,
     private readonly tx: TransactionManager,
   ) {}
@@ -53,6 +55,7 @@ export class VariantsService {
       throw new NotFoundException('Product not found');
     }
     return this.tx.run(async (tx) => {
+      const attributes = withValidColor(await this.withValidImage(productId, dto.attributes));
       const variant = await this.variants.withTx(tx).create({
         productId,
         name: dto.name,
@@ -61,9 +64,10 @@ export class VariantsService {
         price: dto.price,
         salePrice: dto.salePrice ?? null,
         stock: dto.stock ?? 0,
-        attributes: toJsonInput(withValidColor(dto.attributes)),
+        attributes: toJsonInput(attributes),
         isActive: dto.isActive ?? true,
       });
+      await this.variants.withTx(tx).syncProductStock(productId);
       await this.auditLogs.withTx(tx).record({
         ...audit,
         action: 'VARIANT_CREATED',
@@ -86,6 +90,7 @@ export class VariantsService {
       throw new BadRequestException('salePrice must be less than price');
     }
 
+    const attributes = withValidColor(await this.withValidImage(existing.productId, dto.attributes));
     return this.tx.run(async (tx) => {
       const variant = await this.variants.withTx(tx).updateById(id, {
         name: dto.name,
@@ -94,9 +99,10 @@ export class VariantsService {
         price: dto.price,
         salePrice: dto.salePrice,
         stock: dto.stock,
-        attributes: toJsonInput(withValidColor(dto.attributes)),
+        attributes: toJsonInput(attributes),
         isActive: dto.isActive,
       });
+      await this.variants.withTx(tx).syncProductStock(existing.productId);
       await this.auditLogs.withTx(tx).record({
         ...audit,
         action: 'VARIANT_UPDATED',
@@ -122,6 +128,7 @@ export class VariantsService {
     return this.tx.run(async (tx) => {
       if (ordered) {
         await this.variants.withTx(tx).updateById(id, { isActive: false });
+        await this.variants.withTx(tx).syncProductStock(existing.productId);
         await this.auditLogs.withTx(tx).record({
           ...audit,
           action: 'VARIANT_DEACTIVATED',
@@ -138,6 +145,7 @@ export class VariantsService {
         } as const;
       }
       await this.variants.withTx(tx).delete({ id });
+      await this.variants.withTx(tx).syncProductStock(existing.productId);
       await this.auditLogs.withTx(tx).record({
         ...audit,
         action: 'VARIANT_DELETED',
@@ -147,6 +155,17 @@ export class VariantsService {
       });
       return { id, deleted: true, deactivated: false } as const;
     });
+  }
+
+  /** attributes.imageId (the version's own photo) must be one of this product's photos. */
+  private async withValidImage<T extends Record<string, unknown> | null | undefined>(productId: string, attributes: T): Promise<T> {
+    if (!attributes || attributes.imageId === undefined || attributes.imageId === null) return attributes;
+    const imageId = attributes.imageId;
+    const photos = await this.images.findByProduct(productId);
+    if (typeof imageId !== 'string' || !photos.some((p) => p.id === imageId)) {
+      throw new BadRequestException("That photo isn't one of this product's photos");
+    }
+    return attributes;
   }
 
   private async getLive(id: string): Promise<ProductVariantEntity> {

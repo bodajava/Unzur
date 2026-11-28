@@ -12,3 +12,9 @@ export function isLight(hex: string): boolean {
   const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
   return 0.299 * r + 0.587 * g + 0.114 * b > 200;
 }
+
+/** The id of a version's own product photo (attributes.imageId), or "". */
+export function imageIdOf(attributes: unknown): string {
+  const id = attributes && typeof attributes === "object" ? (attributes as Record<string, unknown>).imageId : undefined;
+  return typeof id === "string" ? id : "";
+}

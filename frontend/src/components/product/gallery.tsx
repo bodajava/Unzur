@@ -1,11 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { EyeMark } from "@/components/brand/logo";
 import { useI18n } from "@/i18n/client";
 import { fmt } from "@/i18n/format";
 import type { ProductImage } from "@/lib/api/types";
+import { useProductSelection } from "./selection";
 
 function initials(name: string) {
   return name
@@ -21,25 +22,43 @@ function initials(name: string) {
  * No photos yet: the piece's initials on the panel colour, with the eye.
  */
 export function Gallery({ name, images }: { name: string; images: ProductImage[] }) {
-  const { t } = useI18n();
-  const [active, setActive] = useState(0);
+  const { imageId } = useProductSelection();
+  if (!images.length) return <NoPhotos name={name} />;
+  // A colour with its own photo opens the gallery on it (remounted per choice).
+  const start = Math.max(0, images.findIndex((img) => img.id === imageId));
+  return <Photos key={imageId ?? "main"} name={name} images={images} start={start} />;
+}
 
-  if (!images.length) {
-    return (
+function NoPhotos({ name }: { name: string }) {
+  return (
       <div className="relative mx-auto grid aspect-[4/5] w-full max-w-[min(100%,calc(58svh*0.8))] place-items-center overflow-hidden rounded-2xl bg-panel lg:max-w-[min(100%,calc(74svh*0.8))] dark:ring-1 dark:ring-white/8">
         <span aria-hidden lang="en" className="display text-[clamp(5rem,14vw,12rem)] text-soft">
           {initials(name)}
         </span>
         <EyeMark idle className="absolute bottom-6 start-6 w-12 text-soft" />
       </div>
-    );
-  }
+  );
+}
+
+function Photos({ name, images, start }: { name: string; images: ProductImage[]; start: number }) {
+  const { t } = useI18n();
+  const [active, setActive] = useState(start);
+  const strip = useRef<HTMLUListElement>(null);
+
+  // Phones: slide the strip to the colour's photo without moving the page.
+  useEffect(() => {
+    const ul = strip.current;
+    const li = ul?.children[start] as HTMLElement | undefined;
+    if (!ul || !li || start === 0) return;
+    const pad = parseFloat(getComputedStyle(ul).scrollPaddingLeft) || 0;
+    ul.scrollBy({ left: li.getBoundingClientRect().left - ul.getBoundingClientRect().left - pad, behavior: "smooth" });
+  }, [start]);
 
   const current = images[Math.min(active, images.length - 1)];
   return (
     <div aria-label={fmt(t.productPage.gallery, { name })} role="region">
       {/* Phones and tablets: swipeable strip */}
-      <ul className="-mx-6 flex snap-x snap-mandatory scroll-px-6 gap-3 overflow-x-auto px-6 [scrollbar-width:none] sm:-mx-10 sm:scroll-px-10 sm:px-10 lg:hidden">
+      <ul ref={strip} className="-mx-6 flex snap-x snap-mandatory scroll-px-6 gap-3 overflow-x-auto px-6 [scrollbar-width:none] sm:-mx-10 sm:scroll-px-10 sm:px-10 lg:hidden">
         {images.map((img, i) => (
           <li key={img.id} className="relative aspect-[4/5] w-[min(80%,calc(58svh*0.8))] shrink-0 snap-start overflow-hidden rounded-2xl bg-panel">
             <Image

@@ -44,6 +44,7 @@ function setup() {
     tx as never,
     storage as never,
     {} as never,
+    {} as never, // versions (stock sync)
   );
   return { service, products, storage, tx };
 }

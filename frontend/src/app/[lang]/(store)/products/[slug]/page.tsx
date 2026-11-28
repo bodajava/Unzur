@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Gallery } from "@/components/product/gallery";
 import { PurchasePanel } from "@/components/product/purchase-panel";
+import { ProductSelection } from "@/components/product/selection";
+import { imageIdOf } from "@/lib/colors";
 import { RecentlyViewed } from "@/components/product/recently-viewed";
 import { ReviewSection } from "@/components/product/review-section";
 import { TrackView } from "@/components/product/track-view";
@@ -163,6 +165,10 @@ async function ProductView({ lang, t, params }: { lang: Locale; t: Dictionary; p
         ]}
       />
 
+      {/* The version shown first (first in stock) opens the gallery on its own photo. */}
+      <ProductSelection
+        initialImageId={imageIdOf((product.variants.find((v) => v.stock > 0) ?? product.variants[0])?.attributes) || null}
+      >
       <div className="mt-6 grid gap-10 lg:mt-10 lg:grid-cols-12 lg:gap-14">
         <div className="lg:col-span-6">
           <Gallery name={c.name} images={product.images} />
@@ -207,6 +213,7 @@ async function ProductView({ lang, t, params }: { lang: Locale; t: Dictionary; p
           </div>
         </div>
       </div>
+      </ProductSelection>
 
       <ReviewSection productId={product.id} initial={reviews} />
 

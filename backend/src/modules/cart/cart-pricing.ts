@@ -1,6 +1,12 @@
 import type { CartDetailItemRow } from '../../models/schemas/cart.schema.js';
 import type { CartLineModel } from './entities/cart.model.js';
 
+/** The photo chosen for a version in the dashboard (attributes.imageId), if it still exists. */
+export function variantImage<T extends { id: string }>(images: T[], attributes: unknown): T | undefined {
+  const id = attributes && typeof attributes === 'object' ? (attributes as Record<string, unknown>).imageId : undefined;
+  return typeof id === 'string' ? images.find((img) => img.id === id) : undefined;
+}
+
 /**
  * Pure pricing of cart lines (no I/O), shared by the cart and coupons.
  * Unit price = variant (sale ?? price) when a variant is chosen, else
@@ -36,7 +42,7 @@ export function priceCartLines(rows: CartDetailItemRow[]): {
         name: product.name,
         nameAr: product.nameAr,
         slug: product.slug,
-        primaryImage: product.images[0] ?? null,
+        primaryImage: variantImage(product.images, variant?.attributes) ?? product.images[0] ?? null,
       },
       variant: variant
         ? { id: variant.id, name: variant.name, nameAr: variant.nameAr, sku: variant.sku, attributes: variant.attributes }

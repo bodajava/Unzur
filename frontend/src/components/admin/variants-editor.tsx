@@ -1,11 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { useI18n } from "@/i18n/client";
 import { useAddVariant, useDeleteVariant, useUpdateVariant } from "@/lib/admin/api";
-import type { AdminVariant } from "@/lib/admin/types";
+import type { AdminImage, AdminVariant } from "@/lib/admin/types";
 import { errorMessage } from "@/lib/api/errors";
-import { colorOf } from "@/lib/colors";
+import { colorOf, imageIdOf } from "@/lib/colors";
 import { MONEY, toEgp, toPiasters } from "./money";
 import { Panel } from "./ui";
 
@@ -19,6 +20,8 @@ interface Row {
   isActive: boolean;
   /** "#rrggbb", or "" for none. */
   color: string;
+  /** The version's own product photo, or "" for the main photo. */
+  imageId: string;
 }
 
 const fromVariant = (v: AdminVariant): Row => ({
@@ -30,15 +33,83 @@ const fromVariant = (v: AdminVariant): Row => ({
   stock: String(v.stock),
   isActive: v.isActive,
   color: colorOf(v.attributes),
+  imageId: imageIdOf(v.attributes),
 });
-const EMPTY: Row = { name: "", nameAr: "", sku: "", price: "", sale: "", stock: "0", isActive: true, color: "" };
+const EMPTY: Row = { name: "", nameAr: "", sku: "", price: "", sale: "", stock: "0", isActive: true, color: "", imageId: "" };
 
-/** The version's other attributes kept as they are, with the colour set or removed. */
-function withColor(attributes: Record<string, unknown> | null | undefined, color: string): Record<string, unknown> | null {
+/** The version's other attributes kept as they are, with colour and photo set or removed. */
+function withSwatch(
+  attributes: Record<string, unknown> | null | undefined,
+  row: Pick<Row, "color" | "imageId">,
+): Record<string, unknown> | null {
   const next: Record<string, unknown> = { ...(attributes ?? {}) };
   delete next.color;
-  if (color) next.color = color;
+  delete next.imageId;
+  if (row.color) next.color = row.color;
+  if (row.imageId) next.imageId = row.imageId;
   return Object.keys(next).length ? next : null;
+}
+
+/** Thumbnail button that opens the product's photos; picking one makes it this version's photo. */
+function PhotoPick({ images, value, onChange }: { images: AdminImage[]; value: string; onChange: (id: string) => void }) {
+  const { t } = useI18n();
+  const tp = t.admin.product;
+  const [open, setOpen] = useState(false);
+  const current = images.find((i) => i.id === value);
+  if (!images.length) {
+    return <span className="text-center text-[0.65rem] leading-tight text-muted" title={tp.needPhotos}>—</span>;
+  }
+  return (
+    <div className="relative flex items-center justify-center">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-label={current ? `${tp.variantPhoto}: ${current.altText ?? ""}` : tp.pickPhoto}
+        title={current ? tp.variantPhoto : tp.noPhoto}
+        className={`relative size-10 overflow-hidden rounded-lg border-2 ${current ? "border-ink/30" : "border-dashed border-ink/40"}`}
+      >
+        {current ? (
+          <Image src={current.url} alt="" fill sizes="40px" className="object-cover" />
+        ) : (
+          <span aria-hidden="true" className="text-xs text-muted">+</span>
+        )}
+      </button>
+      {open && (
+        <div className="absolute top-12 z-20 w-56 rounded-xl border border-ink/15 bg-canvas p-3 shadow-xl">
+          <div className="grid grid-cols-3 gap-2">
+            {images.map((img) => (
+              <button
+                key={img.id}
+                type="button"
+                aria-pressed={img.id === value}
+                aria-label={img.altText ?? tp.variantPhoto}
+                onClick={() => {
+                  onChange(img.id);
+                  setOpen(false);
+                }}
+                className={`relative aspect-square overflow-hidden rounded-lg ${img.id === value ? "ring-2 ring-ink ring-offset-2 ring-offset-canvas" : "opacity-80 hover:opacity-100"}`}
+              >
+                <Image src={img.url} alt="" fill sizes="64px" className="object-cover" />
+              </button>
+            ))}
+          </div>
+          {value && (
+            <button
+              type="button"
+              onClick={() => {
+                onChange("");
+                setOpen(false);
+              }}
+              className="nav-link mt-2 text-xs text-muted"
+            >
+              {tp.noPhoto}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 /** Quick picks; any other colour comes from the picker. */
@@ -57,7 +128,7 @@ function valid(r: Row) {
   );
 }
 
-function Fields({ row, onChange }: { row: Row; onChange: (r: Row) => void }) {
+function Fields({ row, onChange, images }: { row: Row; onChange: (r: Row) => void; images: AdminImage[] }) {
   const { t } = useI18n();
   const tp = t.admin.product;
   const set = (k: keyof Row) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -138,6 +209,7 @@ function Fields({ row, onChange }: { row: Row; onChange: (r: Row) => void }) {
           </div>
         )}
       </div>
+      <PhotoPick images={images} value={row.imageId} onChange={(imageId) => onChange({ ...row, imageId })} />
       <label className="flex items-center justify-center">
         <input type="checkbox" checked={row.isActive} onChange={set("isActive")} aria-label={tp.variantActive} className="size-4 accent-[var(--color-ink)]" />
       </label>
@@ -145,7 +217,7 @@ function Fields({ row, onChange }: { row: Row; onChange: (r: Row) => void }) {
   );
 }
 
-function ExistingRow({ productId, variant }: { productId: string; variant: AdminVariant }) {
+function ExistingRow({ productId, variant, images }: { productId: string; variant: AdminVariant; images: AdminImage[] }) {
   const { t } = useI18n();
   const tp = t.admin.product;
   const [row, setRow] = useState<Row>(() => fromVariant(variant));
@@ -154,8 +226,8 @@ function ExistingRow({ productId, variant }: { productId: string; variant: Admin
   const dirty = JSON.stringify(row) !== JSON.stringify(fromVariant(variant));
   return (
     <li className="py-3">
-      <div className="grid grid-cols-2 items-center gap-2 sm:grid-cols-[1.4fr_1fr_0.8fr_0.8fr_0.6fr_3.5rem_3.5rem_9rem]">
-        <Fields row={row} onChange={setRow} />
+      <div className="grid grid-cols-2 items-center gap-2 sm:grid-cols-[1.4fr_1fr_0.8fr_0.8fr_0.6fr_3.5rem_3.5rem_3.5rem_9rem]">
+        <Fields row={row} onChange={setRow} images={images} />
         <div className="col-span-2 flex justify-end gap-2 sm:col-span-1">
           <button
             type="button"
@@ -171,7 +243,7 @@ function ExistingRow({ productId, variant }: { productId: string; variant: Admin
                   salePrice: row.sale ? toPiasters(row.sale) : null,
                   stock: Number(row.stock),
                   isActive: row.isActive,
-                  attributes: withColor(variant.attributes, row.color),
+                  attributes: withSwatch(variant.attributes, row),
                 },
               })
             }
@@ -194,7 +266,7 @@ function ExistingRow({ productId, variant }: { productId: string; variant: Admin
   );
 }
 
-export function VariantsEditor({ productId, variants }: { productId: string; variants: AdminVariant[] }) {
+export function VariantsEditor({ productId, variants, images }: { productId: string; variants: AdminVariant[]; images: AdminImage[] }) {
   const { t } = useI18n();
   const tp = t.admin.product;
   const [draft, setDraft] = useState<Row>(EMPTY);
@@ -203,21 +275,23 @@ export function VariantsEditor({ productId, variants }: { productId: string; var
   return (
     <Panel title={tp.variants}>
       <p className="mb-1 text-sm text-muted">{tp.variantsHint}</p>
-      <p className="mb-4 text-sm text-muted">{tp.colorHint}</p>
-      <div className="hidden grid-cols-[1.4fr_1fr_0.8fr_0.8fr_0.6fr_3.5rem_3.5rem_9rem] gap-2 px-0.5 text-xs text-muted sm:grid">
+      <p className="mb-1 text-sm text-muted">{tp.colorHint}</p>
+      <p className="mb-4 text-sm text-muted">{images.length ? tp.photoHint : tp.needPhotos}</p>
+      <div className="hidden grid-cols-[1.4fr_1fr_0.8fr_0.8fr_0.6fr_3.5rem_3.5rem_3.5rem_9rem] gap-2 px-0.5 text-xs text-muted sm:grid">
         <span>{tp.variantName}</span>
         <span>{tp.variantSku}</span>
         <span>{tp.variantPrice}</span>
         <span>{tp.variantSale}</span>
         <span>{tp.variantStock}</span>
         <span className="text-center">{tp.variantColor}</span>
+        <span className="text-center">{tp.variantPhoto}</span>
         <span className="text-center">{tp.variantActive}</span>
         <span />
       </div>
       {variants.length === 0 && <p className="py-3 text-sm text-muted">{tp.noVariants}</p>}
       <ul className="divide-y divide-ink/10">
         {variants.map((v) => (
-          <ExistingRow key={`${v.id}-${v.price}-${v.stock}-${v.isActive}-${v.name}-${v.nameAr}-${v.sku}-${v.salePrice}-${colorOf(v.attributes)}`} productId={productId} variant={v} />
+          <ExistingRow key={`${v.id}-${v.price}-${v.stock}-${v.isActive}-${v.name}-${v.nameAr}-${v.sku}-${v.salePrice}-${colorOf(v.attributes)}-${imageIdOf(v.attributes)}`} productId={productId} variant={v} images={images} />
         ))}
       </ul>
       <form
@@ -234,14 +308,14 @@ export function VariantsEditor({ productId, variants }: { productId: string; var
               salePrice: draft.sale ? toPiasters(draft.sale) : undefined,
               stock: Number(draft.stock),
               isActive: draft.isActive,
-              attributes: withColor(null, draft.color) ?? undefined,
+              attributes: withSwatch(null, draft) ?? undefined,
             },
             { onSuccess: () => setDraft(EMPTY) },
           );
         }}
       >
-        <div className="grid grid-cols-2 items-center gap-2 sm:grid-cols-[1.4fr_1fr_0.8fr_0.8fr_0.6fr_3.5rem_3.5rem_9rem]">
-          <Fields row={draft} onChange={setDraft} />
+        <div className="grid grid-cols-2 items-center gap-2 sm:grid-cols-[1.4fr_1fr_0.8fr_0.8fr_0.6fr_3.5rem_3.5rem_3.5rem_9rem]">
+          <Fields row={draft} onChange={setDraft} images={images} />
           <button
             type="submit"
             disabled={!valid(draft) || add.isPending}

@@ -68,10 +68,44 @@ export class ProductVariantRepository extends BaseRepository<
       where: { id, stock: { gte: quantity } },
       data: { stock: { decrement: quantity } },
     });
+    if (count === 1) await this.syncStockOfVariantProduct(id);
     return count === 1;
   }
 
   async incrementStock(id: string, quantity: number): Promise<void> {
     await this.db.productVariant.update({ where: { id }, data: { stock: { increment: quantity } } });
+    await this.syncStockOfVariantProduct(id);
+  }
+
+  /**
+   * A product sold in versions has no stock of its own: its stock is the sum of
+   * its active versions'. Kept in sync on every version change so cards,
+   * filters, "notify me", Google data and the dashboard never call a product
+   * "in stock" when every version is sold out. Products without active versions
+   * keep their own stock untouched.
+   */
+  async syncProductStock(productId: string): Promise<void> {
+    await this.db.$executeRaw`
+      UPDATE products SET stock = (
+        SELECT COALESCE(SUM(stock), 0) FROM product_variants WHERE product_id = ${productId}::uuid AND is_active
+      ), updated_at = now()
+      WHERE id = ${productId}::uuid
+        AND EXISTS (SELECT 1 FROM product_variants WHERE product_id = ${productId}::uuid AND is_active)`;
+  }
+
+  private async syncStockOfVariantProduct(variantId: string): Promise<void> {
+    const row = await this.db.productVariant.findUnique({ where: { id: variantId }, select: { productId: true } });
+    if (row) await this.syncProductStock(row.productId);
+  }
+
+  /** Every product with active versions, at once (on start-up: repairs stock set before this rule existed). */
+  async syncAllProductStocks(): Promise<number> {
+    return this.db.$executeRaw`
+      UPDATE products p SET stock = v.total, updated_at = now()
+      FROM (
+        SELECT product_id, COALESCE(SUM(stock), 0)::int AS total
+        FROM product_variants WHERE is_active GROUP BY product_id
+      ) v
+      WHERE p.id = v.product_id AND p.stock <> v.total`;
   }
 }
