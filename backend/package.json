@@ -28,7 +28,8 @@
     "demo:seed": "node scripts/demo-data.mjs seed",
     "demo:clean": "node scripts/demo-data.mjs clean",
     "db:backup": "bash scripts/db-backup.sh",
-    "db:restore": "bash scripts/db-restore.sh"
+    "db:restore": "bash scripts/db-restore.sh",
+    "reset:launch": "node scripts/reset-for-launch.mjs"
   },
   "dependencies": {
     "@apollo/server": "^5.5.2",
