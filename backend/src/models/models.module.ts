@@ -1,3 +1,4 @@
+import { LaunchResetRepository } from './repositories/launch-reset.repository.js';
 import { Global, Module } from '@nestjs/common';
 import { PrismaService } from './prisma.service.js';
 import {
@@ -64,6 +65,7 @@ const REPOSITORIES = [
   ShippingZoneRepository,
   StoreSettingRepository,
   ProductImageRepository,
+  LaunchResetRepository,
   ProductVariantRepository,
   ProductViewRepository,
   RecentlyViewedRepository,
