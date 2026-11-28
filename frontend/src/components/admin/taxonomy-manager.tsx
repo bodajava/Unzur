@@ -5,9 +5,10 @@ import { useEffect, useId, useState } from "react";
 import { useI18n } from "@/i18n/client";
 import { fmt, localized, plural } from "@/i18n/format";
 import { catalogApi, useTaxonomy, useTaxonomyChange, type Taxonomy } from "@/lib/admin/api";
-import { IMAGE_TYPES, MAX_IMAGE_BYTES, type AdminBrand, type AdminCategory } from "@/lib/admin/types";
+import { type AdminBrand, type AdminCategory } from "@/lib/admin/types";
 import { errorMessage } from "@/lib/api/errors";
 import { Panel, Skeleton } from "./ui";
+import { prepareImage } from "@/lib/admin/prepare-image";
 
 type Item = AdminCategory | AdminBrand;
 const imageOf = (item: Item) => ("imageUrl" in item ? item.imageUrl : item.logoUrl);
@@ -134,17 +135,20 @@ function Editor({
               <input
                 id={`${uid}-file`}
                 type="file"
-                accept={IMAGE_TYPES.join(",")}
+                accept="image/*,.heic,.heif"
                 className="sr-only"
                 onChange={(e) => {
-                  const file = e.target.files?.[0];
+                  const raw = e.target.files?.[0];
                   e.target.value = "";
-                  if (!file) return;
-                  if (!IMAGE_TYPES.includes(file.type)) return setProblem(fmt(t.admin.product.badType, { name: file.name }));
-                  if (file.size > MAX_IMAGE_BYTES) return setProblem(fmt(t.admin.product.tooBig, { name: file.name }));
+                  if (!raw) return;
                   setProblem(null);
-                  setD((p) => ({ ...p, file }));
-                  setPreview(URL.createObjectURL(file));
+                  // Big phone photos and HEIC are shrunk and converted first.
+                  prepareImage(raw)
+                    .then((file) => {
+                      setD((p) => ({ ...p, file }));
+                      setPreview(URL.createObjectURL(file));
+                    })
+                    .catch(() => setProblem(fmt(t.admin.product.unreadable, { name: raw.name })));
                 }}
               />
             </label>

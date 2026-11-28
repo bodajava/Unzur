@@ -759,6 +759,8 @@ export const ar: Dictionary = {
       undoRemove: "خلّي الصورة",
       newBadge: "جديدة",
       tooBig: "{name} أكبر من 5 ميجا.",
+      unreadable: "{name} مش قادرين نفتحها كصورة. لو من الآيفون، ابعتها من الصور كـ JPG (أو استخدم Safari) وجرّب تاني.",
+      preparingPhotos: "بنجهّز الصور (بنخففها)…",
       badType: "{name} مش صورة JPG أو PNG أو WebP أو AVIF.",
       tooMany: "المنتج ليه {max} صور بحد أقصى.",
       save: "احفظ التغييرات",

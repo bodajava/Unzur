@@ -705,6 +705,8 @@ export const en = {
       undoRemove: "Keep photo",
       newBadge: "New",
       tooBig: "{name} is larger than 5 MB.",
+      unreadable: "{name} couldn't be opened as a photo. On iPhone, share it from Photos as JPG (or use Safari) and try again.",
+      preparingPhotos: "Preparing photos (making them lighter)…",
       badType: "{name} isn't a JPG, PNG, WebP or AVIF photo.",
       tooMany: "A product can have {max} photos at most.",
       save: "Save changes",

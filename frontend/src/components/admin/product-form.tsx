@@ -7,7 +7,8 @@ import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "rea
 import { useI18n } from "@/i18n/client";
 import { fmt, localized } from "@/i18n/format";
 import { useCreateProduct, useDeleteProduct, useUpdateProduct } from "@/lib/admin/api";
-import { IMAGE_TYPES, MAX_IMAGE_BYTES, MAX_IMAGES, type AdminProduct } from "@/lib/admin/types";
+import { MAX_IMAGES, type AdminProduct } from "@/lib/admin/types";
+import { prepareImage } from "@/lib/admin/prepare-image";
 import { ApiError } from "@/lib/api/client";
 import { errorMessage } from "@/lib/api/errors";
 import { useBrands, useCategories } from "@/lib/api/hooks";
@@ -82,6 +83,7 @@ function usePhotos(product?: AdminProduct) {
   const [removed, setRemoved] = useState<Set<string>>(new Set());
   const [added, setAdded] = useState<{ file: File; url: string }[]>([]);
   const [problem, setProblem] = useState<string | null>(null);
+  const [preparing, setPreparing] = useState(false);
   // Keep the latest previews for the unmount cleanup (object URLs must be released).
   const addedRef = useRef(added);
   useEffect(() => {
@@ -97,6 +99,7 @@ function usePhotos(product?: AdminProduct) {
     added,
     problem,
     setProblem,
+    preparing,
     move: (id: string, by: -1 | 1) =>
       setOrder((o) => {
         const i = o.indexOf(id);
@@ -114,26 +117,26 @@ function usePhotos(product?: AdminProduct) {
         else next.add(id);
         return next;
       }),
-    add: (files: File[], t: { tooBig: string; badType: string; tooMany: string }) => {
+    /** Any photo the browser can open: big phone photos and HEIC are shrunk and converted first. */
+    add: async (files: File[], t: { unreadable: string; tooMany: string }) => {
       setProblem(null);
+      setPreparing(true);
       const room = MAX_IMAGES - kept.length - added.length;
       const ok: { file: File; url: string }[] = [];
-      for (const file of files) {
-        if (!IMAGE_TYPES.includes(file.type)) {
-          setProblem(fmt(t.badType, { name: file.name }));
-          continue;
-        }
-        if (file.size > MAX_IMAGE_BYTES) {
-          setProblem(fmt(t.tooBig, { name: file.name }));
-          continue;
-        }
+      for (const raw of files) {
         if (ok.length >= room) {
           setProblem(fmt(t.tooMany, { max: MAX_IMAGES }));
           break;
         }
-        ok.push({ file, url: URL.createObjectURL(file) });
+        try {
+          const file = await prepareImage(raw);
+          ok.push({ file, url: URL.createObjectURL(file) });
+        } catch {
+          setProblem(fmt(t.unreadable, { name: raw.name }));
+        }
       }
       setAdded((a) => [...a, ...ok]);
+      setPreparing(false);
     },
     drop: (index: number) =>
       setAdded((a) => {
@@ -388,11 +391,12 @@ export function ProductForm({
                       </span>
                       <input
                         type="file"
-                        accept={IMAGE_TYPES.join(",")}
+                        accept="image/*,.heic,.heif"
                         multiple
+                        disabled={photos.preparing}
                         className="sr-only"
                         onChange={(e) => {
-                          photos.add([...(e.target.files ?? [])], tp);
+                          void photos.add([...(e.target.files ?? [])], tp);
                           e.target.value = "";
                         }}
                       />
@@ -400,6 +404,7 @@ export function ProductForm({
                   </li>
                 )}
               </ul>
+              {photos.preparing && <p role="status" className="mt-3 text-xs text-muted">{tp.preparingPhotos}</p>}
               {photos.problem && <p className="mt-3 text-xs font-semibold text-[#d1342f]">{photos.problem}</p>}
             </Panel>
           </div>
@@ -452,7 +457,7 @@ export function ProductForm({
 
             {!readOnly && (
               <div>
-                <button type="submit" disabled={save.isPending} className="w-full rounded-full bg-blue px-6 py-3.5 font-semibold text-haze hover:bg-blue-deep disabled:opacity-60">
+                <button type="submit" disabled={save.isPending || photos.preparing} className="w-full rounded-full bg-blue px-6 py-3.5 font-semibold text-haze hover:bg-blue-deep disabled:opacity-60">
                   {save.isPending ? tp.saving : product ? tp.save : tp.create}
                 </button>
                 <div role="status" className="mt-3 min-h-5 text-sm">
