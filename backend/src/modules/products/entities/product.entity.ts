@@ -5,6 +5,7 @@ import type {
   ProductSuggestRow,
 } from '../../../models/schemas/product.schema.js';
 import type { RatingSummary } from '../../../models/schemas/review.schema.js';
+import type { PublicSizeChart } from '../size-chart.js';
 
 type PrimaryImage = ProductCardRow['images'][number] | null;
 
@@ -15,8 +16,8 @@ export type ProductCard = Omit<ProductCardRow, 'images'> & {
   rating?: { average: number; count: number } | null;
 };
 
-export type ProductDetail = ProductDetailRow &
-  RatingSummary & { relatedProducts: ProductCard[] };
+export type ProductDetail = Omit<ProductDetailRow, 'sizeChart'> &
+  RatingSummary & { relatedProducts: ProductCard[]; sizeChart: PublicSizeChart | null };
 
 export interface StockStats {
   productStock: number;

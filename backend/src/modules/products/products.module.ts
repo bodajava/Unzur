@@ -6,6 +6,7 @@ import { DiscoveryService } from './discovery.service.js';
 import { ProductsController } from './products.controller.js';
 import { ProductsService } from './products.service.js';
 import { SearchController } from './search.controller.js';
+import { SizeChartService } from './size-chart.service.js';
 import { VariantsController } from './variants.controller.js';
 import { VariantsService } from './variants.service.js';
 
@@ -13,7 +14,7 @@ import { VariantsService } from './variants.service.js';
 @Module({
   imports: [CategoriesModule, BrandsModule],
   controllers: [ProductsController, VariantsController, SearchController],
-  providers: [ProductsService, VariantsService, DiscoveryService, CatalogResolver],
+  providers: [ProductsService, VariantsService, SizeChartService, DiscoveryService, CatalogResolver],
   exports: [ProductsService, DiscoveryService],
 })
 export class ProductsModule {}

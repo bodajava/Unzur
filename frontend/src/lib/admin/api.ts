@@ -68,6 +68,8 @@ export const adminApi = {
   /** multipart: fields + `images` files. */
   createProduct: (form: FormData) => api<AdminProduct>("/products", { method: "POST", form }),
   updateProduct: (id: string, form: FormData) => api<AdminProduct>(`/products/${enc(id)}`, { method: "PATCH", form }),
+  /** multipart: enabled, title, options (JSON [{ label, image: url | "new:N" }]) and new files in `images`. */
+  saveSizeChart: (id: string, form: FormData) => api<AdminProduct>(`/products/${enc(id)}/size-chart`, { method: "PUT", form }),
   deleteProduct: (id: string) => api<{ id: string; deleted: true }>(`/products/${enc(id)}`, { method: "DELETE" }),
   addVariant: (productId: string, v: VariantInput) => api<unknown>(`/products/${enc(productId)}/variants`, { method: "POST", json: v }),
   updateVariant: (id: string, v: Partial<VariantInput>) => api<unknown>(`/variants/${enc(id)}`, { method: "PATCH", json: v }),
@@ -214,6 +216,7 @@ function useProductChange<V, R>(fn: (v: V) => Promise<R>, productId?: string) {
 export const useCreateProduct = () => useProductChange((form: FormData) => adminApi.createProduct(form));
 export const useUpdateProduct = (id: string) => useProductChange((form: FormData) => adminApi.updateProduct(id, form), id);
 export const useDeleteProduct = (id: string) => useProductChange(() => adminApi.deleteProduct(id), id);
+export const useSaveSizeChart = (id: string) => useProductChange((form: FormData) => adminApi.saveSizeChart(id, form), id);
 export const useAddVariant = (productId: string) =>
   useProductChange((v: VariantInput) => adminApi.addVariant(productId, v), productId);
 export const useUpdateVariant = (productId: string) =>

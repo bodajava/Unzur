@@ -129,6 +129,8 @@ export interface ProductDetail extends Omit<ProductCard, "primaryImage" | "varia
   averageRating: number | null;
   reviewCount: number;
   relatedProducts: ProductCard[];
+  /** Corner button on the product page (only when the store turned it on). */
+  sizeChart?: { title: string; options: { label: string; url: string }[] } | null;
 }
 
 export interface Recommendation extends ProductCard {

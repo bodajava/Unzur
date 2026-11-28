@@ -38,6 +38,7 @@ import {
   withStockStats,
 } from './entities/product.entity.js';
 import { buildProductWhere } from './product-filters.js';
+import { publicSizeChart } from './size-chart.js';
 import { ProductVariantRepository } from '../../models/repositories/product-variant.repository.js';
 
 export const MAX_PRODUCT_IMAGES = 10;
@@ -132,7 +133,12 @@ export class ProductsService implements OnApplicationBootstrap {
     ]);
     this.discovery.trackView(product.id, actor, ipAddress);
 
-    return { ...product, ...rating, relatedProducts: related.map(toCard) };
+    return {
+      ...product,
+      ...rating,
+      sizeChart: publicSizeChart(product.sizeChart),
+      relatedProducts: related.map(toCard),
+    };
   }
 
   // ───────────── 2.3 Admin list ─────────────

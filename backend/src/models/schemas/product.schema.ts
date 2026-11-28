@@ -85,6 +85,8 @@ export const PRODUCT_DETAIL_SELECT = {
   salePrice: true,
   stock: true,
   isFeatured: true,
+  /** Raw JSON: the service passes on only an enabled chart (publicSizeChart). */
+  sizeChart: true,
   categoryId: true,
   brandId: true,
   createdAt: true,
@@ -131,6 +133,7 @@ export const PRODUCT_ADMIN_SELECT = {
   lowStockThreshold: true,
   isActive: true,
   isFeatured: true,
+  sizeChart: true,
   categoryId: true,
   brandId: true,
   deletedAt: true,

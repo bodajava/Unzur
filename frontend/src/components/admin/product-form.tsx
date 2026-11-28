@@ -14,6 +14,7 @@ import { errorMessage } from "@/lib/api/errors";
 import { useBrands, useCategories } from "@/lib/api/hooks";
 import { MONEY, toEgp, toPiasters } from "./money";
 import { Panel } from "./ui";
+import { SizeChartEditor } from "./size-chart-editor";
 import { VariantsEditor } from "./variants-editor";
 
 interface Fields {
@@ -491,6 +492,9 @@ export function ProductForm({
       {product && !readOnly && (
         <div className="mt-6">
           <VariantsEditor productId={product.id} variants={product.variants} images={product.images} />
+          <div className="mt-6">
+            <SizeChartEditor productId={product.id} chart={product.sizeChart ?? null} />
+          </div>
         </div>
       )}
     </div>

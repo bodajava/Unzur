@@ -246,6 +246,8 @@ model Product {
   lowStockThreshold Int                      @default(5) @map("low_stock_threshold")
   isActive          Boolean                  @default(true) @map("is_active")
   isFeatured        Boolean                  @default(false) @map("is_featured")
+  /// Size chart shown from a button on the product page: { enabled, title, options: [{ label, url }] } (up to 2).
+  sizeChart         Json?                    @map("size_chart")
   categoryId        String                   @map("category_id") @db.Uuid
   brandId           String?                  @map("brand_id") @db.Uuid
   /// Maintained by a PostgreSQL trigger (see init migration). Do not write directly.

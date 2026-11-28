@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   Req,
   UploadedFiles,
@@ -36,9 +37,12 @@ import {
   CreateVariantDto,
   NotifyMeDto,
   ProductQueryDto,
+  SaveSizeChartDto,
   UpdateProductDto,
 } from './dto/index.js';
+import { MAX_SIZE_CHART_OPTIONS } from './dto/size-chart.dto.js';
 import { MAX_PRODUCT_IMAGES, ProductsService } from './products.service.js';
+import { SizeChartService } from './size-chart.service.js';
 import { VariantsService } from './variants.service.js';
 
 const WRITERS = [UserRole.SUPER_ADMIN, UserRole.ADMIN] as const;
@@ -53,6 +57,7 @@ export class ProductsController {
     private readonly products: ProductsService,
     private readonly variants: VariantsService,
     private readonly discovery: DiscoveryService,
+    private readonly sizeCharts: SizeChartService,
   ) {}
 
   /** 2.1 */
@@ -132,6 +137,22 @@ export class ProductsController {
     @Audit() audit: AuditContext,
   ) {
     return this.products.update(id, dto, files, audit);
+  }
+
+  /** 2.5b Size chart: a button on the product page with up to 2 photos (multipart, new files in `images`). */
+  @Roles(...WRITERS)
+  @Put(':id/size-chart')
+  @UseInterceptors(
+    FilesInterceptor('images', MAX_SIZE_CHART_OPTIONS, createMulterMemoryOptions({ maxFiles: MAX_SIZE_CHART_OPTIONS })),
+  )
+  @ResponseMessage('Size chart saved')
+  saveSizeChart(
+    @Param('id', ParseIdPipe) id: string,
+    @Body() dto: SaveSizeChartDto,
+    @UploadedFiles() files: Express.Multer.File[] | undefined,
+    @Audit() audit: AuditContext,
+  ) {
+    return this.sizeCharts.save(id, dto, files, audit);
   }
 
   /** 2.6 Soft delete. */

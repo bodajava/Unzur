@@ -207,6 +207,20 @@ export interface AdminVariant {
   isActive: boolean;
 }
 
+export interface SizeChartOption {
+  label: string;
+  url: string;
+}
+
+/** A button on the product page; each choice opens its photo. */
+export interface SizeChart {
+  enabled: boolean;
+  title: string;
+  options: SizeChartOption[];
+}
+
+export const MAX_SIZE_CHART_OPTIONS = 2;
+
 export interface AdminProduct {
   id: string;
   name: string;
@@ -233,6 +247,8 @@ export interface AdminProduct {
   brand: { id: string; name: string; slug: string; logoUrl: string | null } | null;
   images: AdminImage[];
   variants: AdminVariant[];
+  /** Stored as is: may be off (enabled false) with its photos kept. */
+  sizeChart: SizeChart | null;
   stockStats: {
     productStock: number;
     variantStock: number;
